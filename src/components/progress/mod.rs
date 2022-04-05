@@ -2,18 +2,18 @@ mod progress;
 
 use progress::Progress;
 
-use yew::{Component, Properties, html};
+use yew::{html, Component, Properties};
 
 pub enum ProgressMsg {}
 
 #[derive(Properties, PartialEq)]
 pub struct Props {
     pub loaded: f64,
-    pub total: f64
+    pub total: f64,
 }
 
 pub struct ProgressComponent {
-    progress: Progress
+    progress: Progress,
 }
 
 impl Component for ProgressComponent {
@@ -22,9 +22,7 @@ impl Component for ProgressComponent {
 
     fn create(ctx: &yew::Context<Self>) -> Self {
         let progress = Progress::new(ctx.props().loaded, ctx.props().total);
-        Self {
-            progress
-        }
+        Self { progress }
     }
 
     fn view(&self, _ctx: &yew::Context<Self>) -> yew::Html {
@@ -35,7 +33,7 @@ impl Component for ProgressComponent {
                 <div class="progress-bar" role="progressbar" id="fileUploadProgress" style={ format!("width: {}%", percent)} aria-valuenow={self.progress.loaded().to_string()} aria-valuemin="0" aria-valuemax={self.progress.total().to_string()}></div>
             </div>
             <p>{ self.progress.loaded_string() } { self.progress.loaded_unit() } { " von " } { self.progress.total_string() } { self.progress.total_unit() } { " geladen" }</p>
-            </>      
+            </>
         }
     }
 
@@ -45,4 +43,3 @@ impl Component for ProgressComponent {
         true
     }
 }
-

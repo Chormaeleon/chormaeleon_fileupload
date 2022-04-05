@@ -1,4 +1,3 @@
-use gloo_dialogs::alert;
 use web_sys::ProgressEvent;
 use yew::{html, Component, Context, Html, Properties};
 
@@ -30,6 +29,7 @@ pub struct UploadProperties {
     pub form_id: String,
     pub field_name: String,
     pub target_url: String,
+    pub multiple: bool,
 }
 
 impl Component for Upload {
@@ -96,20 +96,21 @@ impl Component for Upload {
             Msg::UploadOnload => {
                 //self.current_request = None;
                 self.upload_successfully_finished = true;
+                self.current_request = None;
                 self.progress = None;
                 true
             }
             Msg::Abort => {
                 let current_request = self.current_request.take();
 
-                match current_request {
-                    Some(request) => {
-                        request.abort();
-                        self.progress = None;
-                    }
-                    None => (),
+                if let Some(request) = current_request {
+                    request.abort();
+                    self.progress = None;
+                    self.current_request = None;
+                    return true;
                 }
-                true
+
+                false
             }
         }
     }
@@ -118,30 +119,31 @@ impl Component for Upload {
         html! {
             <div>
                 <div>
-                    <p>{ "Hier könnt ihr eure Datei hochladen" }</p>
-                    <form id={ctx.props().form_id.clone()} class="" name="form2" enctype="multipart/form-data">
-                    <input type="file" class="form-control" name={ctx.props().field_name.clone()} multiple=true onchange={ctx.link().callback(move |_| {
-                            Msg::Files
-                        })}
-                    />
-                    </form>
+
+                    <input type="file" class="form-control" name={ctx.props().field_name.clone()} multiple={ ctx.props().multiple }/>
+
                     if let Some(progress) = &self.progress {
                         <div class="mt-2">
-                        <h4>{ "Upload läuft" }</h4>
-                        <ProgressComponent loaded={ progress.loaded } total={ progress.total }/>
+                            <h4>{ "Upload läuft" }</h4>
+                            <ProgressComponent loaded={ progress.loaded } total={ progress.total }/>
                         </div>
                     }
-                    if let Some(request) = &self.current_request {
-                        <div class="mt-2">
-                            <button type="button" class="btn btn-danger" onclick={ctx.link().callback(move|_| { Msg::Abort })}> { "Abbrechen" } </button>
-                            <p>{ request.ready_state().to_string() }</p>
+                    <div class="row mt-2">
+                        <div class="col">
+                            if self.upload_successfully_finished {
+                                <div class="mt-2">
+                                <h4> { "Upload erfolgreich!" } </h4>
+                                </div>
+                            }
+                            </div>
+                        <div class="col text-end">
+                            if self.current_request.is_some() {
+                                <button type="button" class="btn btn-danger" onclick={ctx.link().callback(move|_| { Msg::Abort })}> { "Abbrechen" } </button>
+                            } else {
+                            <button type="button" class="btn btn-danger" onclick={ctx.link().callback(move |_| { Msg::Files })}> { "Upload starten" }</button>
+                            }
                         </div>
-                    }
-                    if self.upload_successfully_finished {
-                        <div class="mt-2">
-                        <h4> { "Upload erfolgreich!" } </h4>
-                        </div>
-                    }
+                    </div>
                 </div>
             </div>
         }

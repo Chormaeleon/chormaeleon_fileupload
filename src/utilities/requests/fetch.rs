@@ -60,16 +60,16 @@ pub async fn get_request_string(url: String) -> Result<String, FetchError> {
     }
 }
 
-pub async fn get_request_struct<T: for<'a> serde::de::Deserialize<'a>>(url: String) -> Result<T, FetchError> {
+pub async fn get_request_struct<T: for<'a> serde::de::Deserialize<'a>>(
+    url: String,
+) -> Result<T, FetchError> {
     let mut opts = RequestInit::new();
     opts.method("GET");
     opts.mode(RequestMode::Cors);
 
     let request = Request::new_with_str_and_init(&url, &opts)?;
 
-    request
-        .headers()
-        .set("Accept", "application/json")?;
+    request.headers().set("Accept", "application/json")?;
 
     let window = web_sys::window().unwrap();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;

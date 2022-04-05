@@ -26,7 +26,7 @@ pub struct PostRequest {
     request_ontimeout: Option<JsValue>,
     _async: bool,
     content: Option<PostRequestContent>,
-    headers: HashMap<String, String>
+    headers: HashMap<String, String>,
 }
 
 impl PostRequest {
@@ -193,13 +193,12 @@ impl PostRequest {
         }
     }
 
-    fn set_headers(&self, request: &XmlHttpRequest) -> Result<(), JsValue>{
+    fn set_headers(&self, request: &XmlHttpRequest) -> Result<(), JsValue> {
         for (key, value) in &self.headers {
-            request.set_request_header(&key, &value)?;
+            request.set_request_header(key, value)?;
         }
         Ok(())
     }
-
 }
 
 impl Default for PostRequest {
@@ -221,7 +220,7 @@ impl Default for PostRequest {
             request_onloadstart: None,
             request_on_progress: None,
             request_ontimeout: None,
-            headers: Default::default()
+            headers: Default::default(),
         }
     }
 }

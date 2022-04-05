@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use yew::{function_component, html, Properties, classes};
+use yew::{classes, function_component, html, Properties};
 use yew_router::prelude::Link;
 
 use crate::Route;
@@ -7,14 +7,13 @@ use crate::Route;
 #[derive(Deserialize, PartialEq, Clone)]
 pub struct ContributionListItem {
     pub id: usize,
-    pub name: String,
+    pub title: String,
     pub due: String,
 }
 
-
 #[derive(Properties, PartialEq, Clone)]
 pub struct Contributions {
-    pub(crate) contributions: Vec<ContributionListItem>
+    pub(crate) contributions: Vec<ContributionListItem>,
 }
 
 #[function_component(ContributionList)]
@@ -36,7 +35,7 @@ pub fn contribution_list(contributions: &Contributions) -> Html {
                         <tr>
                             <td>
                                 <Link<Route> classes={classes!("navbar-item")} to={Route::Event{id: upload.id}}>
-                                    { &upload.name }
+                                    { &upload.title }
                                 </Link<Route>>
                             </td>
                             <td>

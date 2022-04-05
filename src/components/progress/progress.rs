@@ -22,7 +22,6 @@ impl Display for Unit {
     }
 }
 
-
 #[derive(Clone, Debug, PartialEq)]
 pub struct Progress {
     loaded: f64,
@@ -43,7 +42,7 @@ impl Progress {
             loaded_string,
             total_string,
             loaded_unit,
-            total_unit
+            total_unit,
         }
     }
 
@@ -69,7 +68,7 @@ impl Progress {
     pub fn total(&self) -> f64 {
         self.total
     }
-    
+
     pub fn total_string(&self) -> &String {
         &self.total_string
     }
@@ -112,7 +111,6 @@ fn get_unit(value: f64) -> (Unit, String) {
     (unit, value.floor().to_string())
 }
 
-
 #[cfg(test)]
 mod progress_test {
     use super::{get_unit, Progress, Unit};
@@ -147,7 +145,7 @@ mod progress_test {
             loaded_string: "0".into(),
             total_string: "0".into(),
             loaded_unit: Unit::Bytes,
-            total_unit: Unit::Bytes
+            total_unit: Unit::Bytes,
         };
         assert_eq!(progress, reference);
     }
@@ -163,7 +161,7 @@ mod progress_test {
             loaded_string: "50".into(),
             total_string: "3000".into(),
             loaded_unit: Unit::Kilobytes,
-            total_unit: Unit::Megabytes
+            total_unit: Unit::Megabytes,
         };
         assert_eq!(progress, reference);
     }
