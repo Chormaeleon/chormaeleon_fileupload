@@ -182,7 +182,14 @@ impl Component for Home {
             Msg::DateInput(event) => {
                 let date_string = get_value_from_event(event);
                 self.project_due_date =
-                    NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%.3f").unwrap();
+                    match NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%.3f") {
+                        Ok(date_time) => date_time,
+                        Err(e) => NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S")
+                            .unwrap_or_else(|_| {
+                                NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M")
+                                    .expect("problem")
+                            }),
+                    };
                 false
             }
             Msg::CreateProjectSuccess(new_item) => {
