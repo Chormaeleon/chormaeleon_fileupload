@@ -33,14 +33,14 @@ pub fn get_token() -> String {
 
     let document = window.document().unwrap_throw();
 
-    let param = match get_jwt_from_url_param(document, window) {
+    let param = match get_jwt_from_url_param(document) {
         Ok(value) => value,
-        Err(value) => {
+        Err(_) => {
             window
                 .location()
                 .set_href("http://localhost:8081/turnin")
                 .unwrap_throw();
-            return Err("".to_string());
+            return "".to_string();
         }
     };
 
@@ -51,7 +51,6 @@ pub fn get_token() -> String {
 
 fn get_jwt_from_url_param(
     document: web_sys::Document,
-    window: web_sys::Window,
 ) -> Result<String, ()> {
     let params =
         UrlSearchParams::new_with_str(&document.location().unwrap_throw().search().unwrap_throw())
