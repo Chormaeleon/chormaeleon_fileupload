@@ -226,7 +226,7 @@ impl Default for PostRequest {
 }
 
 pub struct SentRequest {
-    request: XmlHttpRequest,
+    pub request: XmlHttpRequest,
 }
 
 impl SentRequest {

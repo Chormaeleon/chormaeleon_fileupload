@@ -1,6 +1,6 @@
-mod progress;
+mod progress_component;
 
-use progress::Progress;
+use progress_component::Progress;
 
 use yew::{html, Component, Properties};
 

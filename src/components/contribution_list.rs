@@ -4,7 +4,7 @@ use yew_router::prelude::Link;
 
 use crate::Route;
 
-#[derive(Deserialize, PartialEq, Clone)]
+#[derive(Default, Deserialize, PartialEq, Clone)]
 pub struct ContributionListItem {
     pub id: usize,
     pub title: String,

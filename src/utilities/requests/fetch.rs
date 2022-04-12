@@ -3,9 +3,12 @@ use std::{
     fmt::{self, Debug, Display, Formatter},
 };
 
-use wasm_bindgen::{JsCast, JsValue};
+use serde::Serialize;
+use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response};
+use web_sys::{Headers, Request, RequestInit, RequestMode, Response};
+
+use crate::components::jwt_context::get_token;
 
 /// Something wrong has occurred while fetching an external resource.
 #[derive(Debug)]
@@ -83,6 +86,42 @@ pub async fn get_request_struct<T: for<'a> serde::de::Deserialize<'a>>(
 
     // Use serde to parse the JSON into a struct.
     let result: T = json.into_serde()?;
+
+    Ok(result)
+}
+
+pub async fn post_request_struct<
+    PAYLOAD: Serialize,
+    RESPONSE: for<'a> serde::de::Deserialize<'a>,
+>(
+    url: &str,
+    payload: PAYLOAD,
+) -> Result<RESPONSE, FetchError> {
+    let mut opts = RequestInit::new();
+    opts.method("POST");
+    opts.mode(RequestMode::Cors);
+    let headers = Headers::new().unwrap();
+    headers.append("Authorization", &format!("Bearer {}", get_token())).unwrap_throw();
+    headers
+        .append("Content-Type", "application/json")
+        .unwrap_throw();
+    opts.headers(&headers);
+    let string = serde_json::to_string(&payload).map_err(FetchError::from)?;
+    opts.body(Some(&string.into()));
+
+    let request = Request::new_with_str_and_init(url, &opts)?;
+
+    let window = gloo_utils::window();
+    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+    // `resp_value` is a `Response` object.
+    assert!(resp_value.is_instance_of::<Response>());
+    let resp: Response = resp_value.dyn_into().unwrap();
+
+    // Convert this other `Promise` into a rust `Future`.
+    let json = JsFuture::from(resp.json()?).await?;
+
+    // Use serde to parse the JSON into a struct.
+    let result: RESPONSE = json.into_serde()?;
 
     Ok(result)
 }

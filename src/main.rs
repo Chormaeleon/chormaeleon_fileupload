@@ -6,6 +6,7 @@ mod components;
 mod pages;
 use pages::contribution::Contribution;
 use pages::home::Home;
+use crate::components::jwt_context::JWTProvider;
 
 mod utilities;
 
@@ -35,11 +36,13 @@ impl Component for App {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         html! {
+            <JWTProvider>
             <BrowserRouter>
                 <main>
-                    <Switch<Route> render={Switch::render(switch)} />
+                        <Switch<Route> render={Switch::render(switch)} />
                 </main>
             </BrowserRouter>
+            </JWTProvider>
         }
     }
 }

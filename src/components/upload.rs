@@ -1,15 +1,19 @@
-use web_sys::ProgressEvent;
-use yew::{html, Component, Context, Html, Properties};
+use gloo_dialogs::alert;
+use web_sys::{ErrorEvent, ProgressEvent};
+use yew::{html, Callback, Component, Context, Html, Properties};
 
 use crate::components::progress::ProgressComponent;
 
 use crate::utilities::requests::xmlhttp_post_request::{PostRequest, SentRequest};
+
+use super::jwt_context::get_token;
 
 pub enum Msg {
     Files,
     UploadFile,
     UploadUpdate { loaded: f64, total: f64 },
     UploadOnload,
+    UploadOnerror(String),
     Abort,
 }
 
@@ -30,6 +34,7 @@ pub struct UploadProperties {
     pub field_name: String,
     pub target_url: String,
     pub multiple: bool,
+    pub success_callback: Callback<String>,
 }
 
 impl Component for Upload {
@@ -63,9 +68,16 @@ impl Component for Upload {
                     });
                 };
 
-                request.set_header("Authorization".to_string(), "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzZWN0aW9uIjoiU29wcmFuIiwibmFtZSI6Ik1heGkgTXVzdGVybWFubiIsImlzX2FkbWluIjpmYWxzZSwidXNlcl9pZCI6MSwiZXhwIjoyNjAzMTM0MjA1fQ.MWejEAktVwjgmHztxd7QOx3TMG8Ek2jLr3AbVwBj0nfpvN6wQxuggUXoy9MReTvjpEDh0QSgC1ElHJymtnrKEA".to_string());
+                let link = ctx.link().to_owned();
+
+                let error_callback = move |error: ErrorEvent| {
+                    link.send_message(Msg::UploadOnerror(/*error.message() -> is undefined, creates a type error!*/"Noch nicht verfügbar, siehe Konsole (F11)".to_string()));
+                };
+
+                request.set_header("Authorization".to_string(), format!("Bearer {}", get_token()));
 
                 request.set_upload_onprogress(Some(Box::new(progress_callback)));
+                request.set_upload_onerror(Some(Box::new(error_callback)));
 
                 let link = ctx.link().to_owned();
 
@@ -79,6 +91,13 @@ impl Component for Upload {
 
                 self.current_request = Some(sent_request);
 
+                true
+            }
+            Msg::UploadOnerror(message) => {
+                alert(&format!("Beim Upload ist ein Fehler aufgetreten! Bitte versuche es erneut und wende dich dann an den/die Administrator*in. Fehlermeldung: {}", message));
+                self.upload_successfully_finished = false;
+                self.progress = None;
+                self.current_request = None;
                 true
             }
             Msg::UploadUpdate { loaded, total } => {
@@ -95,9 +114,21 @@ impl Component for Upload {
             }
             Msg::UploadOnload => {
                 //self.current_request = None;
+
+                let text = self
+                    .current_request
+                    .take()
+                    .unwrap()
+                    .request
+                    .response_text()
+                    .unwrap()
+                    .unwrap();
+
                 self.upload_successfully_finished = true;
-                self.current_request = None;
+                //self.current_request = None;
                 self.progress = None;
+
+                ctx.props().success_callback.emit(text);
                 true
             }
             Msg::Abort => {

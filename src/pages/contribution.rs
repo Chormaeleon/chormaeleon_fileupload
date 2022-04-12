@@ -13,6 +13,7 @@ use gloo_dialogs::alert;
 pub enum Msg {
     MetadataLoaded(Project),
     MetadataLoadError(FetchError),
+    MetadataUpload(String),
 }
 
 #[derive(Deserialize, PartialEq, Clone)]
@@ -58,6 +59,7 @@ impl Component for Contribution {
         match &self.metadata {
             Some(metadata) => html! {
                 <>
+               
                 <div class="row mt-2">
                     <div class="col">
                         <h1>{ &metadata.heading }</h1>
@@ -66,9 +68,15 @@ impl Component for Contribution {
                 </div>
                 <div class="row">
                     <div class="col">
-                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                        <a href="http://localhost:8080"> <button type="button" class="btn btn-outline-danger"> { "zurück" } </button></a>
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#uploadMaterialModal">
                             { "Übungsmaterial hinzufügen" }
                         </button>
+                    </div>
+                    <div class="col">
+                       <a href={format!("http://localhost:8001/projects/{}/allSubmissions", ctx.props().id)} download="true">  <button class="btn btn-danger">{ "Abgaben downloaden" } </button></a>
                     </div>
                 </div>
                 <div class="row mt-2">
@@ -157,22 +165,22 @@ impl Component for Contribution {
                             <div class="row">
                                 <div class="col">
                                     <label for="inputContentTitle"> { "Anmerkungen" } </label>
-                                    <input id="inputContentTitle" type="text" class="form-control" name="title" placeholder="z.B. Takt 15 bitte rausschneiden..."/>
+                                    <input id="inputContentTitle" type="text" class="form-control" name="note" maxlength="100" placeholder="z.B. Takt 15 bitte rausschneiden..."/>
                                 </div>
                             </div>
                             <div class="row mt-2">
                                 <div class="col">
-                                    <Upload form_id="inputContentUpload" field_name="file" target_url={format!("http://localhost:8001/projects/{}", ctx.props().id) } multiple=true/>
+                                    <Upload form_id="inputContentUpload" field_name="file" target_url={format!("http://localhost:8001/projects/{}", ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::MetadataUpload) }/>
                                 </div>
                             </div>
                         </form>
                     </div>
                 </div>
-                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal fade" id="uploadMaterialModal" tabindex="-1" aria-labelledby="uploadMaterialModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">{ "Material hochladen" }</h5>
+                                <h5 class="modal-title" id="uploadMaterialModalLabel">{ "Material hochladen" }</h5>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                             </div>
                             <div class="modal-body">
@@ -194,7 +202,7 @@ impl Component for Contribution {
                                         </div>
                                         <div class="row mt-2">
                                             <div class="col">
-                                                <Upload form_id="inputMaterialUpload" field_name="file" target_url={format!("http://localhost:8001/projects/{}/material", ctx.props().id) } multiple=false/>
+                                                <Upload form_id="inputMaterialUpload" field_name="file" target_url={format!("http://localhost:8001/projects/{}/material", ctx.props().id) } multiple=false success_callback={ ctx.link().callback(Msg::MetadataUpload) }/>
                                             </div>
                                         </div>
                                     </form>
@@ -215,18 +223,7 @@ impl Component for Contribution {
 
     fn rendered(&mut self, ctx: &yew::Context<Self>, first_render: bool) {
         if first_render {
-            let id = ctx.props().id;
-            ctx.link().send_future(async move {
-                match get_request_struct::<Project>(format!(
-                    "http://localhost:8001/projects/{}",
-                    id
-                ))
-                .await
-                {
-                    Ok(metadata) => Msg::MetadataLoaded(metadata),
-                    Err(error) => Msg::MetadataLoadError(error),
-                }
-            })
+            load_data(ctx);
         }
     }
 
@@ -250,8 +247,27 @@ impl Component for Contribution {
                 }
                 true
             }
+            Msg::MetadataUpload(_text) => {
+                load_data(ctx);
+                true
+            }
         }
     }
+}
+
+fn load_data(ctx: &yew::Context<Contribution>) {
+    let id = ctx.props().id;
+    ctx.link().send_future(async move {
+        match get_request_struct::<Project>(format!(
+            "http://localhost:8001/projects/{}",
+            id
+        ))
+        .await
+        {
+            Ok(metadata) => Msg::MetadataLoaded(metadata),
+            Err(error) => Msg::MetadataLoadError(error),
+        }
+    })
 }
 
 fn material_url(id: usize, file_technical_name: &str) -> String {
