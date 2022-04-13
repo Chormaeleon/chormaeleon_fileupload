@@ -96,21 +96,23 @@ impl Component for Contribution {
                 <div class="row mt-2">
                     <div class="col">
                         <h2>{ "Videos" }</h2>
-                    </div>
-                </div>
-                { for metadata.materials_video.iter().map(|video| html!{
-                    <div class="row">
-                        <div class="col">
-                        <h5> { &video.title } </h5>
-                            <div class="ratio ratio-16x9">
-                                <video id={video.title.clone()} controls=true>
-                                    <source src={ material_url(ctx.props().id, &video.file_technical_name) }/>
-                                </video>
+                  
+                        { for metadata.materials_video.iter().map(|video| html!{
+                            <div class="row">
+                                <div class="col">
+                                <h5> { &video.title } </h5>
+                                <div class="ratio ratio-16x9">
+                                        <video id={video.title.clone()} controls=true>
+                                            <source src={ material_url(ctx.props().id, &video.file_technical_name) }/>
+                                        </video>
+                                    </div>
+                                    <h6> <i> { &video.file_name } </i> </h6>
+                                </div>
                             </div>
-                            <h6> <i> { &video.file_name } </i> </h6>
+                        })}
+
                         </div>
-                    </div>
-                })}
+                </div>
                 <div class="row mt-2">
                     <div class="col">
                         <h2>{ "Noten" }</h2>
