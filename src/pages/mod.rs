@@ -1,2 +1,2 @@
-pub mod contribution;
+pub mod projects;
 pub mod home;

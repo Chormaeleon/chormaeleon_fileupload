@@ -4,7 +4,7 @@ use yew_router::prelude::*;
 mod components;
 
 mod pages;
-use pages::contribution::Contribution;
+use pages::projects::Projects;
 use pages::home::Home;
 use crate::components::jwt_context::JWTProvider;
 
@@ -55,7 +55,7 @@ fn switch(routes: &Route) -> Html {
         Route::Event { id } => {
             html! {
                  <div class="container mb-2">
-                    <Contribution id={ id }/>
+                    <Projects id={ id }/>
                 </div>
             }
         }

@@ -5,6 +5,7 @@ use crate::{
 use chrono::{NaiveDateTime, Utc};
 use gloo_console::error;
 use gloo_dialogs::alert;
+use gloo_utils::document;
 use serde::Serialize;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::HtmlInputElement;
@@ -53,7 +54,13 @@ impl Component for Home {
             <>
             <script>
             {"tinymce.init({
-                selector: '#textareaDescription'
+                selector: '#textareaDescription',
+                setup: (editor) => {
+                    editor.on('input', (e) => {
+                        textareaDescription.textContent = e.target.textContent;
+                      console.log('Input: ', textareaDescription.textContent);
+                    });
+                }
             });"}
             </script>
             <div class="container">
@@ -148,7 +155,7 @@ impl Component for Home {
                 }
 
                 let title = self.project_title.clone();
-                let description = self.project_description.clone();
+                let description = get_element_string_value("textareaDescription");
                 let due_date = self.project_due_date;
 
                 ctx.link().send_future(async move {
@@ -204,6 +211,7 @@ impl Component for Home {
                 alert("Konnte Projekt nicht erstellen! Details ggfs. siehe Konsole.");
                 false
             }
+
         }
     }
 }
@@ -234,4 +242,10 @@ fn get_value_from_event(e: Event) -> String {
     let event_target = e.target().unwrap_throw();
     let target: HtmlInputElement = event_target.dyn_into().unwrap_throw();
     target.value()
+}
+
+fn get_element_string_value(name: &str) -> String {
+    let document = document();
+    let element = document.get_element_by_id(name).unwrap_throw();
+    element.text_content().unwrap_throw()
 }

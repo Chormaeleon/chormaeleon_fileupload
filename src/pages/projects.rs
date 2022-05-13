@@ -1,7 +1,8 @@
 use crate::{
-    components::upload::Upload,
+    components::{iframe::IFrame, upload::Upload},
     utilities::requests::fetch::{get_request_struct, FetchError},
 };
+
 use serde::Deserialize;
 use yew::{html, Component, Properties};
 
@@ -37,7 +38,7 @@ pub struct MetadataEntry {
     pub upload_at: NaiveDateTime,
 }
 
-pub struct Contribution {
+pub struct Projects {
     metadata: Option<Project>,
 }
 
@@ -46,7 +47,7 @@ pub struct ContributionProperties {
     pub id: usize,
 }
 
-impl Component for Contribution {
+impl Component for Projects {
     type Message = Msg;
 
     type Properties = ContributionProperties;
@@ -59,11 +60,11 @@ impl Component for Contribution {
         match &self.metadata {
             Some(metadata) => html! {
                 <>
-               
+
                 <div class="row mt-2">
                     <div class="col">
                         <h1>{ &metadata.heading }</h1>
-                        <iframe srcdoc={metadata.description.clone()}></iframe>
+                        <IFrame content={metadata.description.clone()}/>
                     </div>
                 </div>
                 <div class="row">
@@ -96,7 +97,7 @@ impl Component for Contribution {
                 <div class="row mt-2">
                     <div class="col">
                         <h2>{ "Videos" }</h2>
-                  
+
                         { for metadata.materials_video.iter().map(|video| html!{
                             <div class="row">
                                 <div class="col">
@@ -257,14 +258,10 @@ impl Component for Contribution {
     }
 }
 
-fn load_data(ctx: &yew::Context<Contribution>) {
+fn load_data(ctx: &yew::Context<Projects>) {
     let id = ctx.props().id;
     ctx.link().send_future(async move {
-        match get_request_struct::<Project>(format!(
-            "http://localhost:8001/projects/{}",
-            id
-        ))
-        .await
+        match get_request_struct::<Project>(format!("http://localhost:8001/projects/{}", id)).await
         {
             Ok(metadata) => Msg::MetadataLoaded(metadata),
             Err(error) => Msg::MetadataLoadError(error),

@@ -28,6 +28,7 @@ features = [
   "FormData",
   "Headers",
   "HtmlFormElement",
+  "HtmlIFrameElement",
   "HtmlInputElement",
   "HtmlProgressElement",
   "Location",
