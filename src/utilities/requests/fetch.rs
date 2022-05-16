@@ -101,7 +101,9 @@ pub async fn post_request_struct<
     opts.method("POST");
     opts.mode(RequestMode::Cors);
     let headers = Headers::new().unwrap();
-    headers.append("Authorization", &format!("Bearer {}", get_token())).unwrap_throw();
+    headers
+        .append("Authorization", &format!("Bearer {}", get_token()))
+        .unwrap_throw();
     headers
         .append("Content-Type", "application/json")
         .unwrap_throw();

@@ -211,7 +211,6 @@ impl Component for Home {
                 alert("Konnte Projekt nicht erstellen! Details ggfs. siehe Konsole.");
                 false
             }
-
         }
     }
 }

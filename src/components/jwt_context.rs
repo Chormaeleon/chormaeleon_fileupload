@@ -49,9 +49,7 @@ pub fn get_token() -> String {
     param
 }
 
-fn get_jwt_from_url_param(
-    document: web_sys::Document,
-) -> Result<String, ()> {
+fn get_jwt_from_url_param(document: web_sys::Document) -> Result<String, ()> {
     let params =
         UrlSearchParams::new_with_str(&document.location().unwrap_throw().search().unwrap_throw())
             .unwrap_throw();
