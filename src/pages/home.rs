@@ -226,6 +226,7 @@ fn log_fetch_error(error: FetchError) {
             error!("type could not be parsed!");
             error!(serde_error.to_string());
         }
+        FetchError::StatusCode(status) => error!("Got status code {} from request!", status),
     }
 }
 

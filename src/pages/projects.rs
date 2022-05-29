@@ -1,9 +1,11 @@
 use crate::{
-    components::{iframe::IFrame, upload::Upload},
+    components::{iframe::IFrame, submission_list::SubmissionList, upload::Upload},
+    service::submission::{Submission, submissions_by_project, submissions_by_project_and_user},
     utilities::requests::fetch::{get_request_struct, FetchError},
 };
 
 use serde::Deserialize;
+use wasm_bindgen::UnwrapThrowExt;
 use yew::{html, Component, Properties};
 
 use chrono::NaiveDateTime;
@@ -12,13 +14,17 @@ use gloo_console::error;
 use gloo_dialogs::alert;
 
 pub enum Msg {
-    MetadataLoaded(Project),
+    MetadataLoaded(ProjectTo),
     MetadataLoadError(FetchError),
     MetadataUpload(String),
+    AllSubmissionsLoaded(Vec<Submission>),
+    MySubmissionsLoaded(Vec<Submission>),
+    SubmissionsLoadError(FetchError),
+    SubmissionDeleted(i32)
 }
 
 #[derive(Deserialize, PartialEq, Clone)]
-pub struct Project {
+pub struct ProjectTo {
     pub heading: String,
     pub description: String,
     pub materials_audio: Vec<MetadataEntry>,
@@ -38,22 +44,28 @@ pub struct MetadataEntry {
     pub upload_at: NaiveDateTime,
 }
 
-pub struct Projects {
-    metadata: Option<Project>,
+pub struct ProjectComponent {
+    metadata: Option<ProjectTo>,
+    all_submissions: Option<Vec<Submission>>,
+    my_submissions: Vec<Submission>
 }
 
 #[derive(PartialEq, Properties)]
-pub struct ContributionProperties {
-    pub id: usize,
+pub struct ProjectProperties {
+    pub id: i32,
 }
 
-impl Component for Projects {
+impl Component for ProjectComponent {
     type Message = Msg;
 
-    type Properties = ContributionProperties;
+    type Properties = ProjectProperties;
 
     fn create(_ctx: &yew::Context<Self>) -> Self {
-        Self { metadata: None }
+        Self {
+            metadata: None,
+            all_submissions: None,
+            my_submissions: Vec::new(),
+        }
     }
 
     fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
@@ -179,6 +191,28 @@ impl Component for Projects {
                         </form>
                     </div>
                 </div>
+                <div class="row mt-2">
+                    <div class="col">
+                        <h4>{ "Meine Abgaben" }</h4>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col">
+                        <SubmissionList submissions={ self.my_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }/>
+                    </div>
+                </div>
+                if let Some(all_submissions) = &self.all_submissions {
+                    <div class="row mt-2">
+                        <div class="col">
+                            <h4>{ "Alle Abgaben" }</h4>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <SubmissionList submissions={ all_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }/>
+                        </div>
+                    </div>
+                }
                 <div class="modal fade" id="uploadMaterialModal" tabindex="-1" aria-labelledby="uploadMaterialModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
@@ -222,11 +256,31 @@ impl Component for Projects {
                 <h2>{ "Daten werden geladen" }</h2>
             },
         }
+           
     }
 
     fn rendered(&mut self, ctx: &yew::Context<Self>, first_render: bool) {
         if first_render {
             load_data(ctx);
+
+            let project_id = ctx.props().id;
+            ctx.link().send_future(async move {
+                let submissions = submissions_by_project(project_id).await;
+
+                match submissions {
+                    Ok(contributions) => Msg::AllSubmissionsLoaded(contributions),
+                    Err(error) => Msg::SubmissionsLoadError(error),
+                }
+            });
+
+            ctx.link().send_future(async move {
+                let submissions = submissions_by_project_and_user(project_id, 1).await;
+
+                match submissions {
+                    Ok(contributions) => Msg::MySubmissionsLoaded(contributions),
+                    Err(error) => Msg::SubmissionsLoadError(error),
+                }
+            });
         }
     }
 
@@ -247,21 +301,55 @@ impl Component for Projects {
                         error!("type could not be parsed!");
                         error!(serde_error.to_string());
                     }
+                    FetchError::StatusCode(status) => {
+                        error!("Got status {} while downloading metadata", status);
+                    },
                 }
                 true
             }
-            Msg::MetadataUpload(_text) => {
+            Msg::MetadataUpload(text) => {
                 load_data(ctx);
+                let submission: Submission = serde_json::from_str(&text).unwrap_throw();
+                if let Some(submissions) = &mut self.all_submissions {
+                    submissions.push(submission);
+                }
+                
                 true
             }
+            Msg::MySubmissionsLoaded(submissions) => {
+                self.my_submissions = submissions;
+                true
+            }
+            Msg::AllSubmissionsLoaded(submissions) => {
+                self.all_submissions = Some(submissions);
+                true
+            }
+            Msg::SubmissionsLoadError(error) => {
+                if let FetchError::StatusCode(status) = error {
+                    if status == 401 {
+                        return false;
+                    }
+                }
+                gloo_console::error!(format!("{:?}", error));
+                alert("Could not get submissions! For more info see the console log.");
+
+                false
+            }
+            Msg::SubmissionDeleted(id) => {
+                self.my_submissions.retain(|submission| submission.id != id);
+                if let Some(all_submissions) = &mut self.all_submissions {
+                    all_submissions.retain(|submission| submission.id != id);
+                }
+                true
+            },
         }
     }
 }
 
-fn load_data(ctx: &yew::Context<Projects>) {
+fn load_data(ctx: &yew::Context<ProjectComponent>) {
     let id = ctx.props().id;
     ctx.link().send_future(async move {
-        match get_request_struct::<Project>(format!("http://localhost:8001/projects/{}", id)).await
+        match get_request_struct::<ProjectTo>(format!("http://localhost:8001/projects/{}", id)).await
         {
             Ok(metadata) => Msg::MetadataLoaded(metadata),
             Err(error) => Msg::MetadataLoadError(error),
@@ -269,9 +357,9 @@ fn load_data(ctx: &yew::Context<Projects>) {
     })
 }
 
-fn material_url(id: usize, file_technical_name: &str) -> String {
+fn material_url(project_id: i32, file_technical_name: &str) -> String {
     format!(
         "http://localhost:8001/materials/{}/{}",
-        id, file_technical_name
+        project_id, file_technical_name
     )
 }

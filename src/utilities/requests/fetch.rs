@@ -16,6 +16,7 @@ pub enum FetchError {
     JsError(JsValue),
     SerdeError(serde_json::error::Error),
     WrongContentType,
+    StatusCode(u16)
 }
 impl Display for FetchError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -81,6 +82,15 @@ pub async fn get_request_struct<T: for<'a> serde::de::Deserialize<'a>>(
     assert!(resp_value.is_instance_of::<Response>());
     let resp: Response = resp_value.dyn_into().unwrap();
 
+    let status = resp.status();
+
+    match status {
+        200 | 201 | 203 | 304 => {
+            ()
+        },
+        _ => return Err(FetchError::StatusCode(status))
+    }
+
     // Convert this other `Promise` into a rust `Future`.
     let json = JsFuture::from(resp.json()?).await?;
 
@@ -124,4 +134,29 @@ pub async fn post_request_struct<
     let result: RESPONSE = json.into_serde()?;
 
     Ok(result)
+}
+
+pub async fn delete_request(url: &str) -> Result<(), FetchError> {
+    let mut opts = RequestInit::new();
+    opts.method("DELETE");
+    opts.mode(RequestMode::Cors);
+
+    let request = Request::new_with_str_and_init(&url, &opts)?;
+
+    let window = web_sys::window().unwrap();
+    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+
+    // `resp_value` is a `Response` object.
+    assert!(resp_value.is_instance_of::<Response>());
+    let resp: Response = resp_value.dyn_into().unwrap();
+
+    let status = resp.status();
+
+    match status {
+        200 | 201 | 203 | 304 => {
+            Ok(())
+        },
+        _ => Err(FetchError::StatusCode(status))
+    }
+
 }

@@ -4,18 +4,19 @@ use yew_router::prelude::*;
 mod components;
 
 mod pages;
-use pages::projects::Projects;
+use pages::projects::ProjectComponent;
 use pages::home::Home;
 use crate::components::jwt_context::JWTProvider;
 
 mod utilities;
+mod service;
 
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {
     #[at("/")]
     Home,
     #[at("/events/:id")]
-    Event { id: usize },
+    Event { id: i32 },
 }
 
 pub enum Msg {}
@@ -55,7 +56,7 @@ fn switch(routes: &Route) -> Html {
         Route::Event { id } => {
             html! {
                  <div class="container mb-2">
-                    <Projects id={ id }/>
+                    <ProjectComponent id={ id }/>
                 </div>
             }
         }

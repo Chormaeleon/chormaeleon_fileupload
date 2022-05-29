@@ -6,7 +6,7 @@ use crate::Route;
 
 #[derive(Default, Deserialize, PartialEq, Clone)]
 pub struct ContributionListItem {
-    pub id: usize,
+    pub id: i32,
     pub title: String,
     pub due: String,
 }
