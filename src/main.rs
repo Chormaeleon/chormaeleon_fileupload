@@ -5,11 +5,12 @@ mod components;
 
 mod pages;
 use pages::projects::ProjectComponent;
-use pages::home::Home;
-use crate::components::jwt_context::JWTProvider;
 
-mod utilities;
+use crate::components::jwt_context::JWTProvider;
+use pages::home::Home;
+
 mod service;
+mod utilities;
 
 #[derive(Routable, PartialEq, Clone, Debug)]
 pub enum Route {

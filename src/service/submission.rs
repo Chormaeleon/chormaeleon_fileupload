@@ -52,5 +52,6 @@ pub fn submission_download_url(submission_id: i32) -> String {
 pub async fn delete_submission(submission_id: i32) -> Result<(), FetchError> {
     delete_request(&format!(
         "http://localhost:8001/submissions/{submission_id}"
-    )).await
+    ))
+    .await
 }

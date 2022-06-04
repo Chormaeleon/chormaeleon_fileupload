@@ -1,6 +1,6 @@
 use crate::{
     components::{iframe::IFrame, submission_list::SubmissionList, upload::Upload},
-    service::submission::{Submission, submissions_by_project, submissions_by_project_and_user},
+    service::submission::{submissions_by_project, submissions_by_project_and_user, Submission},
     utilities::requests::fetch::{get_request_struct, FetchError},
 };
 
@@ -20,7 +20,7 @@ pub enum Msg {
     AllSubmissionsLoaded(Vec<Submission>),
     MySubmissionsLoaded(Vec<Submission>),
     SubmissionsLoadError(FetchError),
-    SubmissionDeleted(i32)
+    SubmissionDeleted(i32),
 }
 
 #[derive(Deserialize, PartialEq, Clone)]
@@ -47,7 +47,7 @@ pub struct MetadataEntry {
 pub struct ProjectComponent {
     metadata: Option<ProjectTo>,
     all_submissions: Option<Vec<Submission>>,
-    my_submissions: Vec<Submission>
+    my_submissions: Vec<Submission>,
 }
 
 #[derive(PartialEq, Properties)]
@@ -256,7 +256,6 @@ impl Component for ProjectComponent {
                 <h2>{ "Daten werden geladen" }</h2>
             },
         }
-           
     }
 
     fn rendered(&mut self, ctx: &yew::Context<Self>, first_render: bool) {
@@ -303,7 +302,7 @@ impl Component for ProjectComponent {
                     }
                     FetchError::StatusCode(status) => {
                         error!("Got status {} while downloading metadata", status);
-                    },
+                    }
                 }
                 true
             }
@@ -313,7 +312,7 @@ impl Component for ProjectComponent {
                 if let Some(submissions) = &mut self.all_submissions {
                     submissions.push(submission);
                 }
-                
+
                 true
             }
             Msg::MySubmissionsLoaded(submissions) => {
@@ -341,7 +340,7 @@ impl Component for ProjectComponent {
                     all_submissions.retain(|submission| submission.id != id);
                 }
                 true
-            },
+            }
         }
     }
 }
@@ -349,7 +348,8 @@ impl Component for ProjectComponent {
 fn load_data(ctx: &yew::Context<ProjectComponent>) {
     let id = ctx.props().id;
     ctx.link().send_future(async move {
-        match get_request_struct::<ProjectTo>(format!("http://localhost:8001/projects/{}", id)).await
+        match get_request_struct::<ProjectTo>(format!("http://localhost:8001/projects/{}", id))
+            .await
         {
             Ok(metadata) => Msg::MetadataLoaded(metadata),
             Err(error) => Msg::MetadataLoadError(error),

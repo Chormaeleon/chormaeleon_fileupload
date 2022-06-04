@@ -16,7 +16,7 @@ pub enum FetchError {
     JsError(JsValue),
     SerdeError(serde_json::error::Error),
     WrongContentType,
-    StatusCode(u16)
+    StatusCode(u16),
 }
 impl Display for FetchError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
@@ -85,10 +85,8 @@ pub async fn get_request_struct<T: for<'a> serde::de::Deserialize<'a>>(
     let status = resp.status();
 
     match status {
-        200 | 201 | 203 | 304 => {
-            ()
-        },
-        _ => return Err(FetchError::StatusCode(status))
+        200 | 201 | 203 | 304 => (),
+        _ => return Err(FetchError::StatusCode(status)),
     }
 
     // Convert this other `Promise` into a rust `Future`.
@@ -111,7 +109,9 @@ pub async fn post_request_struct<
     opts.method("POST");
     opts.mode(RequestMode::Cors);
     let headers = Headers::new().unwrap();
-    headers.append("Authorization", &format!("Bearer {}", get_token())).unwrap_throw();
+    headers
+        .append("Authorization", &format!("Bearer {}", get_token()))
+        .unwrap_throw();
     headers
         .append("Content-Type", "application/json")
         .unwrap_throw();
@@ -153,10 +153,7 @@ pub async fn delete_request(url: &str) -> Result<(), FetchError> {
     let status = resp.status();
 
     match status {
-        200 | 201 | 203 | 304 => {
-            Ok(())
-        },
-        _ => Err(FetchError::StatusCode(status))
+        200 | 201 | 203 | 304 => Ok(()),
+        _ => Err(FetchError::StatusCode(status)),
     }
-
 }

@@ -1,23 +1,21 @@
-use yew::{function_component, html, Component, Properties, Callback};
+use yew::{function_component, html, Callback, Component, Properties};
 
 use gloo_console::error;
 
 use crate::{
-    service::submission::{
-        submission_download_url,
-        Submission, delete_submission,
-    }, utilities::requests::fetch::FetchError
+    service::submission::{delete_submission, submission_download_url, Submission},
+    utilities::requests::fetch::FetchError,
 };
 
 pub struct SubmissionList {
     selected_submission: Option<i32>,
-    selected_delete: Option<Submission>
+    selected_delete: Option<Submission>,
 }
 
 #[derive(PartialEq, Properties)]
 pub struct SubmissionListProperties {
     pub submissions: Vec<Submission>,
-    pub submission_delete: Callback<i32>
+    pub submission_delete: Callback<i32>,
 }
 
 pub enum Msg {
@@ -26,7 +24,7 @@ pub enum Msg {
     DeleteAborted,
     DeleteAccepted,
     DeleteError(FetchError),
-    DeleteOk(i32)
+    DeleteOk(i32),
 }
 
 impl Component for SubmissionList {
@@ -127,7 +125,7 @@ impl Component for SubmissionList {
                         <p>{"Die Abgabe "}
                         if let Some(s) = &self.selected_delete {
                             { &s.file_name }
-                        } 
+                        }
                         { " wird unwiederruflich gelöscht." }</p>
                     </div>
                     <div class="modal-footer">
@@ -157,11 +155,11 @@ impl Component for SubmissionList {
             Msg::DeleteButtonClick(x) => {
                 self.selected_delete = Some(x);
                 false
-            },
+            }
             Msg::DeleteAborted => {
                 self.selected_delete = None;
                 false
-            },
+            }
             Msg::DeleteAccepted => {
                 match &self.selected_delete {
                     Some(s) => {
@@ -170,27 +168,26 @@ impl Component for SubmissionList {
                             let result = delete_submission(id).await;
                             match result {
                                 Ok(()) => Msg::DeleteOk(id),
-                                Err(error) => Msg::DeleteError(error)
+                                Err(error) => Msg::DeleteError(error),
                             }
                         });
-                        
-                    },
+                    }
                     None => {
                         error!("Tried to confirm delete without selecting item!");
                     }
                 }
                 false
-            },
+            }
             Msg::DeleteError(error) => {
                 error!("Abgabe konnte nicht gelöscht werden.");
                 error!("Fetch error while deleting.");
                 self.selected_submission = None;
                 false
-            },
+            }
             Msg::DeleteOk(id) => {
                 ctx.props().submission_delete.emit(id);
                 false
-            },
+            }
         }
     }
 }
@@ -204,7 +201,6 @@ pub struct SubmissionProperty {
 fn submission_details(s: &SubmissionProperty) -> Html {
     let submission = &s.submission;
     html!(<>
-  
         <h4>
             { &submission.note }
         </h4>
