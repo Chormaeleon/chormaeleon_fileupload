@@ -119,8 +119,6 @@ impl Component for Upload {
                 true
             }
             Msg::UploadOnload => {
-                //self.current_request = None;
-
                 let text = self
                     .current_request
                     .take()
@@ -131,7 +129,6 @@ impl Component for Upload {
                     .unwrap();
 
                 self.upload_successfully_finished = true;
-                //self.current_request = None;
                 self.progress = None;
 
                 ctx.props().success_callback.emit(text);

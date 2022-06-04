@@ -1,5 +1,7 @@
 use crate::{
-    components::project_list::*,
+    components::{
+        modal::Modal,
+        project_list::*},
     utilities::requests::fetch::{get_request_struct, post_request_struct, FetchError},
 };
 use chrono::{NaiveDateTime, Utc};
@@ -21,7 +23,8 @@ pub struct Home {
 pub enum Msg {
     ProjectsLoaded(Vec<Project>),
     ProjectsLoadError(FetchError),
-    CreateProject,
+    CreateProject(MouseEvent),
+    AbortCreateProject(MouseEvent),
     NameInput(InputEvent),
     DescriptionInput(InputEvent),
     DateInput(Event),
@@ -53,16 +56,6 @@ impl Component for Home {
     fn view(&self, ctx: &Context<Self>) -> Html {
         html! {
             <>
-            <script>
-            {"tinymce.init({
-                selector: '#textareaDescription',
-                setup: (editor) => {
-                    editor.on('input', (e) => {
-                        textareaDescription.textContent = e.target.textContent;
-                    });
-                }
-            });"}
-            </script>
             <div class="container">
                 <div class="row mt-2">
                     <div class="col">
@@ -71,7 +64,7 @@ impl Component for Home {
                                 <h2> { "Alle Abgaben" } </h2>
                             </div>
                             <div class="col text-end">
-                                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createProjectModal">{ "Neues Projekt" }</button>
+                                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalProjectCreate">{ "Neues Projekt" }</button>
                             </div>
                         </div>
                         if let Some(contributions) = self.projects.clone() {
@@ -81,40 +74,46 @@ impl Component for Home {
                         }
                     </div>
                 </div>
-                <div class="modal fade" id="createProjectModal" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="createProjectModalLabel">{ "Projekt erstellen" }</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <Modal
+                    title={"Projekt erstellen".to_string() }
+                    id={ "modalProjectCreate".to_string() }
+                    actions = { vec![
+                        ("Abbrechen".to_string(), "btn btn-secondary".to_string(),  ctx.link().callback(|x| Msg::AbortCreateProject(x))),
+                        ("Erstellen".to_string(), "btn btn-danger".to_string(),  ctx.link().callback(|x| Msg::CreateProject(x)))
+                        ]    
+                    }
+                >
+                <>
+                    <script>
+                    {"tinymce.init({
+                        selector: '#textareaDescription',
+                        setup: (editor) => {
+                            editor.on('input', (e) => {
+                                textareaDescription.textContent = e.target.textContent;
+                            });
+                        }
+                    });"}
+                    </script>
+                    <form id="createProjectForm" class="">
+                        <div class="row">
+                            <div class="col">
+                                <label for="inputCreateProjectTitle">{ "Name des Projektes" }</label>
+                                <input id="inputCreateProjectTitle" type="text" class="form-control" placeholder="Name des Projektes" oninput={ ctx.link().callback(Msg::NameInput) }/>
                             </div>
-                            <div class="modal-body">
-                                <form id="createProjectForm" class="">
-                                    <div class="row">
-                                        <div class="col">
-                                            <label for="inputCreateProjectTitle">{ "Name des Projektes" }</label>
-                                            <input id="inputCreateProjectTitle" type="text" class="form-control" placeholder="Name des Projektes" oninput={ ctx.link().callback(Msg::NameInput) }/>
-                                        </div>
-                                        <div class="col">
-                                            <label for="inputCreateProjectDueDate">{ "Abgabedatum" }</label>
-                                            <input id="inputCreateProjectDueDate" type="datetime-local" class="form-control" value={ self.project_due_date.to_string() } onchange={ ctx.link().callback(Msg::DateInput) }/>
-                                        </div>
-                                    </div>
-                                    <div class="row mt-2">
-                                        <div class="col">
-                                            <label for="textareaDescription">{ "Beschreibung" }</label>
-                                            <textarea id="textareaDescription" oninput={ ctx.link().callback(Msg::DescriptionInput) }></textarea>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-outline btn-outline-danger" data-bs-dismiss="modal">{ "Abbrechen" }</button>
-                                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick={ ctx.link().callback(|_| Msg::CreateProject) } >{ "Erstellen" }</button>
+                            <div class="col">
+                                <label for="inputCreateProjectDueDate">{ "Abgabedatum" }</label>
+                                <input id="inputCreateProjectDueDate" type="datetime-local" class="form-control" value={ self.project_due_date.to_string() } onchange={ ctx.link().callback(Msg::DateInput) }/>
                             </div>
                         </div>
-                    </div>
-                </div>
+                        <div class="row mt-2">
+                            <div class="col">
+                                <label for="textareaDescription">{ "Beschreibung" }</label>
+                                <textarea id="textareaDescription" oninput={ ctx.link().callback(Msg::DescriptionInput) }></textarea>
+                            </div>
+                        </div>
+                    </form>
+                </>
+                </Modal>
             </div>
 
             </>
@@ -148,7 +147,7 @@ impl Component for Home {
                 true
             }
 
-            Msg::CreateProject => {
+            Msg::CreateProject(_) => {
                 if self.project_title.is_empty() {
                     alert("Titel fehlt!");
                     return false;
@@ -221,6 +220,9 @@ impl Component for Home {
                     false
                 }
             },
+            Msg::AbortCreateProject(_) => {
+                false
+            }
         }
     }
 }

@@ -1,10 +1,13 @@
 use gloo_console::warn;
 use gloo_dialogs::alert;
 use serde::Deserialize;
+use web_sys::MouseEvent;
 use yew::{classes, html, Callback, Component, Properties};
 use yew_router::prelude::Link;
 
 use crate::{service::project::delete_project, utilities::requests::fetch::FetchError, Route};
+
+use crate::components::delete_modal::DeleteModal;
 
 #[derive(Default, Deserialize, PartialEq, Clone)]
 pub struct Project {
@@ -15,8 +18,8 @@ pub struct Project {
 
 pub enum DeleteMessage {
     ListItemButtonClick(Project),
-    AcceptClick,
-    AbortClick,
+    AcceptClick(MouseEvent),
+    AbortClick(MouseEvent),
     Success(i32),
     Fail(FetchError),
 }
@@ -79,35 +82,55 @@ impl Component for ProjectList {
                                     { &project.due }
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::DeleteMessage(DeleteMessage::ListItemButtonClick(project_clone.clone()))) } data-bs-toggle="modal" data-bs-target="#modalProjectDelete">{ "Löschen" }</button>
-                                </td>
+                                    <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::DeleteMessage(DeleteMessage::ListItemButtonClick(project_clone.clone()))) }  data-bs-toggle="modal" data-bs-target="#modalProjectDelete">{ "Löschen" }</button>
+                              
+                                    </td>
                             </tr>
                             }})
 
                         }
                         </tbody>
                 </table>
-                <div class="modal fade" id="modalProjectDelete" data-bs-backdrop="static" tabindex="-1">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">{ "Modal title" }</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>{"Das Projekt "}
-                            if let Some(s) = &self.selected_delete {
-                                { &s.title }
-                            }
-                            { " wird unwiederruflich gelöscht." }</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"  onclick={ ctx.link().callback(|_| Msg::DeleteMessage(DeleteMessage::AbortClick)) }>{ "Close" }</button>
-                            <button type="button" class="btn btn-primary" onclick={ ctx.link().callback(|_| Msg::DeleteMessage(DeleteMessage::AcceptClick)) }>{ "Save changes" }</button>
-                        </div>
-                        </div>
-                    </div>
-                </div>
+                <DeleteModal 
+                    title={"Projekt löschen".to_string() } 
+                    id={ "modalProjectDelete".to_string() } 
+                    on_cancel={ ctx.link().callback(|x| Msg::DeleteMessage(DeleteMessage::AbortClick(x))) } 
+                    on_confirm={ ctx.link().callback(|x| Msg::DeleteMessage(DeleteMessage::AcceptClick(x))) }
+                >
+                <>
+                    <h4>
+                        { "Warnung!" }
+                    </h4>
+                    <p>
+                        { "Kann " }
+                        <b>
+                            { "nicht rückgängig " }
+                        </b>
+                        { "gemacht werden!" }
+                    </p>
+                    <p>
+                        <b>
+                            { "Alle Abgaben " }
+                        </b>
+                        { "werden " }   
+                        <b>
+                            { "unwiederruflich " }
+                        </b>
+                        { " gelöscht!" }
+                    </p>
+                    <p>
+                        { "Das Projekt " }  
+                        <i>if let Some(project) = &self.selected_delete { 
+                            { &project.title } 
+                        } 
+                        else { 
+                            { "Fehler! kein Projekt ausgewählt" }
+                        }
+                        </i>
+                        { " wirklich löschen?" }
+                    </p>
+                </>
+                </DeleteModal>
                 </>
         }
     }
@@ -117,8 +140,7 @@ impl Component for ProjectList {
             Msg::DeleteMessage(delete_message) => match delete_message {
                 DeleteMessage::ListItemButtonClick(project) => {
                     self.selected_delete = Some(project);
-
-                    false
+                    true
                 }
                 DeleteMessage::Success(project_id) => {
                     ctx.props().project_delete.emit(project_id);
@@ -144,7 +166,7 @@ impl Component for ProjectList {
                     warn!(format!("{:?}", error));
                     false
                 }
-                DeleteMessage::AcceptClick => {
+                DeleteMessage::AcceptClick(_) => {
                     let project_id = match self.selected_delete.take() {
                         Some(project) => project.id,
                         None => {
@@ -163,11 +185,11 @@ impl Component for ProjectList {
                     });
                     false
                 }
-                DeleteMessage::AbortClick => {
+                DeleteMessage::AbortClick(_) => {
                     self.selected_delete = None;
                     false
                 }
-            },
+            }
         }
     }
 }

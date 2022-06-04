@@ -73,7 +73,6 @@ impl Component for ProjectComponent {
         match &self.metadata {
             Some(metadata) => html! {
                 <>
-
                 <div class="row mt-2">
                     <div class="col">
                         <h1>{ &metadata.heading }</h1>

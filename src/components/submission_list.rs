@@ -1,3 +1,4 @@
+use web_sys::MouseEvent;
 use yew::{function_component, html, Callback, Component, Properties};
 
 use gloo_console::error;
@@ -5,6 +6,7 @@ use gloo_console::error;
 use crate::{
     service::submission::{delete_submission, submission_download_url, Submission},
     utilities::requests::fetch::FetchError,
+    components::delete_modal::DeleteModal
 };
 
 pub struct SubmissionList {
@@ -20,8 +22,8 @@ pub struct SubmissionListProperties {
 
 pub enum DeleteMessage {
     ListItemButtonClick(Submission),
-    AcceptClick,
-    AbortClick,
+    AcceptClick(MouseEvent),
+    AbortClick(MouseEvent),
     Success(i32),
     Fail(FetchError),
 }
@@ -118,27 +120,32 @@ impl Component for SubmissionList {
                     }
                 </tbody>
             </table>
-            <div class="modal fade" id="modalSubmissionDelete" data-bs-backdrop="static" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">{ "Modal title" }</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>{"Die Abgabe "}
-                        if let Some(s) = &self.selected_delete {
-                            { &s.file_name }
+            <DeleteModal 
+                    title={"Projekt löschen".to_string() } 
+                    id={ "modalSubmissionDelete".to_string() } 
+                    on_cancel={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AbortClick(x))) } 
+                    on_confirm={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AcceptClick(x))) }
+                >
+                <>
+                    <p>
+                        { "Warnung! Kann " }
+                            <b>
+                            { "nicht rückgängig " }
+                            </b>
+                        { "gemacht werden!" }
+                    </p>
+                    <p>
+                        { "Die Abgabe " }  
+                        if let Some(submission) = &self.selected_delete { 
+                            { &submission.file_name } 
+                        } 
+                        else { 
+                            { "Fehler! keine Abgabe ausgewählt" }
                         }
-                        { " wird unwiederruflich gelöscht." }</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"  onclick={ ctx.link().callback(|_| Msg::Delete(DeleteMessage::AbortClick)) }>{ "Close" }</button>
-                        <button type="button" class="btn btn-primary" onclick={ ctx.link().callback(|_| Msg::Delete(DeleteMessage::AcceptClick)) }>{ "Save changes" }</button>
-                    </div>
-                    </div>
-                </div>
-            </div>
+                        { " wirklich löschen?" }
+                    </p>
+                </>
+            </DeleteModal>
             </>
         }
     }
@@ -161,7 +168,7 @@ impl Component for SubmissionList {
                     self.selected_delete = Some(submission);
                     false
                 }
-                DeleteMessage::AcceptClick => {
+                DeleteMessage::AcceptClick(_) => {
                     match &self.selected_delete {
                         Some(s) => {
                             let id = s.id;
@@ -179,7 +186,7 @@ impl Component for SubmissionList {
                     }
                     false
                 }
-                DeleteMessage::AbortClick => {
+                DeleteMessage::AbortClick(_) => {
                     self.selected_delete = None;
                     false
                 }
