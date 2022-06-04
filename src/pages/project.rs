@@ -306,7 +306,7 @@ impl Component for ProjectComponent {
                 }
                 true
             }
-            Msg::MetadataUpload(text) => {
+            Msg::MetadataUpload(_text) => {
                 load_data(ctx);
                 true
             }

@@ -1,7 +1,5 @@
 use crate::{
-    components::{
-        modal::Modal,
-        project_list::*},
+    components::{modal::Modal, project_list::*},
     utilities::requests::fetch::{get_request_struct, post_request_struct, FetchError},
 };
 use chrono::{NaiveDateTime, Utc};
@@ -78,9 +76,9 @@ impl Component for Home {
                     title={"Projekt erstellen".to_string() }
                     id={ "modalProjectCreate".to_string() }
                     actions = { vec![
-                        ("Abbrechen".to_string(), "btn btn-secondary".to_string(),  ctx.link().callback(|x| Msg::AbortCreateProject(x))),
-                        ("Erstellen".to_string(), "btn btn-danger".to_string(),  ctx.link().callback(|x| Msg::CreateProject(x)))
-                        ]    
+                        ("Abbrechen".to_string(), "btn btn-secondary".to_string(),  ctx.link().callback(Msg::AbortCreateProject)),
+                        ("Erstellen".to_string(), "btn btn-danger".to_string(),  ctx.link().callback(Msg::CreateProject))
+                        ]
                     }
                 >
                 <>
@@ -190,7 +188,7 @@ impl Component for Home {
                 self.project_due_date =
                     match NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%.3f") {
                         Ok(date_time) => date_time,
-                        Err(e) => NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S")
+                        Err(_e) => NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S")
                             .unwrap_or_else(|_| {
                                 NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M")
                                     .expect("problem")
@@ -220,9 +218,7 @@ impl Component for Home {
                     false
                 }
             },
-            Msg::AbortCreateProject(_) => {
-                false
-            }
+            Msg::AbortCreateProject(_) => false,
         }
     }
 }

@@ -83,7 +83,7 @@ impl Component for ProjectList {
                                 </td>
                                 <td>
                                     <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::DeleteMessage(DeleteMessage::ListItemButtonClick(project_clone.clone()))) }  data-bs-toggle="modal" data-bs-target="#modalProjectDelete">{ "Löschen" }</button>
-                              
+
                                     </td>
                             </tr>
                             }})
@@ -91,10 +91,10 @@ impl Component for ProjectList {
                         }
                         </tbody>
                 </table>
-                <DeleteModal 
-                    title={"Projekt löschen".to_string() } 
-                    id={ "modalProjectDelete".to_string() } 
-                    on_cancel={ ctx.link().callback(|x| Msg::DeleteMessage(DeleteMessage::AbortClick(x))) } 
+                <DeleteModal
+                    title={"Projekt löschen".to_string() }
+                    id={ "modalProjectDelete".to_string() }
+                    on_cancel={ ctx.link().callback(|x| Msg::DeleteMessage(DeleteMessage::AbortClick(x))) }
                     on_confirm={ ctx.link().callback(|x| Msg::DeleteMessage(DeleteMessage::AcceptClick(x))) }
                 >
                 <>
@@ -112,18 +112,18 @@ impl Component for ProjectList {
                         <b>
                             { "Alle Abgaben " }
                         </b>
-                        { "werden " }   
+                        { "werden " }
                         <b>
                             { "unwiederruflich " }
                         </b>
                         { " gelöscht!" }
                     </p>
                     <p>
-                        { "Das Projekt " }  
-                        <i>if let Some(project) = &self.selected_delete { 
-                            { &project.title } 
-                        } 
-                        else { 
+                        { "Das Projekt " }
+                        <i>if let Some(project) = &self.selected_delete {
+                            { &project.title }
+                        }
+                        else {
                             { "Fehler! kein Projekt ausgewählt" }
                         }
                         </i>
@@ -189,7 +189,7 @@ impl Component for ProjectList {
                     self.selected_delete = None;
                     false
                 }
-            }
+            },
         }
     }
 }

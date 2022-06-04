@@ -1,5 +1,5 @@
 use web_sys::MouseEvent;
-use yew::{function_component, Callback, Properties, Children};
+use yew::{function_component, Callback, Children, Properties};
 
 use yew::html;
 

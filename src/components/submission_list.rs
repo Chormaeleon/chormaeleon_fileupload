@@ -4,9 +4,9 @@ use yew::{function_component, html, Callback, Component, Properties};
 use gloo_console::error;
 
 use crate::{
+    components::delete_modal::DeleteModal,
     service::submission::{delete_submission, submission_download_url, Submission},
     utilities::requests::fetch::FetchError,
-    components::delete_modal::DeleteModal
 };
 
 pub struct SubmissionList {
@@ -120,10 +120,10 @@ impl Component for SubmissionList {
                     }
                 </tbody>
             </table>
-            <DeleteModal 
-                    title={"Projekt löschen".to_string() } 
-                    id={ "modalSubmissionDelete".to_string() } 
-                    on_cancel={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AbortClick(x))) } 
+            <DeleteModal
+                    title={"Projekt löschen".to_string() }
+                    id={ "modalSubmissionDelete".to_string() }
+                    on_cancel={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AbortClick(x))) }
                     on_confirm={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AcceptClick(x))) }
                 >
                 <>
@@ -135,11 +135,11 @@ impl Component for SubmissionList {
                         { "gemacht werden!" }
                     </p>
                     <p>
-                        { "Die Abgabe " }  
-                        if let Some(submission) = &self.selected_delete { 
-                            { &submission.file_name } 
-                        } 
-                        else { 
+                        { "Die Abgabe " }
+                        if let Some(submission) = &self.selected_delete {
+                            { &submission.file_name }
+                        }
+                        else {
                             { "Fehler! keine Abgabe ausgewählt" }
                         }
                         { " wirklich löschen?" }
