@@ -4,7 +4,7 @@ use yew_router::prelude::*;
 mod components;
 
 mod pages;
-use pages::projects::ProjectComponent;
+use pages::project::ProjectComponent;
 
 use crate::components::jwt_context::JWTProvider;
 use pages::home::Home;

@@ -21,6 +21,7 @@ pub enum Msg {
     MySubmissionsLoaded(Vec<Submission>),
     SubmissionsLoadError(FetchError),
     SubmissionDeleted(i32),
+    SubmissionUploaded(String),
 }
 
 #[derive(Deserialize, PartialEq, Clone)]
@@ -185,7 +186,7 @@ impl Component for ProjectComponent {
                             </div>
                             <div class="row mt-2">
                                 <div class="col">
-                                    <Upload form_id="inputContentUpload" field_name="file" target_url={format!("http://localhost:8001/projects/{}", ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::MetadataUpload) }/>
+                                    <Upload form_id="inputContentUpload" field_name="file" target_url={format!("http://localhost:8001/projects/{}", ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) }/>
                                 </div>
                             </div>
                         </form>
@@ -308,11 +309,6 @@ impl Component for ProjectComponent {
             }
             Msg::MetadataUpload(text) => {
                 load_data(ctx);
-                let submission: Submission = serde_json::from_str(&text).unwrap_throw();
-                if let Some(submissions) = &mut self.all_submissions {
-                    submissions.push(submission);
-                }
-
                 true
             }
             Msg::MySubmissionsLoaded(submissions) => {
@@ -338,6 +334,13 @@ impl Component for ProjectComponent {
                 self.my_submissions.retain(|submission| submission.id != id);
                 if let Some(all_submissions) = &mut self.all_submissions {
                     all_submissions.retain(|submission| submission.id != id);
+                }
+                true
+            }
+            Msg::SubmissionUploaded(text) => {
+                let submission: Submission = serde_json::from_str(&text).unwrap_throw();
+                if let Some(submissions) = &mut self.all_submissions {
+                    submissions.push(submission);
                 }
                 true
             }

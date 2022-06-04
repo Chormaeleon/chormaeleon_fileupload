@@ -141,7 +141,7 @@ pub async fn delete_request(url: &str) -> Result<(), FetchError> {
     opts.method("DELETE");
     opts.mode(RequestMode::Cors);
 
-    let request = Request::new_with_str_and_init(&url, &opts)?;
+    let request = Request::new_with_str_and_init(url, &opts)?;
 
     let window = web_sys::window().unwrap();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;

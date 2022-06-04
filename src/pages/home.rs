@@ -1,9 +1,9 @@
 use crate::{
-    components::contribution_list::*,
+    components::project_list::*,
     utilities::requests::fetch::{get_request_struct, post_request_struct, FetchError},
 };
 use chrono::{NaiveDateTime, Utc};
-use gloo_console::error;
+use gloo_console::{error, warn};
 use gloo_dialogs::alert;
 use gloo_utils::document;
 use serde::Serialize;
@@ -12,21 +12,22 @@ use web_sys::HtmlInputElement;
 use yew::prelude::*;
 
 pub struct Home {
-    contributions: Option<Vec<ContributionListItem>>,
+    projects: Option<Vec<Project>>,
     project_due_date: NaiveDateTime,
     project_title: String,
     project_description: String,
 }
 
 pub enum Msg {
-    ContributionsLoaded(Vec<ContributionListItem>),
-    ContributionsLoadError(FetchError),
+    ProjectsLoaded(Vec<Project>),
+    ProjectsLoadError(FetchError),
     CreateProject,
     NameInput(InputEvent),
     DescriptionInput(InputEvent),
     DateInput(Event),
-    CreateProjectSuccess(ContributionListItem),
+    CreateProjectSuccess(Project),
     CreateProjectFail(FetchError),
+    ProjectDeleted(i32),
 }
 
 #[derive(Clone, Serialize)]
@@ -42,7 +43,7 @@ impl Component for Home {
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self {
-            contributions: None,
+            projects: None,
             project_due_date: Utc::now().naive_local(),
             project_title: "".to_string(),
             project_description: "".to_string(),
@@ -58,7 +59,6 @@ impl Component for Home {
                 setup: (editor) => {
                     editor.on('input', (e) => {
                         textareaDescription.textContent = e.target.textContent;
-                      console.log('Input: ', textareaDescription.textContent);
                     });
                 }
             });"}
@@ -74,8 +74,8 @@ impl Component for Home {
                                 <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createProjectModal">{ "Neues Projekt" }</button>
                             </div>
                         </div>
-                        if let Some(contributions) = self.contributions.clone() {
-                            <ContributionList contributions={contributions}/>
+                        if let Some(contributions) = self.projects.clone() {
+                            <ProjectList projects={contributions} project_delete={ ctx.link().callback(Msg::ProjectDeleted) }/>
                         } else {
                             { "Abgaben werden geladen..." }
                         }
@@ -124,13 +124,13 @@ impl Component for Home {
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
         if first_render {
             ctx.link().send_future(async {
-                match get_request_struct::<Vec<ContributionListItem>>(
+                match get_request_struct::<Vec<Project>>(
                     "http://localhost:8001/pendingProjects".to_string(),
                 )
                 .await
                 {
-                    Ok(contributions) => Msg::ContributionsLoaded(contributions),
-                    Err(error) => Msg::ContributionsLoadError(error),
+                    Ok(contributions) => Msg::ProjectsLoaded(contributions),
+                    Err(error) => Msg::ProjectsLoadError(error),
                 }
             })
         }
@@ -138,11 +138,11 @@ impl Component for Home {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::ContributionsLoaded(contribs) => {
-                self.contributions = Some(contribs);
+            Msg::ProjectsLoaded(projects) => {
+                self.projects = Some(projects);
                 true
             }
-            Msg::ContributionsLoadError(error) => {
+            Msg::ProjectsLoadError(error) => {
                 log_fetch_error(error);
                 alert("Could not download list!");
                 true
@@ -165,7 +165,7 @@ impl Component for Home {
                         due_date,
                     };
 
-                    match post_request_struct::<CreateProjectBody, ContributionListItem>(
+                    match post_request_struct::<CreateProjectBody, Project>(
                         "http://localhost:8001/projects",
                         body,
                     )
@@ -200,9 +200,9 @@ impl Component for Home {
                 false
             }
             Msg::CreateProjectSuccess(new_item) => {
-                match &mut self.contributions {
-                    Some(contributions) => contributions.push(new_item),
-                    None => self.contributions = Some(vec![new_item]),
+                match &mut self.projects {
+                    Some(projects) => projects.push(new_item),
+                    None => self.projects = Some(vec![new_item]),
                 }
                 true
             }
@@ -211,6 +211,16 @@ impl Component for Home {
                 alert("Konnte Projekt nicht erstellen! Details ggfs. siehe Konsole.");
                 false
             }
+            Msg::ProjectDeleted(project_id) => match &mut self.projects {
+                Some(projects) => {
+                    projects.retain(|x| x.id != project_id);
+                    true
+                }
+                None => {
+                    warn!("Got delete project success event but project list was empty!");
+                    false
+                }
+            },
         }
     }
 }

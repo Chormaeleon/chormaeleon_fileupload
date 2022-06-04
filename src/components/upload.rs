@@ -70,7 +70,7 @@ impl Component for Upload {
 
                 let link = ctx.link().to_owned();
 
-                let error_callback = move |error: ErrorEvent| {
+                let error_callback = move |_error: ErrorEvent| {
                     link.send_message(Msg::UploadOnerror(
                         /*error.message() -> is undefined, creates a type error!*/
                         "Noch nicht verfügbar, siehe Konsole (F11)".to_string(),

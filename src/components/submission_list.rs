@@ -18,13 +18,17 @@ pub struct SubmissionListProperties {
     pub submission_delete: Callback<i32>,
 }
 
+pub enum DeleteMessage {
+    ListItemButtonClick(Submission),
+    AcceptClick,
+    AbortClick,
+    Success(i32),
+    Fail(FetchError),
+}
+
 pub enum Msg {
     SelectOrUnselect(i32),
-    DeleteButtonClick(Submission),
-    DeleteAborted,
-    DeleteAccepted,
-    DeleteError(FetchError),
-    DeleteOk(i32),
+    Delete(DeleteMessage),
 }
 
 impl Component for SubmissionList {
@@ -95,7 +99,7 @@ impl Component for SubmissionList {
                                     </a>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-danger" onclick={ctx.link().callback(move |_| Msg::DeleteButtonClick(submission_clone.clone()))} data-bs-toggle="modal" data-bs-target="#modalSubmissionDelete">{"Löschen"}</button>
+                                        <button class="btn btn-sm btn-danger" onclick={ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone.clone())))} data-bs-toggle="modal" data-bs-target="#modalSubmissionDelete">{"Löschen"}</button>
                                     </td>
 
                                 </tr>
@@ -129,8 +133,8 @@ impl Component for SubmissionList {
                         { " wird unwiederruflich gelöscht." }</p>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"  onclick={ ctx.link().callback(|_| Msg::DeleteAborted) }>{ "Close" }</button>
-                        <button type="button" class="btn btn-primary" onclick={ ctx.link().callback(|_| Msg::DeleteAccepted) }>{ "Save changes" }</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"  onclick={ ctx.link().callback(|_| Msg::Delete(DeleteMessage::AbortClick)) }>{ "Close" }</button>
+                        <button type="button" class="btn btn-primary" onclick={ ctx.link().callback(|_| Msg::Delete(DeleteMessage::AcceptClick)) }>{ "Save changes" }</button>
                     </div>
                     </div>
                 </div>
@@ -152,42 +156,44 @@ impl Component for SubmissionList {
 
                 true
             }
-            Msg::DeleteButtonClick(x) => {
-                self.selected_delete = Some(x);
-                false
-            }
-            Msg::DeleteAborted => {
-                self.selected_delete = None;
-                false
-            }
-            Msg::DeleteAccepted => {
-                match &self.selected_delete {
-                    Some(s) => {
-                        let id = s.id;
-                        ctx.link().send_future(async move {
-                            let result = delete_submission(id).await;
-                            match result {
-                                Ok(()) => Msg::DeleteOk(id),
-                                Err(error) => Msg::DeleteError(error),
-                            }
-                        });
-                    }
-                    None => {
-                        error!("Tried to confirm delete without selecting item!");
-                    }
+            Msg::Delete(delete_message) => match delete_message {
+                DeleteMessage::ListItemButtonClick(submission) => {
+                    self.selected_delete = Some(submission);
+                    false
                 }
-                false
-            }
-            Msg::DeleteError(error) => {
-                error!("Abgabe konnte nicht gelöscht werden.");
-                error!("Fetch error while deleting.");
-                self.selected_submission = None;
-                false
-            }
-            Msg::DeleteOk(id) => {
-                ctx.props().submission_delete.emit(id);
-                false
-            }
+                DeleteMessage::AcceptClick => {
+                    match &self.selected_delete {
+                        Some(s) => {
+                            let id = s.id;
+                            ctx.link().send_future(async move {
+                                let result = delete_submission(id).await;
+                                match result {
+                                    Ok(()) => Msg::Delete(DeleteMessage::Success(id)),
+                                    Err(error) => Msg::Delete(DeleteMessage::Fail(error)),
+                                }
+                            });
+                        }
+                        None => {
+                            error!("Tried to confirm delete without selecting item!");
+                        }
+                    }
+                    false
+                }
+                DeleteMessage::AbortClick => {
+                    self.selected_delete = None;
+                    false
+                }
+                DeleteMessage::Success(id) => {
+                    ctx.props().submission_delete.emit(id);
+                    false
+                }
+                DeleteMessage::Fail(error) => {
+                    error!("Abgabe konnte nicht gelöscht werden.");
+                    error!(format!("Fetch error while deleting: {:?}", error));
+                    self.selected_submission = None;
+                    false
+                }
+            },
         }
     }
 }
