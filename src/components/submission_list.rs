@@ -166,7 +166,7 @@ impl Component for SubmissionList {
             Msg::Delete(delete_message) => match delete_message {
                 DeleteMessage::ListItemButtonClick(submission) => {
                     self.selected_delete = Some(submission);
-                    false
+                    true
                 }
                 DeleteMessage::AcceptClick(_) => {
                     match &self.selected_delete {
@@ -184,11 +184,11 @@ impl Component for SubmissionList {
                             error!("Tried to confirm delete without selecting item!");
                         }
                     }
-                    false
+                    true
                 }
                 DeleteMessage::AbortClick(_) => {
                     self.selected_delete = None;
-                    false
+                    true
                 }
                 DeleteMessage::Success(id) => {
                     ctx.props().submission_delete.emit(id);
