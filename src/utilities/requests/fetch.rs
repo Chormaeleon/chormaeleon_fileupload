@@ -52,6 +52,10 @@ pub async fn get_request_string(url: String) -> Result<String, FetchError> {
 
     let request = Request::new_with_str_and_init(&url, &opts)?;
 
+    request
+        .headers()
+        .set("Authorization", &format!("Bearer {}", get_token()))?;
+
     let window = gloo_utils::window();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
     let resp: Response = resp_value.dyn_into().unwrap();
@@ -68,10 +72,14 @@ pub async fn get_request_struct<T: for<'a> serde::de::Deserialize<'a>>(
     url: String,
 ) -> Result<T, FetchError> {
     let mut opts = RequestInit::new();
-    opts.method("GET");
+    opts.method("GET"); 
     opts.mode(RequestMode::Cors);
 
     let request = Request::new_with_str_and_init(&url, &opts)?;
+
+    request
+        .headers()
+        .set("Authorization", &format!("Bearer {}", get_token()))?;
 
     request.headers().set("Accept", "application/json")?;
 
@@ -142,6 +150,10 @@ pub async fn delete_request(url: &str) -> Result<(), FetchError> {
     opts.mode(RequestMode::Cors);
 
     let request = Request::new_with_str_and_init(url, &opts)?;
+
+    request
+        .headers()
+        .set("Authorization", &format!("Bearer {}", get_token()))?;
 
     let window = web_sys::window().unwrap();
     let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
