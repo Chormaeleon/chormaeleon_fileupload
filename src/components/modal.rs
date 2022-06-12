@@ -25,15 +25,22 @@ pub fn modal(props: &ModalProperties) -> Html {
                 <div class="modal-body">
                     { for props.children.iter() }
                 </div>
-                <div class="modal-footer">
-                   {
-                    for props.actions.iter().map(|action| {
-                        html!{
-                            <button type="button" class={ &action.1 } data-bs-dismiss="modal" onclick={ &action.2 } >{ &action.0 }</button>
-                        }
-                    })
+                {
+                    if !props.actions.is_empty() {
+                        html!(
+                        <div class="modal-footer">
+                        {
+                            for props.actions.iter().map(|action| {
+                                html!{
+                                    <button type="button" class={ &action.1 } data-bs-dismiss="modal" onclick={ &action.2 } >{ &action.0 }</button>
+                                }
+                            })
+                            }
+                        </div>)
+                    } else {
+                        html!()
                     }
-                </div>
+                }
             </div>
         </div>
     </div>

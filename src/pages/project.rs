@@ -1,5 +1,5 @@
 use crate::{
-    components::{iframe::IFrame, submission_list::SubmissionList, upload::Upload},
+    components::{iframe::IFrame, modal::Modal, submission_list::SubmissionList, upload::Upload},
     service::submission::{submissions_by_project, submissions_by_project_and_user, Submission},
     utilities::requests::fetch::{get_request_struct, FetchError},
 };
@@ -213,43 +213,37 @@ impl Component for ProjectComponent {
                         </div>
                     </div>
                 }
-                <div class="modal fade" id="uploadMaterialModal" tabindex="-1" aria-labelledby="uploadMaterialModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="uploadMaterialModalLabel">{ "Material hochladen" }</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="inputMaterialUpload" class="" name="formUpload" enctype="multipart/form-data">
-                                    <div class="row">
-                                        <div class="col">
-                                            <label for="inputMaterialTitle">{ "Name für die Datei" }</label>
-                                            <input id="inputMaterialTitle" type="text" class="form-control" name="title" placeholder="Titel der Datei"/>
-                                        </div>
-                                            <div class="col">
-                                                <label for="selectMaterialKind">{ "Art der Datei (Playback, ...)" }</label>
-                                                <select id="selectMaterialKind" name="material_kind" class="form-control" form="inputMaterialUpload">
-                                                    <option value="Audio">{ "Audio" }</option>
-                                                    <option value="Video">{ "Video" }</option>
-                                                    <option value="Sheet">{ "Noten" }</option>
-                                                    <option value="Other">{ "Sonstiges" }</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <div class="col">
-                                                <Upload form_id="inputMaterialUpload" field_name="file" target_url={format!("http://localhost:8001/projects/{}/material", ctx.props().id) } multiple=false success_callback={ ctx.link().callback(Msg::MetadataUpload) }/>
-                                            </div>
-                                        </div>
-                                    </form>
-                            </div>
-                            ////<div class="modal-footer">
-                            //    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">{ "Close" }</button>
-                            //</div>
+
+                <Modal
+                    title={"Übungsmaterial hochladen".to_string() }
+                    id={ "uploadMaterialModal".to_string() }
+                    actions = { vec![] }
+                >
+                <form id="inputMaterialUpload" class="" name="formUpload" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col">
+                        <label for="inputMaterialTitle">{ "Name für die Datei" }</label>
+                        <input id="inputMaterialTitle" type="text" class="form-control" name="title" placeholder="Titel der Datei"/>
+                    </div>
+                        <div class="col">
+                            <label for="selectMaterialKind">{ "Art der Datei (Playback, ...)" }</label>
+                            <select id="selectMaterialKind" name="material_kind" class="form-control" form="inputMaterialUpload">
+                                <option value="Audio">{ "Audio" }</option>
+                                <option value="Video">{ "Video" }</option>
+                                <option value="Sheet">{ "Noten" }</option>
+                                <option value="Other">{ "Sonstiges" }</option>
+                            </select>
                         </div>
                     </div>
-                </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <Upload form_id="inputMaterialUpload" field_name="file" target_url={format!("http://localhost:8001/projects/{}/material", ctx.props().id) } multiple=false success_callback={ ctx.link().callback(Msg::MetadataUpload) }/>
+                        </div>
+                    </div>
+                </form>
+                </Modal>
+
+               
                 </>
             },
             None => html! {
@@ -339,8 +333,9 @@ impl Component for ProjectComponent {
             Msg::SubmissionUploaded(text) => {
                 let submission: Submission = serde_json::from_str(&text).unwrap_throw();
                 if let Some(submissions) = &mut self.all_submissions {
-                    submissions.push(submission);
+                    submissions.push(submission.clone());
                 }
+                self.my_submissions.push(submission);
                 true
             }
         }
