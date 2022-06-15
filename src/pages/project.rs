@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{
     components::{iframe::IFrame, modal::Modal, submission_list::SubmissionList, upload::Upload},
     service::{
@@ -166,16 +168,17 @@ impl Component for ProjectComponent {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    { for metadata.materials_other.iter().map(|other| html!{
+                                    { for metadata.materials_other.iter().map(|other| {                            
+                                        html!{
                                         <tr>
                                             <td>
                                                 { &other.title }
                                             </td>
                                             <td>
-                                                <a href={ material_url(ctx.props().id, &other.file_technical_name) } download={ other.file_name.clone()[..other.file_name.len() - 5].to_string() }> { &other.file_name } </a>
+                                                <a href={ material_url(ctx.props().id, &other.file_technical_name) } download={ other.file_name.clone().to_string() }> { &other.file_name } </a>
                                             </td>
                                         </tr>
-                                    }) }
+                                    } }) }
                                     </tbody>
                                 </table>
 
