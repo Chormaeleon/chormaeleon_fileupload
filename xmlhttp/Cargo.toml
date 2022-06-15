@@ -1,28 +1,19 @@
 [package]
-name = "chormaeleon_fileupload"
+name = "xmlhttp"
 version = "0.1.0"
 edition = "2021"
 
-[workspace]
-members = [".", "xmlhttp"]
+[lib]
+name = "xmlhttp"
+path = "src/lib.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-yew = "0.19"
-yew-router = "0.16"
-
-gloo-file = "0.2"
-
-gloo-utils = "0.1"
-gloo-console = "0.2"
-gloo-dialogs="0.1"
-serde="1.0"
-serde_json="1.0"
-chrono = { version = "^0.4", features = ["wasmbind", "serde"] }
+js-sys = "0.3"
 wasm-bindgen = { version = "^0.2", features = ["serde-serialize"]}
 wasm-bindgen-futures = "0.4"
-xmlhttp = { path = "./xmlhttp" }
+
 
 [dependencies.web-sys]
 version = "0.3"

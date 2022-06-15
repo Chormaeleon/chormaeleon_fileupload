@@ -1,5 +1,3 @@
-use std::path::PathBuf;
-
 use crate::{
     components::{iframe::IFrame, modal::Modal, submission_list::SubmissionList, upload::Upload},
     service::{

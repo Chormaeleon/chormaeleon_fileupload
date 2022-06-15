@@ -4,7 +4,7 @@ use yew::{html, Callback, Component, Context, Html, Properties};
 
 use crate::components::progress::ProgressComponent;
 
-use crate::utilities::requests::xmlhttp_post_request::{PostRequest, SentRequest};
+use xmlhttp::xmlhttp_post_request::{PostRequest, SentRequest};
 
 use super::jwt_context::get_token;
 

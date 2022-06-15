@@ -87,7 +87,7 @@ impl PostRequest {
 
     pub fn set_upload_onloadend(&mut self, closure: Option<Box<dyn Fn()>>) {
         let callback = closure.map(|c| Closure::<dyn Fn()>::wrap(c).into_js_value());
-        self.upload_onloadstart = callback;
+        self.upload_onloadend = callback;
     }
 
     pub fn set_upload_onprogress(&mut self, closure: Option<Box<dyn Fn(ProgressEvent)>>) {
@@ -131,7 +131,8 @@ impl PostRequest {
 
     pub fn send(self, url: &str) -> Result<SentRequest, JsValue> {
         let request = self.open_request(url);
-        self.set_callbacks(&request);
+        self.set_upload_callbacks(&request);
+        self.set_request_callbacks(&request);
 
         self.set_headers(&request)?;
 
@@ -166,7 +167,31 @@ impl PostRequest {
         request
     }
 
-    fn set_callbacks(&self, request: &XmlHttpRequest) {
+    fn set_request_callbacks(&self, request: &XmlHttpRequest) {
+        if let Some(callback) = &self.request_onabort {
+            request.set_onabort(Some(callback.as_ref().unchecked_ref()));
+        }
+        if let Some(callback) = &self.request_onerror {
+            request.set_onerror(Some(callback.as_ref().unchecked_ref()));
+        }
+        if let Some(callback) = &self.request_onload {
+            request.set_onload(Some(callback.as_ref().unchecked_ref()));
+        }
+        if let Some(callback) = &self.request_onloadend {
+            request.set_onloadend(Some(callback.as_ref().unchecked_ref()));
+        }
+        if let Some(callback) = &self.request_onloadstart {
+            request.set_onloadstart(Some(callback.as_ref().unchecked_ref()));
+        }
+        if let Some(callback) = &self.request_on_progress {
+            request.set_onprogress(Some(callback.as_ref().unchecked_ref()));
+        }
+        if let Some(callback) = &self.request_ontimeout {
+            request.set_ontimeout(Some(callback.as_ref().unchecked_ref()));
+        }
+    }
+
+    fn set_upload_callbacks(&self, request: &XmlHttpRequest) {
         let upload = request
             .upload()
             .expect("Could not fetch upload field of xmlhttprequest");
@@ -176,8 +201,8 @@ impl PostRequest {
         if let Some(callback) = &self.upload_onerror {
             upload.set_onerror(Some(callback.as_ref().unchecked_ref()));
         }
-        if let Some(callback) = &self.request_onload {
-            request.set_onload(Some(callback.as_ref().unchecked_ref()));
+        if let Some(callback) = &self.upload_onload {
+            upload.set_onload(Some(callback.as_ref().unchecked_ref()));
         }
         if let Some(callback) = &self.upload_onloadend {
             upload.set_onloadend(Some(callback.as_ref().unchecked_ref()));
