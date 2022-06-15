@@ -1,6 +1,7 @@
 use crate::{
     components::{modal::Modal, project_list::*},
-    utilities::requests::fetch::{get_request_struct, post_request_struct, FetchError},
+    service::project::{create_project, get_pending_projects},
+    utilities::requests::fetch::FetchError,
 };
 use chrono::{NaiveDateTime, Utc};
 use gloo_console::{error, warn};
@@ -121,11 +122,7 @@ impl Component for Home {
     fn rendered(&mut self, ctx: &Context<Self>, first_render: bool) {
         if first_render {
             ctx.link().send_future(async {
-                match get_request_struct::<Vec<Project>>(
-                    "http://localhost:8001/pendingProjects".to_string(),
-                )
-                .await
-                {
+                match get_pending_projects().await {
                     Ok(contributions) => Msg::ProjectsLoaded(contributions),
                     Err(error) => Msg::ProjectsLoadError(error),
                 }
@@ -156,18 +153,7 @@ impl Component for Home {
                 let due_date = self.project_due_date;
 
                 ctx.link().send_future(async move {
-                    let body = CreateProjectBody {
-                        title,
-                        description,
-                        due_date,
-                    };
-
-                    match post_request_struct::<CreateProjectBody, Project>(
-                        "http://localhost:8001/projects",
-                        body,
-                    )
-                    .await
-                    {
+                    match create_project(title, description, due_date).await {
                         Ok(result) => Msg::CreateProjectSuccess(result),
                         Err(error) => Msg::CreateProjectFail(error),
                     }

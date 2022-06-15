@@ -1,7 +1,9 @@
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-use crate::utilities::requests::fetch::{delete_request, get_request_struct, FetchError};
+use crate::utilities::requests::fetch::{
+    delete_request, get_request_string, get_request_struct, FetchError,
+};
 
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct Submission {
@@ -45,8 +47,15 @@ pub async fn submissions_by_project_and_user(
     .await
 }
 
-pub fn submission_download_url(submission_id: i32) -> String {
-    format!("http://localhost:8001/submissions/{submission_id}")
+pub async fn get_submission_download_key(submission_id: i32) -> Result<String, FetchError> {
+    get_request_string(format!(
+        "http://localhost:8001/submissions/{submission_id}/downloadKey"
+    ))
+    .await
+}
+
+pub fn submission_download_url(submission_id: i32, download_key: String) -> String {
+    format!("http://localhost:8001/submissions/{submission_id}?jwt={download_key}")
 }
 
 pub async fn delete_submission(submission_id: i32) -> Result<(), FetchError> {

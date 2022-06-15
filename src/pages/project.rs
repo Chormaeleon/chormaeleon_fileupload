@@ -1,7 +1,13 @@
 use crate::{
     components::{iframe::IFrame, modal::Modal, submission_list::SubmissionList, upload::Upload},
-    service::submission::{submissions_by_project, submissions_by_project_and_user, Submission},
-    utilities::requests::fetch::{get_request_struct, FetchError},
+    service::{
+        material::{material_upload_url, material_url},
+        project::{
+            all_submissions_download_key, all_submissions_link, project_data, submission_upload_url,
+        },
+        submission::{submissions_by_project, submissions_by_project_and_user, Submission},
+    },
+    utilities::{download_from_link, requests::fetch::FetchError},
 };
 
 use serde::Deserialize;
@@ -22,6 +28,8 @@ pub enum Msg {
     SubmissionsLoadError(FetchError),
     SubmissionDeleted(i32),
     SubmissionUploaded(String),
+    ProjectDownloadClick,
+    ProjectDownloadKeyLoaded(String),
 }
 
 #[derive(Deserialize, PartialEq, Clone)]
@@ -89,7 +97,7 @@ impl Component for ProjectComponent {
                         </button>
                     </div>
                     <div class="col">
-                       <a href={format!("http://localhost:8001/projects/{}/allSubmissions", ctx.props().id)} download="true">  <button class="btn btn-danger">{ "Abgaben downloaden" } </button></a>
+                       <button class="btn btn-danger" onclick={ ctx.link().callback(|_| Msg::ProjectDownloadClick) } >{ "Abgaben downloaden" } </button>
                     </div>
                 </div>
                 <div class="row mt-2">
@@ -185,7 +193,7 @@ impl Component for ProjectComponent {
                             </div>
                             <div class="row mt-2">
                                 <div class="col">
-                                    <Upload form_id="inputContentUpload" field_name="file" target_url={format!("http://localhost:8001/projects/{}", ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) }/>
+                                    <Upload form_id="inputContentUpload" field_name="file" target_url={ submission_upload_url(ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) }/>
                                 </div>
                             </div>
                         </form>
@@ -237,13 +245,13 @@ impl Component for ProjectComponent {
                     </div>
                     <div class="row mt-2">
                         <div class="col">
-                            <Upload form_id="inputMaterialUpload" field_name="file" target_url={format!("http://localhost:8001/projects/{}/material", ctx.props().id) } multiple=false success_callback={ ctx.link().callback(Msg::MetadataUpload) }/>
+                            <Upload form_id="inputMaterialUpload" field_name="file" target_url={ material_upload_url(ctx.props().id) } multiple=false success_callback={ ctx.link().callback(Msg::MetadataUpload) }/>
                         </div>
                     </div>
                 </form>
                 </Modal>
 
-               
+
                 </>
             },
             None => html! {
@@ -338,25 +346,30 @@ impl Component for ProjectComponent {
                 self.my_submissions.push(submission);
                 true
             }
+            Msg::ProjectDownloadClick => {
+                let project_id = ctx.props().id;
+                ctx.link().send_future(async move {
+                    match all_submissions_download_key(project_id).await {
+                        Ok(key) => Msg::ProjectDownloadKeyLoaded(key),
+                        Err(error) => Msg::MetadataLoadError(error),
+                    }
+                });
+                false
+            }
+            Msg::ProjectDownloadKeyLoaded(key) => {
+                download_from_link(&all_submissions_link(ctx.props().id, key));
+                false
+            }
         }
     }
 }
 
 fn load_data(ctx: &yew::Context<ProjectComponent>) {
-    let id = ctx.props().id;
+    let project_id = ctx.props().id;
     ctx.link().send_future(async move {
-        match get_request_struct::<ProjectTo>(format!("http://localhost:8001/projects/{}", id))
-            .await
-        {
+        match project_data(project_id).await {
             Ok(metadata) => Msg::MetadataLoaded(metadata),
             Err(error) => Msg::MetadataLoadError(error),
         }
     })
-}
-
-fn material_url(project_id: i32, file_technical_name: &str) -> String {
-    format!(
-        "http://localhost:8001/materials/{}/{}",
-        project_id, file_technical_name
-    )
 }

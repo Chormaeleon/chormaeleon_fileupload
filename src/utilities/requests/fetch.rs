@@ -3,10 +3,11 @@ use std::{
     fmt::{self, Debug, Display, Formatter},
 };
 
+use gloo_utils::window;
 use serde::Serialize;
-use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
+use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Headers, Request, RequestInit, RequestMode, Response};
+use web_sys::{Request, RequestInit, RequestMode, Response};
 
 use crate::components::jwt_context::get_token;
 
@@ -37,14 +38,6 @@ impl From<serde_json::error::Error> for FetchError {
     }
 }
 
-/// The possible states a fetch request can be in.
-pub enum FetchState<T> {
-    NotFetching,
-    Fetching,
-    Success(T),
-    Failed(FetchError),
-}
-
 pub async fn get_request_string(url: String) -> Result<String, FetchError> {
     let mut opts = RequestInit::new();
     opts.method("GET");
@@ -52,13 +45,11 @@ pub async fn get_request_string(url: String) -> Result<String, FetchError> {
 
     let request = Request::new_with_str_and_init(&url, &opts)?;
 
-    request
-        .headers()
-        .set("Authorization", &format!("Bearer {}", get_token()))?;
+    set_authorization_header(&request)?;
 
-    let window = gloo_utils::window();
-    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
-    let resp: Response = resp_value.dyn_into().unwrap();
+    let resp = send_request(&request).await?;
+
+    check_status(&resp)?;
 
     let text = JsFuture::from(resp.text()?).await?;
 
@@ -72,36 +63,20 @@ pub async fn get_request_struct<T: for<'a> serde::de::Deserialize<'a>>(
     url: String,
 ) -> Result<T, FetchError> {
     let mut opts = RequestInit::new();
-    opts.method("GET"); 
+    opts.method("GET");
     opts.mode(RequestMode::Cors);
 
     let request = Request::new_with_str_and_init(&url, &opts)?;
 
-    request
-        .headers()
-        .set("Authorization", &format!("Bearer {}", get_token()))?;
+    set_authorization_header(&request)?;
 
     request.headers().set("Accept", "application/json")?;
 
-    let window = web_sys::window().unwrap();
-    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+    let resp = send_request(&request).await?;
 
-    // `resp_value` is a `Response` object.
-    assert!(resp_value.is_instance_of::<Response>());
-    let resp: Response = resp_value.dyn_into().unwrap();
+    check_status(&resp)?;
 
-    let status = resp.status();
-
-    match status {
-        200 | 201 | 203 | 304 => (),
-        _ => return Err(FetchError::StatusCode(status)),
-    }
-
-    // Convert this other `Promise` into a rust `Future`.
-    let json = JsFuture::from(resp.json()?).await?;
-
-    // Use serde to parse the JSON into a struct.
-    let result: T = json.into_serde()?;
+    let result = parse_result(&resp).await?;
 
     Ok(result)
 }
@@ -116,30 +91,19 @@ pub async fn post_request_struct<
     let mut opts = RequestInit::new();
     opts.method("POST");
     opts.mode(RequestMode::Cors);
-    let headers = Headers::new().unwrap();
-    headers
-        .append("Authorization", &format!("Bearer {}", get_token()))
-        .unwrap_throw();
-    headers
-        .append("Content-Type", "application/json")
-        .unwrap_throw();
-    opts.headers(&headers);
-    let string = serde_json::to_string(&payload).map_err(FetchError::from)?;
-    opts.body(Some(&string.into()));
+
+    let serialized = serde_json::to_string(&payload).map_err(FetchError::from)?;
+    opts.body(Some(&serialized.into()));
 
     let request = Request::new_with_str_and_init(url, &opts)?;
 
-    let window = gloo_utils::window();
-    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
-    // `resp_value` is a `Response` object.
-    assert!(resp_value.is_instance_of::<Response>());
-    let resp: Response = resp_value.dyn_into().unwrap();
+    set_authorization_header(&request)?;
 
-    // Convert this other `Promise` into a rust `Future`.
-    let json = JsFuture::from(resp.json()?).await?;
+    request.headers().set("Content-Type", "application/json")?;
 
-    // Use serde to parse the JSON into a struct.
-    let result: RESPONSE = json.into_serde()?;
+    let resp = send_request(&request).await?;
+
+    let result = parse_result(&resp).await?;
 
     Ok(result)
 }
@@ -151,18 +115,47 @@ pub async fn delete_request(url: &str) -> Result<(), FetchError> {
 
     let request = Request::new_with_str_and_init(url, &opts)?;
 
+    set_authorization_header(&request)?;
+
+    let response = send_request(&request).await?;
+
+    check_status(&response)?;
+
+    Ok(())
+}
+
+async fn send_request(request: &Request) -> Result<Response, FetchError> {
+    let fetch = window().fetch_with_request(request);
+
+    let resp_value = JsFuture::from(fetch).await?;
+
+    assert!(resp_value.is_instance_of::<Response>());
+    let response: Response = resp_value.dyn_into().unwrap();
+
+    Ok(response)
+}
+
+async fn parse_result<T: for<'a> serde::de::Deserialize<'a>>(
+    response: &Response,
+) -> Result<T, FetchError> {
+    // Convert this Promise into a rust Future.
+    let json = JsFuture::from(response.json()?).await?;
+
+    // Use serde to parse the JSON into a struct.
+    let result = json.into_serde()?;
+    Ok(result)
+}
+
+fn set_authorization_header(request: &Request) -> Result<(), FetchError> {
     request
         .headers()
         .set("Authorization", &format!("Bearer {}", get_token()))?;
 
-    let window = web_sys::window().unwrap();
-    let resp_value = JsFuture::from(window.fetch_with_request(&request)).await?;
+    Ok(())
+}
 
-    // `resp_value` is a `Response` object.
-    assert!(resp_value.is_instance_of::<Response>());
-    let resp: Response = resp_value.dyn_into().unwrap();
-
-    let status = resp.status();
+fn check_status(response: &Response) -> Result<(), FetchError> {
+    let status = response.status();
 
     match status {
         200 | 201 | 203 | 304 => Ok(()),
