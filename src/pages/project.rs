@@ -26,6 +26,7 @@ pub enum Msg {
     AllSubmissionsLoaded(Vec<Submission>),
     MySubmissionsLoaded(Vec<Submission>),
     SubmissionsLoadError(FetchError),
+    SubmissionsAdminLoadError(FetchError),
     SubmissionDeleted(i32),
     SubmissionUploaded(String),
     ProjectDownloadClick,
@@ -271,7 +272,7 @@ impl Component for ProjectComponent {
 
                 match submissions {
                     Ok(contributions) => Msg::AllSubmissionsLoaded(contributions),
-                    Err(error) => Msg::SubmissionsLoadError(error),
+                    Err(error) => Msg::SubmissionsAdminLoadError(error),
                 }
             });
 
@@ -330,6 +331,10 @@ impl Component for ProjectComponent {
                 gloo_console::error!(format!("{:?}", error));
                 alert("Could not get submissions! For more info see the console log.");
 
+                false
+            }
+            Msg::SubmissionsAdminLoadError(error) => {
+                gloo_console::debug!(format!("could not get admin submissions {:?}", error));
                 false
             }
             Msg::SubmissionDeleted(id) => {
