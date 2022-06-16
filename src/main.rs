@@ -18,6 +18,8 @@ pub enum Route {
     Home,
     #[at("/events/:id")]
     Event { id: i32 },
+    #[at("index.html")]
+    Index
 }
 
 pub enum Msg {}
@@ -60,6 +62,9 @@ fn switch(routes: &Route) -> Html {
                     <ProjectComponent id={ id }/>
                 </div>
             }
+        }
+        Route::Index => {
+            html! { <Home/> }
         }
     }
 }
