@@ -1,3 +1,4 @@
+use gloo_console::debug;
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 
@@ -30,20 +31,26 @@ pub fn get_token() -> String {
 
     let param = get_jwt_from_url_param(document);
     if let Ok(p) = param {
+        debug!("Got jwt, saving");
         storage.set_item("jwt", &p).unwrap_throw();
         return p;
     }
 
     match storage.get_item("jwt").unwrap_throw() {
-        Some(jwt) => return jwt,
+        Some(jwt) => {
+            debug!("Retrieved jwt from local storage");
+            return jwt;
+        }
         None => (),
     }
+
+    debug!("jwt not found in local storage");
 
     window
         .location()
         .set_href("http://localhost:8081/turnin")
         .unwrap_throw();
-        
+
     return "".to_string();
 }
 
