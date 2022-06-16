@@ -5,6 +5,8 @@ use crate::utilities::requests::fetch::{
     delete_request, get_request_string, get_request_struct, FetchError,
 };
 
+use super::BACKEND_URL;
+
 #[derive(Clone, PartialEq, Serialize, Deserialize)]
 pub struct Submission {
     pub id: i32,
@@ -31,7 +33,7 @@ pub enum Section {
 
 pub async fn submissions_by_project(project_id: i32) -> Result<Vec<Submission>, FetchError> {
     get_request_struct::<Vec<Submission>>(format!(
-        "http://localhost:8001/projects/{}/submissions",
+        "{BACKEND_URL}/projects/{}/submissions",
         project_id
     ))
     .await
@@ -42,25 +44,25 @@ pub async fn submissions_by_project_and_user(
     user_id: i32,
 ) -> Result<Vec<Submission>, FetchError> {
     get_request_struct::<Vec<Submission>>(format!(
-        "http://localhost:8001/projects/{project_id}/submissions/{user_id}"
+        "{BACKEND_URL}/projects/{project_id}/submissions/{user_id}"
     ))
     .await
 }
 
 pub async fn get_submission_download_key(submission_id: i32) -> Result<String, FetchError> {
     get_request_string(format!(
-        "http://localhost:8001/submissions/{submission_id}/downloadKey"
+        "{BACKEND_URL}/submissions/{submission_id}/downloadKey"
     ))
     .await
 }
 
 pub fn submission_download_url(submission_id: i32, download_key: String) -> String {
-    format!("http://localhost:8001/submissions/{submission_id}?jwt={download_key}")
+    format!("{BACKEND_URL}/submissions/{submission_id}?jwt={download_key}")
 }
 
 pub async fn delete_submission(submission_id: i32) -> Result<(), FetchError> {
     delete_request(&format!(
-        "http://localhost:8001/submissions/{submission_id}"
+        "{BACKEND_URL}/submissions/{submission_id}"
     ))
     .await
 }

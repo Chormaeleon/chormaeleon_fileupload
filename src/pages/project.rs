@@ -89,7 +89,7 @@ impl Component for ProjectComponent {
                 </div>
                 <div class="row">
                     <div class="col">
-                        <a href="http://localhost:8080"> <button type="button" class="btn btn-outline-danger"> { "zurück" } </button></a>
+                        <a href="/"> <button type="button" class="btn btn-outline-danger"> { "zurück" } </button></a>
                     </div>
                     <div class="col">
                         <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#uploadMaterialModal">

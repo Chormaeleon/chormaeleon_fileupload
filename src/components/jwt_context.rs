@@ -24,29 +24,27 @@ pub fn jwt_provider(props: &JWTProviderProps) -> Html {
 pub fn get_token() -> String {
     let window = gloo_utils::window();
 
+    let document = gloo_utils::document();
+
     let storage = window.local_storage().unwrap_throw().unwrap_throw();
+
+    let param = get_jwt_from_url_param(document);
+    if let Ok(p) = param {
+        storage.set_item("jwt", &p).unwrap_throw();
+        return p;
+    }
 
     match storage.get_item("jwt").unwrap_throw() {
         Some(jwt) => return jwt,
         None => (),
     }
 
-    let document = window.document().unwrap_throw();
-
-    let param = match get_jwt_from_url_param(document) {
-        Ok(value) => value,
-        Err(_) => {
-            window
-                .location()
-                .set_href("http://localhost:8081/turnin")
-                .unwrap_throw();
-            return "".to_string();
-        }
-    };
-
-    storage.set_item("jwt", &param).unwrap_throw();
-
-    param
+    window
+        .location()
+        .set_href("http://localhost:8081/turnin")
+        .unwrap_throw();
+        
+    return "".to_string();
 }
 
 fn get_jwt_from_url_param(document: web_sys::Document) -> Result<String, ()> {
