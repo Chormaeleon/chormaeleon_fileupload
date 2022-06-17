@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
@@ -31,6 +33,23 @@ pub enum Section {
     Instrument,
 }
 
+impl Display for Section {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Section::Soprano => "Sopran",
+                Section::Alto => "Alt",
+                Section::Tenor => "Tenor",
+                Section::Bass => "Bass",
+                Section::Conductor => "Dirigent",
+                Section::Instrument => "Instrumnet",
+            }
+        )
+    }
+}
+
 pub async fn submissions_by_project(project_id: i32) -> Result<Vec<Submission>, FetchError> {
     get_request_struct::<Vec<Submission>>(format!(
         "{BACKEND_URL}/projects/{}/submissions",
@@ -61,8 +80,5 @@ pub fn submission_download_url(submission_id: i32, download_key: String) -> Stri
 }
 
 pub async fn delete_submission(submission_id: i32) -> Result<(), FetchError> {
-    delete_request(&format!(
-        "{BACKEND_URL}/submissions/{submission_id}"
-    ))
-    .await
+    delete_request(&format!("{BACKEND_URL}/submissions/{submission_id}")).await
 }

@@ -241,21 +241,38 @@ pub struct SubmissionProperty {
 fn submission_details(s: &SubmissionProperty) -> Html {
     let submission = &s.submission;
     html!(<>
-        <h4>
-            { &submission.note }
-        </h4>
         <div class="row">
-            <div class="col">
-                <b>{ "Dateiname: " }</b>
-                <i>{ &submission.file_name } </i>
-            </div>
             <div class="col">
                 <b>{ "Id: " }</b>
                 { submission.id }
             </div>
             <div class="col">
-                <b>{ "Autor (Id)" }</b>
+                <b>{ "Dateiname: " }</b>
+                <i>{ &submission.file_name } </i>
+            </div>
+            <div class="col">
+                <b>{ "Notiz: " }</b>
+                { &submission.note }
+            </div>
+        </div>
+        <div class="row mt-1">
+            <div class="col">
+                <b>{ "Autor (Id): " }</b>
                 { submission.creator }
+            </div>
+            <div class="col">
+                <b>{ "Autor: " }</b>
+                { &submission.creator_name }
+            </div>
+            <div class="col">
+                <b>{ "Stimme: " }</b>
+                { submission.creator_section }
+            </div>
+        </div>
+        <div class="row mt-1">
+            <div class="col">
+                <b>{ "Hochgeladen: " }</b>
+                { submission.upload_at }
             </div>
         </div>
         </>)
