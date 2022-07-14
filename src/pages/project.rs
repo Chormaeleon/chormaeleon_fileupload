@@ -1,22 +1,23 @@
 use crate::{
-    components::{iframe::IFrame, modal::Modal, submission_list::SubmissionList, upload::Upload},
+    components::{
+        delete_modal::DeleteModal, iframe::IFrame, modal::Modal, submission_list::SubmissionList,
+        upload::Upload,
+    },
     service::{
-        material::{material_upload_url, material_url},
+        material::{delete_material, material_upload_url, material_url, MaterialKind, MetadataEntry},
         project::{
-            all_submissions_download_key, all_submissions_link, project_data, submission_upload_url,
+            all_submissions_download_key, all_submissions_link, project_data, submission_upload_url, ProjectTo,
         },
         submission::{submissions_by_project, submissions_by_project_and_user, Submission},
     },
     utilities::{download_from_link, requests::fetch::FetchError},
 };
 
-use serde::Deserialize;
 use wasm_bindgen::UnwrapThrowExt;
+use web_sys::MouseEvent;
 use yew::{html, Component, Properties};
 
-use chrono::NaiveDateTime;
-
-use gloo_console::error;
+use gloo_console::{error, warn};
 use gloo_dialogs::alert;
 
 pub enum Msg {
@@ -30,33 +31,23 @@ pub enum Msg {
     SubmissionUploaded(String),
     ProjectDownloadClick,
     ProjectDownloadKeyLoaded(String),
+    Delete(DeleteMessage),
 }
 
-#[derive(Deserialize, PartialEq, Clone)]
-pub struct ProjectTo {
-    pub heading: String,
-    pub description: String,
-    pub materials_audio: Vec<MetadataEntry>,
-    pub materials_video: Vec<MetadataEntry>,
-    pub materials_sheet: Vec<MetadataEntry>,
-    pub materials_other: Vec<MetadataEntry>,
-}
-
-#[derive(Deserialize, PartialEq, Clone)]
-pub struct MetadataEntry {
-    pub id: i32,
-    pub project_id: i32,
-    pub title: String,
-    pub file_name: String,
-    pub file_technical_name: String,
-    pub creator: i32,
-    pub upload_at: NaiveDateTime,
-}
 
 pub struct ProjectComponent {
     metadata: Option<ProjectTo>,
     all_submissions: Option<Vec<Submission>>,
     my_submissions: Vec<Submission>,
+    delete_selected_material: Option<(MaterialKind, MetadataEntry)>,
+}
+
+pub enum DeleteMessage {
+    DeleteButtonClick(MaterialKind, MetadataEntry),
+    AcceptClick(MouseEvent),
+    AbortClick(MouseEvent),
+    Success(i32),
+    Fail(FetchError),
 }
 
 #[derive(PartialEq, Properties)]
@@ -74,6 +65,7 @@ impl Component for ProjectComponent {
             metadata: None,
             all_submissions: None,
             my_submissions: Vec::new(),
+            delete_selected_material: None,
         }
     }
 
@@ -106,13 +98,16 @@ impl Component for ProjectComponent {
                     </div>
                 </div>
                 <div class="row">
-                    { for metadata.materials_audio.iter().map(|audio| html!{
+                    { for metadata.materials_audio.iter().map(|audio| {
+                        let clone = audio.clone();
+                        html!{
                         <div class="col">
                             <h5> { &audio.title } </h5>
                             <audio controls=true id={ format!("audio-{}", audio.id)} src={ material_url(ctx.props().id, &audio.file_technical_name) }></audio>
                             <h6> <i> { &audio.file_name } </i> </h6>
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalMaterialDelete" onclick={ctx.link().callback(move |_| Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::Audio, clone.clone())))}> { "Löschen" } </button>
                         </div>
-                    })}
+                    }})}
                 </div>
                 <div class="row mt-2">
                     <div class="col">
@@ -166,7 +161,7 @@ impl Component for ProjectComponent {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                    { for metadata.materials_other.iter().map(|other| {                            
+                                    { for metadata.materials_other.iter().map(|other| {
                                         html!{
                                         <tr>
                                             <td>
@@ -207,7 +202,7 @@ impl Component for ProjectComponent {
                 </div>
                 <div class="row mt-2">
                     <div class="col">
-                        <SubmissionList submissions={ self.my_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }/>
+                        <SubmissionList id="list1" submissions={ self.my_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }/>
                     </div>
                 </div>
                 if let Some(all_submissions) = &self.all_submissions {
@@ -218,7 +213,7 @@ impl Component for ProjectComponent {
                     </div>
                     <div class="row mt-2">
                         <div class="col">
-                            <SubmissionList submissions={ all_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }/>
+                            <SubmissionList id="list2" submissions={ all_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }/>
                         </div>
                     </div>
                 }
@@ -252,6 +247,15 @@ impl Component for ProjectComponent {
                 </form>
                 </Modal>
 
+
+                    <DeleteModal id="modalMaterialDelete" title="Material wirklich löschen?" on_cancel={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AbortClick(e))) } on_confirm={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AcceptClick(e)))  }>
+                        if let Some(mat) = &self.delete_selected_material { 
+                            <p> { "Beschreibung: " } { &mat.1.title } </p>
+                            <p> { "Dateiname: " } <i> { &mat.1.file_name } </i> </p>   
+                        } else {
+                            { "Kein zu löschendes Element ausgewählt!" }
+                        }
+                    </DeleteModal>
 
                 </>
             },
@@ -361,6 +365,56 @@ impl Component for ProjectComponent {
                 download_from_link(&all_submissions_link(ctx.props().id, key));
                 false
             }
+            Msg::Delete(message) => match message {
+                DeleteMessage::DeleteButtonClick(category, item) => {
+                    self.delete_selected_material = Some((category, item));
+                    true
+                }
+                DeleteMessage::AcceptClick(_) => {
+                    let material_id = match &self.delete_selected_material {
+                        Some(m) => m.1.id,
+                        None => {
+                            error!("Clicked accept without selected material to delete!");
+                            return false;
+                        }
+                    };
+                    ctx.link().send_future(async move {
+                        match delete_material(material_id).await {
+                            Ok(_) => Msg::Delete(DeleteMessage::Success(material_id)),
+                            Err(error) => Msg::Delete(DeleteMessage::Fail(error)),
+                        }
+                    });
+                    false
+                }
+                DeleteMessage::AbortClick(_) => {
+                    self.delete_selected_material = None;
+                    true
+                }
+                DeleteMessage::Success(_) => {
+                    self.delete_selected_material = None;
+                    true
+                }
+                DeleteMessage::Fail(error) => {
+                    match error {
+                        FetchError::StatusCode(code) => {
+                            if code == 404 {
+                                alert("Die Datei wurde bereits gelöscht!");
+                                warn!("Could not delete material, got 404.");
+                                return false;
+                            }
+                            alert(&format!("Could not delete material, got status {code}"));
+                            warn!(format!(
+                                "Konnte die Datei nicht löschen, Statuscode {}",
+                                code
+                            ))
+                        }
+                        _ => warn!("Could not delete material!"),
+                    }
+                    alert("Die Datei konnte nicht gelöscht werden! Details siehe Konsole.");
+                    warn!(format!("{:?}", error));
+                    false
+                }
+            },
         }
     }
 }

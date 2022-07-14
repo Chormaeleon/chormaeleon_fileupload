@@ -7,7 +7,7 @@ use crate::utilities::requests::fetch::{
 
 use super::BACKEND_URL;
 
-#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Submission {
     pub id: i32,
     pub project_id: i32,

@@ -1,14 +1,15 @@
 use chrono::NaiveDateTime;
+use serde::Deserialize;
 
 use crate::{
     components::project_list::Project,
-    pages::{home::CreateProjectBody, project::ProjectTo},
+    pages::home::CreateProjectBody,
     utilities::requests::fetch::{
         delete_request, get_request_string, get_request_struct, post_request_struct, FetchError,
     },
 };
 
-use super::BACKEND_URL;
+use super::{material::MetadataEntry, BACKEND_URL};
 
 pub async fn delete_project(project_id: i32) -> Result<(), FetchError> {
     delete_request(&format!("{BACKEND_URL}/projects/{project_id}")).await
@@ -23,10 +24,7 @@ pub fn all_submissions_link(project_id: i32, key: String) -> String {
 }
 
 pub async fn all_submissions_download_key(project_id: i32) -> Result<String, FetchError> {
-    get_request_string(format!(
-        "{BACKEND_URL}/projects/{project_id}/downloadKey"
-    ))
-    .await
+    get_request_string(format!("{BACKEND_URL}/projects/{project_id}/downloadKey")).await
 }
 
 pub fn submission_upload_url(project_id: i32) -> String {
@@ -48,5 +46,16 @@ pub async fn create_project(
         due_date,
     };
 
-    post_request_struct::<CreateProjectBody, Project>(&format!("{BACKEND_URL}/projects"), body).await
+    post_request_struct::<CreateProjectBody, Project>(&format!("{BACKEND_URL}/projects"), body)
+        .await
+}
+
+#[derive(Deserialize, PartialEq, Clone)]
+pub struct ProjectTo {
+    pub heading: String,
+    pub description: String,
+    pub materials_audio: Vec<MetadataEntry>,
+    pub materials_video: Vec<MetadataEntry>,
+    pub materials_sheet: Vec<MetadataEntry>,
+    pub materials_other: Vec<MetadataEntry>,
 }
