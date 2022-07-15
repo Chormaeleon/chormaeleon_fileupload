@@ -21,7 +21,7 @@ pub struct SubmissionList {
 pub struct SubmissionListProperties {
     pub submissions: Vec<Submission>,
     pub submission_delete: Callback<i32>,
-    pub id: String
+    pub id: String,
 }
 
 pub enum DeleteMessage {

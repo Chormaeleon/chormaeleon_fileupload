@@ -1,7 +1,7 @@
 use chrono::NaiveDateTime;
 use serde::Deserialize;
 
-use crate::utilities::requests::fetch::{FetchError, delete_request};
+use crate::utilities::requests::fetch::{delete_request, FetchError};
 
 use super::BACKEND_URL;
 

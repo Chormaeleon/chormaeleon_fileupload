@@ -1,12 +1,17 @@
+use std::error;
+
 use crate::{
     components::{
-        delete_modal::DeleteModal, iframe::IFrame, modal::Modal, submission_list::SubmissionList,
-        upload::Upload,
+        admin_only::AdminOnly, delete_modal::DeleteModal, iframe::IFrame, modal::Modal,
+        submission_list::SubmissionList, upload::Upload,
     },
     service::{
-        material::{delete_material, material_upload_url, material_url, MaterialKind, MetadataEntry},
+        material::{
+            delete_material, material_upload_url, material_url, MaterialKind, MetadataEntry,
+        },
         project::{
-            all_submissions_download_key, all_submissions_link, project_data, submission_upload_url, ProjectTo,
+            all_submissions_download_key, all_submissions_link, project_data,
+            submission_upload_url, ProjectTo,
         },
         submission::{submissions_by_project, submissions_by_project_and_user, Submission},
     },
@@ -15,7 +20,7 @@ use crate::{
 
 use wasm_bindgen::UnwrapThrowExt;
 use web_sys::MouseEvent;
-use yew::{html, Component, Properties};
+use yew::{function_component, html, Callback, Component, Properties};
 
 use gloo_console::{error, warn};
 use gloo_dialogs::alert;
@@ -34,7 +39,6 @@ pub enum Msg {
     Delete(DeleteMessage),
 }
 
-
 pub struct ProjectComponent {
     metadata: Option<ProjectTo>,
     all_submissions: Option<Vec<Submission>>,
@@ -46,7 +50,7 @@ pub enum DeleteMessage {
     DeleteButtonClick(MaterialKind, MetadataEntry),
     AcceptClick(MouseEvent),
     AbortClick(MouseEvent),
-    Success(i32),
+    Success,
     Fail(FetchError),
 }
 
@@ -98,83 +102,135 @@ impl Component for ProjectComponent {
                     </div>
                 </div>
                 <div class="row">
-                    { for metadata.materials_audio.iter().map(|audio| {
-                        let clone = audio.clone();
-                        html!{
-                        <div class="col">
-                            <h5> { &audio.title } </h5>
-                            <audio controls=true id={ format!("audio-{}", audio.id)} src={ material_url(ctx.props().id, &audio.file_technical_name) }></audio>
-                            <h6> <i> { &audio.file_name } </i> </h6>
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalMaterialDelete" onclick={ctx.link().callback(move |_| Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::Audio, clone.clone())))}> { "Löschen" } </button>
-                        </div>
-                    }})}
+                    {
+                        for metadata.materials_audio.iter().map(|audio|  {
+                            let clone = audio.clone();
+                            html!{
+                            <div class="col">
+                                <h5> { &audio.title } </h5>
+                                <audio controls=true id={ format!("audio-{}", audio.id)} src={ material_url(ctx.props().id, &audio.file_technical_name) }></audio>
+                                <h6> <i> { &audio.file_name } </i> </h6>
+                                <MaterialDeleteButton
+                                    onclick={
+                                        ctx.link().callback(move |_|
+                                            Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::Audio, clone.clone()))
+                                        )
+                                    }
+                                />
+                            </div>
+                            }
+                        })
+                    }
                 </div>
                 <div class="row mt-2">
                     <div class="col">
                         <h2>{ "Videos" }</h2>
 
-                        { for metadata.materials_video.iter().map(|video| html!{
-                            <div class="row">
-                                <div class="col">
-                                <h5> { &video.title } </h5>
-                                <div class="ratio ratio-16x9">
-                                        <video id={video.title.clone()} controls=true>
-                                            <source src={ material_url(ctx.props().id, &video.file_technical_name) }/>
-                                        </video>
+                        { for metadata.materials_video.iter().map(|video| {
+                            let video = video.clone();
+                            html!{
+                                <>
+                                <div class="row">
+                                    <div class="col">
+                                    <h5> { &video.title } </h5>
+                                    <div class="ratio ratio-16x9">
+                                            <video id={video.title.clone()} controls=true>
+                                                <source src={ material_url(ctx.props().id, &video.file_technical_name) }/>
+                                            </video>
+                                        </div>
+                                        <h6> <i> { &video.file_name } </i> </h6>
                                     </div>
-                                    <h6> <i> { &video.file_name } </i> </h6>
                                 </div>
-                            </div>
-                        })}
+                                <MaterialDeleteButton
+                                    onclick={
+                                        ctx.link().callback(move |_|
+                                            Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::Video, video.clone()))
+                                        )
+                                    }
+                                />
+                                </>
+                            }
+                            })
+                        }
 
-                        </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col">
-                        <h2>{ "Noten" }</h2>
-                        { for metadata.materials_sheet.iter().map(|score| html!{
-                            <div class="row">
-                                <div class="col">
-                                    <h5> { &score.title } </h5>
-                                    <div class="mt-2 ratio ratio-16x9">
-                                        <embed src={ format!("{}#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0", material_url(ctx.props().id, &score.file_technical_name)) }/>
-                                    </div>
-                                    <h6> <i> { &score.file_name } </i> </h6>
-                                </div>
-                            </div>
-                        }) }
                     </div>
                 </div>
                 <div class="row mt-2">
                     <div class="col">
-                            <h2>{ "Sonstige Dateien + Downloads" }</h2>
+                        <h2>{ "Noten" }</h2>
+                        { for metadata.materials_sheet.iter().map(|score| {
+                            let score = score.clone();
+                            html!{
+                                <>
+                                <div class="row">
+                                    <div class="col">
+                                        <h5> { &score.title } </h5>
+                                        <div class="mt-2 ratio ratio-16x9">
+                                            <embed src={ format!("{}#toolbar=0&navpanes=0&scrollbar=0&statusbar=0&messages=0", material_url(ctx.props().id, &score.file_technical_name)) }/>
+                                        </div>
+                                        <h6> <i> { &score.file_name } </i> </h6>
+                                    </div>
+                                </div>
+                                <MaterialDeleteButton
+                                    onclick={
+                                        ctx.link().callback(move |_|
+                                            Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::SheetMusic, score.clone()))
+                                        )
+                                    }
+                                />
+                                </>
+                            }
+                            })
+                        }
+                    </div>
+                </div>
 
-                                <table class="table table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>
-                                                { "Dateibeschreibung" }
-                                            </th>
-                                            <th>
-                                                { "Link" }
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    { for metadata.materials_other.iter().map(|other| {
-                                        html!{
-                                        <tr>
-                                            <td>
-                                                { &other.title }
-                                            </td>
-                                            <td>
-                                                <a href={ material_url(ctx.props().id, &other.file_technical_name) } download={ other.file_name.clone().to_string() }> { &other.file_name } </a>
-                                            </td>
-                                        </tr>
-                                    } }) }
-                                    </tbody>
-                                </table>
+                <div class="row mt-2">
+                    <div class="col">
+                        <h2>{ "Sonstige Dateien + Downloads" }</h2>
 
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        { "Dateibeschreibung" }
+                                    </th>
+                                    <th>
+                                        { "Link" }
+                                    </th>
+                                    <AdminOnly>
+                                        <th>
+                                            { "Löschen" }
+                                        </th>
+                                    </AdminOnly>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            { for metadata.materials_other.iter().map(|other| {
+                                let other = other.clone();
+                                html!{
+                                <tr>
+                                    <td>
+                                        { &other.title }
+                                    </td>
+                                    <td>
+                                        <a href={ material_url(ctx.props().id, &other.file_technical_name) } download={ other.file_name.clone().to_string() }> { &other.file_name } </a>
+                                    </td>
+                                    <AdminOnly>
+                                        <td>
+                                            <MaterialDeleteButton
+                                                onclick={
+                                                    ctx.link().callback(move |_|
+                                                        Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::Other, other.clone()))
+                                                    )
+                                                }
+                                            />
+                                        </td>
+                                    </AdminOnly>
+                                </tr>
+                            } }) }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
                 <div class="row mt-2">
@@ -248,14 +304,14 @@ impl Component for ProjectComponent {
                 </Modal>
 
 
-                    <DeleteModal id="modalMaterialDelete" title="Material wirklich löschen?" on_cancel={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AbortClick(e))) } on_confirm={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AcceptClick(e)))  }>
-                        if let Some(mat) = &self.delete_selected_material { 
-                            <p> { "Beschreibung: " } { &mat.1.title } </p>
-                            <p> { "Dateiname: " } <i> { &mat.1.file_name } </i> </p>   
-                        } else {
-                            { "Kein zu löschendes Element ausgewählt!" }
-                        }
-                    </DeleteModal>
+                <DeleteModal id="modalMaterialDelete" title="Material wirklich löschen?" on_cancel={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AbortClick(e))) } on_confirm={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AcceptClick(e)))  }>
+                    if let Some(mat) = &self.delete_selected_material {
+                        <p> { "Beschreibung: " } { &mat.1.title } </p>
+                        <p> { "Dateiname: " } <i> { &mat.1.file_name } </i> </p>
+                    } else {
+                        { "Kein zu löschendes Element ausgewählt!" }
+                    }
+                </DeleteModal>
 
                 </>
             },
@@ -380,7 +436,7 @@ impl Component for ProjectComponent {
                     };
                     ctx.link().send_future(async move {
                         match delete_material(material_id).await {
-                            Ok(_) => Msg::Delete(DeleteMessage::Success(material_id)),
+                            Ok(_) => Msg::Delete(DeleteMessage::Success),
                             Err(error) => Msg::Delete(DeleteMessage::Fail(error)),
                         }
                     });
@@ -390,8 +446,32 @@ impl Component for ProjectComponent {
                     self.delete_selected_material = None;
                     true
                 }
-                DeleteMessage::Success(_) => {
-                    self.delete_selected_material = None;
+                DeleteMessage::Success => {
+                    let (category, item) = match self.delete_selected_material.take() {
+                        Some(content) => content,
+                        None => {
+                            error!("Succesfully deleted material, but no item was found!");
+                            return true;
+                        }
+                    };
+
+                    let meta = match &mut self.metadata {
+                        None => {
+                            error!("No metadata found after deleting material!");
+                            return false;
+                        }
+                        Some(m) => m,
+                    };
+
+                    let list = match category {
+                        MaterialKind::Audio => &mut meta.materials_audio,
+                        MaterialKind::Video => &mut meta.materials_video,
+                        MaterialKind::SheetMusic => &mut meta.materials_sheet,
+                        MaterialKind::Other => &mut meta.materials_other,
+                    };
+
+                    list.retain(|entry| entry.id != item.id);
+
                     true
                 }
                 DeleteMessage::Fail(error) => {
@@ -427,4 +507,19 @@ fn load_data(ctx: &yew::Context<ProjectComponent>) {
             Err(error) => Msg::MetadataLoadError(error),
         }
     })
+}
+
+#[derive(Clone, PartialEq, Properties)]
+pub struct MaterialDeleteButtonProperties {
+    pub onclick: Callback<MouseEvent>,
+}
+
+#[function_component(MaterialDeleteButton)]
+pub fn button(props: &MaterialDeleteButtonProperties) -> Html {
+    let props = props.clone();
+    html! {
+    <AdminOnly>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalMaterialDelete" onclick={props.onclick}> { "Löschen" } </button>
+    </AdminOnly>
+    }
 }

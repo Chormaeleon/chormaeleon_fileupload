@@ -61,8 +61,5 @@ pub fn submission_download_url(submission_id: i32, download_key: String) -> Stri
 }
 
 pub async fn delete_submission(submission_id: i32) -> Result<(), FetchError> {
-    delete_request(&format!(
-        "{BACKEND_URL}/submissions/{submission_id}"
-    ))
-    .await
+    delete_request(&format!("{BACKEND_URL}/submissions/{submission_id}")).await
 }

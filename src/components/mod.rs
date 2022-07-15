@@ -1,3 +1,4 @@
+pub(crate) mod admin_only;
 pub(crate) mod delete_modal;
 pub(crate) mod iframe;
 pub(crate) mod jwt_context;
