@@ -1,4 +1,6 @@
 use gloo_console::debug;
+use gloo_console::error;
+use serde::Deserialize;
 use wasm_bindgen::UnwrapThrowExt;
 use yew::prelude::*;
 
@@ -51,7 +53,76 @@ pub fn get_token() -> String {
         .set_href("http://localhost:8081/turnin")
         .unwrap_throw();
 
-    return "".to_string();
+    "".to_string()
+}
+
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+pub enum Section {
+    Soprano,
+    Alto,
+    Tenor,
+    Bass,
+    Conductor,
+    Instrument,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+pub struct PerformerData {
+    pub section: Section,
+    pub user_id: i32,
+    pub name: String,
+    pub is_admin: bool,
+}
+
+pub fn get_token_data() -> Result<PerformerData, ()> {
+    let token = get_token();
+
+    let split_token = token.split('.').collect::<Vec<&str>>();
+
+    let payload = split_token.get(1);
+
+    let payload = match payload {
+        Some(p) => p,
+        None => {
+            error!(format!(
+                "JWT could not be split and seems to be invalid: {token}"
+            ));
+            return Err(());
+        }
+    };
+
+    let base64_decoded = match base64::decode(payload) {
+        Ok(result) => result,
+        Err(error) => {
+            error!(format!(
+                "Error while base64 decoding token: {token}, error: {error}"
+            ));
+            return Err(());
+        }
+    };
+
+    let decoded_string = match String::from_utf8(base64_decoded) {
+        Ok(string) => string,
+        Err(error) => {
+            error!(format!(
+                "Error while parsing token data to string: {token}, error: {error}"
+            ));
+            return Err(());
+        }
+    };
+
+    let data: PerformerData = match serde_json::from_str(&decoded_string) {
+        Ok(data) => data,
+        Err(error) => {
+            error!(format!(
+                "Token string could not be parsed:{token}, error: {error}"
+            ));
+            return Err(());
+        }
+    };
+
+    Ok(data)
+
 }
 
 fn get_jwt_from_url_param(document: web_sys::Document) -> Result<String, ()> {

@@ -21,6 +21,7 @@ pub struct SubmissionList {
 pub struct SubmissionListProperties {
     pub submissions: Vec<Submission>,
     pub submission_delete: Callback<i32>,
+    pub id: String,
 }
 
 pub enum DeleteMessage {
@@ -103,10 +104,9 @@ impl Component for SubmissionList {
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::DownloadClicked(submission_clone.id)) }>{"Herunterladen"}</button>
-
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target="#modalSubmissionDelete">{"Löschen"}</button>
+                                        <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
                                     </td>
 
                                 </tr>
@@ -127,7 +127,7 @@ impl Component for SubmissionList {
             </table>
             <DeleteModal
                     title={"Projekt löschen".to_string() }
-                    id={ "modalSubmissionDelete".to_string() }
+                    id={ calc_id(&ctx.props().id) }
                     on_cancel={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AbortClick(x))) }
                     on_confirm={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AcceptClick(x))) }
                 >
@@ -142,10 +142,10 @@ impl Component for SubmissionList {
                     <p>
                         { "Die Abgabe " }
                         if let Some(submission) = &self.selected_delete {
-                            { &submission.file_name }
+                            <i> { &submission.file_name } </i>
                         }
                         else {
-                            { "Fehler! keine Abgabe ausgewählt" }
+                            <h2> { "Fehler! Keine Abgabe ausgewählt!" } </h2>
                         }
                         { " wirklich löschen?" }
                     </p>
@@ -203,7 +203,7 @@ impl Component for SubmissionList {
                     error!("Abgabe konnte nicht gelöscht werden.");
                     error!(format!("Fetch error while deleting: {:?}", error));
                     self.selected_submission = None;
-                    false
+                    true
                 }
             },
             Msg::DownloadClicked(id) => {
@@ -230,6 +230,10 @@ impl Component for SubmissionList {
             }
         }
     }
+}
+
+fn calc_id(own_id: &str) -> String {
+    format!("modalSubmissionDelete{own_id}")
 }
 
 #[derive(PartialEq, Properties)]
