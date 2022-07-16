@@ -87,8 +87,8 @@ impl Component for Home {
                     {"tinymce.init({
                         selector: '#textareaDescription',
                         setup: (editor) => {
-                            editor.on('input', (e) => {
-                                textareaDescription.textContent = e.target.textContent;
+                            editor.on('change', (e) => {
+                                textareaDescription.textContent = e.target.contentDocument.body.innerHTML;
                             });
                         }
                     });"}

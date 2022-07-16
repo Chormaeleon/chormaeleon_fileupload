@@ -1,5 +1,3 @@
-use std::error;
-
 use crate::{
     components::{
         admin_only::AdminOnly, delete_modal::DeleteModal, iframe::IFrame, modal::Modal,
@@ -103,25 +101,25 @@ impl Component for ProjectComponent {
                     </div>
                 </div>
                 <div class="row">
-                    {
-                        for metadata.materials_audio.iter().map(|audio|  {
-                            let clone = audio.clone();
-                            html!{
-                            <div class="col">
-                                <h5> { &audio.title } </h5>
-                                <audio controls=true id={ format!("audio-{}", audio.id)} src={ material_url(ctx.props().id, &audio.file_technical_name) }></audio>
-                                <h6> <i> { &audio.file_name } </i> </h6>
-                                <MaterialDeleteButton
-                                    onclick={
-                                        ctx.link().callback(move |_|
-                                            Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::Audio, clone.clone()))
-                                        )
-                                    }
-                                />
-                            </div>
-                            }
-                        })
-                    }
+                {
+                    for metadata.materials_audio.iter().map(|audio|  {
+                        let clone = audio.clone();
+                        html!{
+                        <div class="col">
+                            <h5> { &audio.title } </h5>
+                            <audio controls=true id={ format!("audio-{}", audio.id)} src={ material_url(ctx.props().id, &audio.file_technical_name) }></audio>
+                            <h6> <i> { &audio.file_name } </i> </h6>
+                            <MaterialDeleteButton
+                                onclick={
+                                    ctx.link().callback(move |_|
+                                        Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::Audio, clone.clone()))
+                                    )
+                                }
+                            />
+                        </div>
+                        }
+                    })
+                }
                 </div>
                 <div class="row mt-2">
                     <div class="col">
