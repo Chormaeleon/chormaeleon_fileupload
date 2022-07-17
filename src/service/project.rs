@@ -9,7 +9,7 @@ use crate::{
     },
 };
 
-use super::{material::Material, BACKEND_URL};
+use super::BACKEND_URL;
 
 pub async fn delete_project(project_id: i32) -> Result<(), FetchError> {
     delete_request(&format!("{BACKEND_URL}/projects/{project_id}")).await
@@ -52,7 +52,10 @@ pub async fn create_project(
 
 #[derive(Deserialize, PartialEq, Clone)]
 pub struct ProjectTo {
-    pub heading: String,
+    pub id: i32,
+    pub title: String,
     pub description: String,
-    pub material: Vec<Material>,
+    pub creator: i32,
+    pub created_at: NaiveDateTime,
+    pub due: NaiveDateTime,
 }
