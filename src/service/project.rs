@@ -9,7 +9,7 @@ use crate::{
     },
 };
 
-use super::{material::MetadataEntry, BACKEND_URL};
+use super::{material::Material, BACKEND_URL};
 
 pub async fn delete_project(project_id: i32) -> Result<(), FetchError> {
     delete_request(&format!("{BACKEND_URL}/projects/{project_id}")).await
@@ -54,8 +54,5 @@ pub async fn create_project(
 pub struct ProjectTo {
     pub heading: String,
     pub description: String,
-    pub materials_audio: Vec<MetadataEntry>,
-    pub materials_video: Vec<MetadataEntry>,
-    pub materials_sheet: Vec<MetadataEntry>,
-    pub materials_other: Vec<MetadataEntry>,
+    pub material: Vec<Material>,
 }

@@ -5,7 +5,7 @@ use crate::{
     },
     service::{
         material::{
-            delete_material, material_upload_url, material_url, MaterialKind, MetadataEntry,
+            delete_material, material_upload_url, material_url, Material, MaterialCategory,
         },
         project::{
             all_submissions_download_key, all_submissions_link, project_data,
@@ -26,26 +26,28 @@ use gloo_dialogs::alert;
 pub enum Msg {
     MetadataLoaded(ProjectTo),
     MetadataLoadError(FetchError),
-    MetadataUpload(String),
+    MaterialUploadSuccess(String),
+    MaterialUploadError(String),
     AllSubmissionsLoaded(Vec<Submission>),
     MySubmissionsLoaded(Vec<Submission>),
     SubmissionsLoadError(FetchError),
     SubmissionDeleted(i32),
     SubmissionUploaded(String),
+    SubmissionUploadError(String),
     ProjectDownloadClick,
     ProjectDownloadKeyLoaded(String),
     Delete(DeleteMessage),
 }
 
 pub struct ProjectComponent {
-    metadata: Option<ProjectTo>,
+    project_data: Option<ProjectTo>,
     all_submissions: Option<Vec<Submission>>,
     my_submissions: Vec<Submission>,
-    delete_selected_material: Option<(MaterialKind, MetadataEntry)>,
+    delete_selected_material: Option<Material>,
 }
 
 pub enum DeleteMessage {
-    DeleteButtonClick(MaterialKind, MetadataEntry),
+    DeleteButtonClick(Material),
     AcceptClick(MouseEvent),
     AbortClick(MouseEvent),
     Success,
@@ -64,7 +66,7 @@ impl Component for ProjectComponent {
 
     fn create(_ctx: &yew::Context<Self>) -> Self {
         Self {
-            metadata: None,
+            project_data: None,
             all_submissions: None,
             my_submissions: Vec::new(),
             delete_selected_material: None,
@@ -72,7 +74,7 @@ impl Component for ProjectComponent {
     }
 
     fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
-        match &self.metadata {
+        match &self.project_data {
             Some(metadata) => html! {
                 <>
                 <div class="row mt-2">
@@ -101,7 +103,7 @@ impl Component for ProjectComponent {
                 </div>
                 <div class="row">
                 {
-                    for metadata.materials_audio.iter().map(|audio|  {
+                    for metadata.material.iter().filter(|x| x.category == MaterialCategory::Audio).map(|audio|  {
                         let clone = audio.clone();
                         html!{
                         <div class="col">
@@ -111,7 +113,7 @@ impl Component for ProjectComponent {
                             <MaterialDeleteButton
                                 onclick={
                                     ctx.link().callback(move |_|
-                                        Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::Audio, clone.clone()))
+                                        Msg::Delete(DeleteMessage::DeleteButtonClick(clone.clone()))
                                     )
                                 }
                             />
@@ -124,7 +126,7 @@ impl Component for ProjectComponent {
                     <div class="col">
                         <h2>{ "Videos" }</h2>
 
-                        { for metadata.materials_video.iter().map(|video| {
+                        { for metadata.material.iter().filter(|x| x.category == MaterialCategory::Video).map(|video| {
                             let video = video.clone();
                             html!{
                                 <>
@@ -142,7 +144,7 @@ impl Component for ProjectComponent {
                                 <MaterialDeleteButton
                                     onclick={
                                         ctx.link().callback(move |_|
-                                            Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::Video, video.clone()))
+                                            Msg::Delete(DeleteMessage::DeleteButtonClick(video.clone()))
                                         )
                                     }
                                 />
@@ -156,7 +158,7 @@ impl Component for ProjectComponent {
                 <div class="row mt-2">
                     <div class="col">
                         <h2>{ "Noten" }</h2>
-                        { for metadata.materials_sheet.iter().map(|score| {
+                        { for metadata.material.iter().filter(|x| x.category == MaterialCategory::SheetMusic).map(|score| {
                             let score = score.clone();
                             html!{
                                 <>
@@ -172,7 +174,7 @@ impl Component for ProjectComponent {
                                 <MaterialDeleteButton
                                     onclick={
                                         ctx.link().callback(move |_|
-                                            Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::SheetMusic, score.clone()))
+                                            Msg::Delete(DeleteMessage::DeleteButtonClick(score.clone()))
                                         )
                                     }
                                 />
@@ -204,7 +206,7 @@ impl Component for ProjectComponent {
                                 </tr>
                             </thead>
                             <tbody>
-                            { for metadata.materials_other.iter().map(|other| {
+                            { for metadata.material.iter().filter(|x| x.category == MaterialCategory::Other).map(|other| {
                                 let other = other.clone();
                                 html!{
                                 <tr>
@@ -219,7 +221,7 @@ impl Component for ProjectComponent {
                                             <MaterialDeleteButton
                                                 onclick={
                                                     ctx.link().callback(move |_|
-                                                        Msg::Delete(DeleteMessage::DeleteButtonClick(MaterialKind::Other, other.clone()))
+                                                        Msg::Delete(DeleteMessage::DeleteButtonClick(other.clone()))
                                                     )
                                                 }
                                             />
@@ -243,7 +245,7 @@ impl Component for ProjectComponent {
                             </div>
                             <div class="row mt-2">
                                 <div class="col">
-                                    <Upload form_id="inputContentUpload" field_name="file" target_url={ submission_upload_url(ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) }/>
+                                    <Upload form_id="inputContentUpload" field_name="file" target_url={ submission_upload_url(ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) } failure_callback={ ctx.link().callback(Msg::SubmissionUploadError) } />
                                 </div>
                             </div>
                         </form>
@@ -284,8 +286,8 @@ impl Component for ProjectComponent {
                         <input id="inputMaterialTitle" type="text" class="form-control" name="title" placeholder="Titel der Datei"/>
                     </div>
                         <div class="col">
-                            <label for="selectMaterialKind">{ "Art der Datei (Playback, ...)" }</label>
-                            <select id="selectMaterialKind" name="material_kind" class="form-control" form="inputMaterialUpload">
+                            <label for="selectMaterialCategory">{ "Art der Datei (Playback, ...)" }</label>
+                            <select id="selectMaterialCategory" name="material_category" class="form-control" form="inputMaterialUpload">
                                 <option value="Audio">{ "Audio" }</option>
                                 <option value="Video">{ "Video" }</option>
                                 <option value="Sheet">{ "Noten" }</option>
@@ -295,7 +297,7 @@ impl Component for ProjectComponent {
                     </div>
                     <div class="row mt-2">
                         <div class="col">
-                            <Upload form_id="inputMaterialUpload" field_name="file" target_url={ material_upload_url(ctx.props().id) } multiple=false success_callback={ ctx.link().callback(Msg::MetadataUpload) }/>
+                            <Upload form_id="inputMaterialUpload" field_name="file" target_url={ material_upload_url(ctx.props().id) } multiple=false success_callback={ ctx.link().callback(Msg::MaterialUploadSuccess) }  failure_callback={ ctx.link().callback(Msg::MaterialUploadError) } />
                         </div>
                     </div>
                 </form>
@@ -304,8 +306,8 @@ impl Component for ProjectComponent {
 
                 <DeleteModal id="modalMaterialDelete" title="Material wirklich löschen?" on_cancel={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AbortClick(e))) } on_confirm={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AcceptClick(e)))  }>
                     if let Some(mat) = &self.delete_selected_material {
-                        <p> { "Beschreibung: " } { &mat.1.title } </p>
-                        <p> { "Dateiname: " } <i> { &mat.1.file_name } </i> </p>
+                        <p> { "Beschreibung: " } { &mat.title } </p>
+                        <p> { "Dateiname: " } <i> { &mat.file_name } </i> </p>
                     } else {
                         { "Kein zu löschendes Element ausgewählt!" }
                     }
@@ -347,7 +349,7 @@ impl Component for ProjectComponent {
     fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::MetadataLoaded(metadata) => {
-                self.metadata = Some(metadata);
+                self.project_data = Some(metadata);
                 true
             }
             Msg::MetadataLoadError(error) => {
@@ -367,7 +369,16 @@ impl Component for ProjectComponent {
                 }
                 true
             }
-            Msg::MetadataUpload(_text) => {
+            Msg::MaterialUploadSuccess(_text) => {
+                load_data(ctx);
+                true
+            }
+            Msg::MaterialUploadError(text) => {
+                alert("Ein Fehler ist aufgetreten. Bitte versuche es erneut und wende dich dann an den/die Administrator*in");
+                error!(format!(
+                    "got non successful status from metadata upload. Error text: {}",
+                    text
+                ));
                 load_data(ctx);
                 true
             }
@@ -405,6 +416,14 @@ impl Component for ProjectComponent {
                 self.my_submissions.push(submission);
                 true
             }
+            Msg::SubmissionUploadError(response_text) => {
+                alert("Beim hochladen ist ein Fehler aufgetreten! Versuche es erneut und wende dich dann an den/die Administrator*in");
+                error!(format!(
+                    "Error while uploading submission! Response text: {}",
+                    response_text
+                ));
+                false
+            }
             Msg::ProjectDownloadClick => {
                 let project_id = ctx.props().id;
                 ctx.link().send_future(async move {
@@ -420,13 +439,13 @@ impl Component for ProjectComponent {
                 false
             }
             Msg::Delete(message) => match message {
-                DeleteMessage::DeleteButtonClick(category, item) => {
-                    self.delete_selected_material = Some((category, item));
+                DeleteMessage::DeleteButtonClick(item) => {
+                    self.delete_selected_material = Some(item);
                     true
                 }
                 DeleteMessage::AcceptClick(_) => {
                     let material_id = match &self.delete_selected_material {
-                        Some(m) => m.1.id,
+                        Some(m) => m.id,
                         None => {
                             error!("Clicked accept without selected material to delete!");
                             return false;
@@ -445,7 +464,7 @@ impl Component for ProjectComponent {
                     true
                 }
                 DeleteMessage::Success => {
-                    let (category, item) = match self.delete_selected_material.take() {
+                    let item = match self.delete_selected_material.take() {
                         Some(content) => content,
                         None => {
                             error!("Succesfully deleted material, but no item was found!");
@@ -453,7 +472,7 @@ impl Component for ProjectComponent {
                         }
                     };
 
-                    let meta = match &mut self.metadata {
+                    let project = match &mut self.project_data {
                         None => {
                             error!("No metadata found after deleting material!");
                             return false;
@@ -461,14 +480,7 @@ impl Component for ProjectComponent {
                         Some(m) => m,
                     };
 
-                    let list = match category {
-                        MaterialKind::Audio => &mut meta.materials_audio,
-                        MaterialKind::Video => &mut meta.materials_video,
-                        MaterialKind::SheetMusic => &mut meta.materials_sheet,
-                        MaterialKind::Other => &mut meta.materials_other,
-                    };
-
-                    list.retain(|entry| entry.id != item.id);
+                    project.material.retain(|entry| entry.id != item.id);
 
                     true
                 }

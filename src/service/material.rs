@@ -1,5 +1,5 @@
 use chrono::NaiveDateTime;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::utilities::requests::fetch::{delete_request, FetchError};
 
@@ -18,8 +18,8 @@ pub async fn delete_material(material_id: i32) -> Result<(), FetchError> {
     delete_request(&url).await
 }
 
-#[derive(Deserialize, PartialEq, Clone)]
-pub struct MetadataEntry {
+#[derive(Serialize, Deserialize, PartialEq, Clone)]
+pub struct Material {
     pub id: i32,
     pub project_id: i32,
     pub title: String,
@@ -27,10 +27,11 @@ pub struct MetadataEntry {
     pub file_technical_name: String,
     pub creator: i32,
     pub upload_at: NaiveDateTime,
+    pub category: MaterialCategory,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Deserialize)]
-pub enum MaterialKind {
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub enum MaterialCategory {
     Audio,
     Video,
     SheetMusic,
