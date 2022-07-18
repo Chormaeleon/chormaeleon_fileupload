@@ -76,7 +76,7 @@ impl Component for ProjectComponent {
                     </div>
                 </div>
 
-                <Material id={ctx.props().id}/>
+                <Material id={ctx.props().id} project_owner={metadata.creator}/>
 
                 <div class="row mt-2">
                     <div class="col">
