@@ -1,4 +1,5 @@
 use gloo_dialogs::alert;
+use wasm_bindgen::UnwrapThrowExt;
 use web_sys::{ErrorEvent, ProgressEvent};
 use yew::{html, Callback, Component, Context, Html, Properties};
 
@@ -35,6 +36,7 @@ pub struct UploadProperties {
     pub target_url: String,
     pub multiple: bool,
     pub success_callback: Callback<String>,
+    pub failure_callback: Callback<String>,
 }
 
 impl Component for Upload {
@@ -119,19 +121,21 @@ impl Component for Upload {
                 true
             }
             Msg::UploadOnload => {
-                let text = self
-                    .current_request
-                    .take()
-                    .unwrap()
-                    .request
-                    .response_text()
-                    .unwrap()
-                    .unwrap();
-
-                self.upload_successfully_finished = true;
+                let request = self.current_request.take().unwrap().request;
                 self.progress = None;
+                let text = request.response_text().unwrap().unwrap();
 
-                ctx.props().success_callback.emit(text);
+                match request.status().unwrap_throw() {
+                    200 | 201 | 304 => {
+                        self.upload_successfully_finished = true;
+                        ctx.props().success_callback.emit(text);
+                    }
+                    _ => {
+                        self.upload_successfully_finished = false;
+                        ctx.props().failure_callback.emit(text);
+                    }
+                }
+
                 true
             }
             Msg::Abort => {

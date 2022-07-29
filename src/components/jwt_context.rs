@@ -66,7 +66,7 @@ pub enum Section {
     Instrument,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub struct PerformerData {
     pub section: Section,
     pub user_id: i32,
