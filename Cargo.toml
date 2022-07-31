@@ -38,6 +38,7 @@ features = [
   "HtmlIFrameElement",
   "HtmlInputElement",
   "HtmlProgressElement",
+  "HtmlSelectElement",
   "Location",
   "Storage",
   "Request",

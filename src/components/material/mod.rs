@@ -1,4 +1,5 @@
 mod audio;
+mod material_modals;
 mod other;
 mod sheet;
 mod video;
@@ -10,17 +11,24 @@ use web_sys::MouseEvent;
 use yew::{function_component, html, Callback, Component, Properties};
 
 use crate::{
-    components::{admin_only::AdminOrOwner, delete_modal::DeleteModal, modal::Modal, upload::Upload},
-    service::material::{
-        delete_material, material_by_project, material_upload_url, MaterialCategory, MaterialTo,
+    components::{
+        admin_only::AdminOrOwner,
+        delete_modal::DeleteModal,
+        material::material_modals::{
+            MaterialChangeModal, MaterialUploadModal, MODAL_MATERIAL_UPDATE, MODAL_MATERIAL_UPLOAD,
+        },
     },
+    service::material::{delete_material, material_by_project, MaterialCategory, MaterialTo},
     utilities::requests::fetch::FetchError,
 };
 
 use self::{audio::audio_list, other::other_list, sheet::sheet_list, video::video_list};
 
+const MODAL_MATERIAL_DELETE: &str = "modalMaterialDelete";
+
 pub struct Material {
     pub material: Vec<MaterialTo>,
+    change_selected_material: Option<MaterialTo>,
     delete_selected_material: Option<MaterialTo>,
 }
 
@@ -29,7 +37,15 @@ pub enum Msg {
     MaterialUploadError(String),
     MaterialFetchSuccess(Vec<MaterialTo>),
     MaterialFetchError(FetchError),
+    Update(UpdateMessage),
     Delete(DeleteMessage),
+}
+
+pub enum UpdateMessage {
+    ButtonClick(MaterialTo),
+    Success(MaterialTo),
+    Error(FetchError),
+    Cancel,
 }
 
 pub enum DeleteMessage {
@@ -43,7 +59,7 @@ pub enum DeleteMessage {
 #[derive(Clone, PartialEq, Properties)]
 pub struct MaterialProperties {
     pub id: i32,
-    pub project_owner: i32
+    pub project_owner: i32,
 }
 
 impl Component for Material {
@@ -62,6 +78,7 @@ impl Component for Material {
 
         Self {
             material: Vec::new(),
+            change_selected_material: None,
             delete_selected_material: None,
         }
     }
@@ -72,7 +89,7 @@ impl Component for Material {
             <>
             <div class="row mt-2">
                 <div class="col text-end">
-                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#uploadMaterialModal">
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_MATERIAL_UPLOAD}")}>
                         { "Übungsmaterial hinzufügen" }
                     </button>
                 </div>
@@ -100,7 +117,15 @@ impl Component for Material {
                 on_error={ctx.link().callback(Msg::MaterialUploadError)}
             />
 
-            <DeleteModal id="modalMaterialDelete"
+
+            <MaterialChangeModal
+                on_cancel={ctx.link().callback(|_| Msg::Update(UpdateMessage::Cancel))}
+                on_error={ctx.link().callback(|error| Msg::Update(UpdateMessage::Error(error)))}
+                on_success={ctx.link().callback(|updated_material| Msg::Update(UpdateMessage::Success(updated_material)))}
+                material_to_change={self.change_selected_material.clone()}
+            />
+
+            <DeleteModal id={MODAL_MATERIAL_DELETE}
                 title="Material wirklich löschen?"
                 on_cancel={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AbortClick(e))) }
                 on_confirm={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AcceptClick(e)))  }
@@ -192,6 +217,7 @@ impl Component for Material {
             },
             Msg::MaterialFetchSuccess(material) => {
                 self.material = material;
+                sort_material(&mut self.material);
                 true
             }
             Msg::MaterialFetchError(error) => {
@@ -199,7 +225,55 @@ impl Component for Material {
                 alert("Fehler: Konnte das Material nicht laden. Überprüfe Deine Internetverbindung, lade die Seite neu und wende Dich ansonsten an den/die Administrator*in.");
                 false
             }
+            Msg::Update(message) => match message {
+                UpdateMessage::ButtonClick(material) => {
+                    self.change_selected_material = Some(material);
+                    true
+                }
+                UpdateMessage::Success(new_material) => {
+                    self.material.retain(|m| {
+                        m.id != self.change_selected_material.as_ref().unwrap_throw().id
+                    });
+                    self.material.push(new_material);
+                    sort_material(&mut self.material);
+                    self.change_selected_material = None;
+                    true
+                }
+                UpdateMessage::Error(error) => {
+                    alert("Konnte die neuen Daten nicht speichern! Überprüfe deine Internetverbindung, versuche es erneut und wende dich dann an den/die Administrator*in. Details siehe Konsole.");
+                    error!(error.to_string());
+                    self.change_selected_material = None;
+                    true
+                }
+                UpdateMessage::Cancel => {
+                    self.change_selected_material = None;
+                    true
+                }
+            },
         }
+    }
+}
+
+fn sort_material(material: &mut Vec<MaterialTo>) {
+    material.sort_by(|s, other| {
+        s.title.cmp(&other.title)
+    });
+}
+
+#[derive(Clone, PartialEq, Properties)]
+pub struct MaterialUpdateButtonProperties {
+    pub owner_id: i32,
+    pub onclick: Callback<MouseEvent>,
+}
+
+#[function_component(MaterialUpdateButton)]
+pub fn update_button(props: &MaterialUpdateButtonProperties) -> Html {
+    let props = props.clone();
+
+    html! {
+    <AdminOrOwner owner_id={props.owner_id}>
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_MATERIAL_UPDATE}")} onclick={props.onclick}> { "Ändern" } </button>
+    </AdminOrOwner>
     }
 }
 
@@ -210,54 +284,12 @@ pub struct MaterialDeleteButtonProperties {
 }
 
 #[function_component(MaterialDeleteButton)]
-pub fn button(props: &MaterialDeleteButtonProperties) -> Html {
+pub fn delete_button(props: &MaterialDeleteButtonProperties) -> Html {
     let props = props.clone();
 
     html! {
     <AdminOrOwner owner_id={props.owner_id}>
-        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalMaterialDelete" onclick={props.onclick}> { "Löschen" } </button>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_MATERIAL_DELETE}")} onclick={props.onclick}> { "Löschen" } </button>
     </AdminOrOwner>
-    }
-}
-
-#[derive(Clone, PartialEq, Properties)]
-pub struct MaterialUploadModalProperties {
-    pub id: i32,
-    pub on_success: Callback<String>,
-    pub on_error: Callback<String>,
-}
-
-#[function_component(MaterialUploadModal)]
-pub fn material_upload_modal(props: &MaterialUploadModalProperties) -> Html {
-    let props = props.clone();
-    html! {
-    <Modal
-        title={"Übungsmaterial hochladen".to_string() }
-        id={ "uploadMaterialModal".to_string() }
-        actions = { vec![] }
-    >
-        <form id="inputMaterialUpload" class="" name="formUpload" enctype="multipart/form-data">
-        <div class="row">
-            <div class="col">
-                <label for="inputMaterialTitle">{ "Name für die Datei" }</label>
-                <input id="inputMaterialTitle" type="text" class="form-control" name="title" placeholder="Titel der Datei"/>
-            </div>
-                <div class="col">
-                    <label for="selectMaterialCategory">{ "Art der Datei (Playback, ...)" }</label>
-                    <select id="selectMaterialCategory" name="material_category" class="form-control" form="inputMaterialUpload">
-                        <option value="Audio">{ "Audio" }</option>
-                        <option value="Video">{ "Video" }</option>
-                        <option value="Sheet">{ "Noten" }</option>
-                        <option value="Other">{ "Sonstiges" }</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row mt-2">
-                <div class="col">
-                    <Upload form_id="inputMaterialUpload" field_name="file" target_url={ material_upload_url(props.id) } multiple=false success_callback={ props.on_success } failure_callback={ props.on_error } />
-                </div>
-            </div>
-        </form>
-    </Modal>
     }
 }

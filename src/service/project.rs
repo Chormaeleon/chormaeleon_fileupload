@@ -16,7 +16,7 @@ pub async fn delete_project(project_id: i32) -> Result<(), FetchError> {
 }
 
 pub async fn project_data(project_id: i32) -> Result<ProjectTo, FetchError> {
-    get_request_struct::<ProjectTo>(format!("{BACKEND_URL}/projects/{}", project_id)).await
+    get_request_struct::<ProjectTo>(&format!("{BACKEND_URL}/projects/{}", project_id)).await
 }
 
 pub fn all_submissions_link(project_id: i32, key: String) -> String {
@@ -32,7 +32,7 @@ pub fn submission_upload_url(project_id: i32) -> String {
 }
 
 pub async fn get_pending_projects() -> Result<Vec<Project>, FetchError> {
-    get_request_struct::<Vec<Project>>(format!("{BACKEND_URL}/pendingProjects")).await
+    get_request_struct::<Vec<Project>>(&format!("{BACKEND_URL}/pendingProjects")).await
 }
 
 pub async fn create_project(

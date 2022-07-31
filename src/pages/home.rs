@@ -9,7 +9,7 @@ use gloo_dialogs::alert;
 use gloo_utils::document;
 use serde::Serialize;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
-use web_sys::HtmlInputElement;
+use web_sys::{HtmlInputElement, HtmlSelectElement};
 use yew::prelude::*;
 
 pub struct Home {
@@ -149,7 +149,7 @@ impl Component for Home {
                 }
 
                 let title = self.project_title.clone();
-                let description = get_element_string_value("textareaDescription");
+                let description = get_element_text_content("textareaDescription");
                 let due_date = self.project_due_date;
 
                 ctx.link().send_future(async move {
@@ -238,8 +238,20 @@ fn get_value_from_event(e: Event) -> String {
     target.value()
 }
 
-fn get_element_string_value(name: &str) -> String {
+pub fn get_element_text_content(name: &str) -> String {
     let document = document();
     let element = document.get_element_by_id(name).unwrap_throw();
     element.text_content().unwrap_throw()
+}
+
+pub fn get_input_text_content(name: &str) -> String {
+    let document = document();
+    let element: HtmlInputElement = document.get_element_by_id(name).unwrap_throw().dyn_into().unwrap_throw();
+    element.value()
+}
+
+pub fn get_selected_value(id_of_select: &str) -> String {
+    let document = document();
+    let element: HtmlSelectElement = document.get_element_by_id(id_of_select).unwrap_throw().dyn_into().unwrap_throw();
+    element.value()
 }

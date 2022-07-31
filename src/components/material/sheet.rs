@@ -1,11 +1,11 @@
 use yew::{html, Context, Html};
 
 use crate::{
-    components::material::MaterialDeleteButton,
+    components::material::{MaterialDeleteButton, MaterialUpdateButton},
     service::material::{material_url, MaterialTo},
 };
 
-use super::{DeleteMessage, Material, Msg};
+use super::{DeleteMessage, Material, Msg, UpdateMessage};
 
 pub fn sheet_list(ctx: &Context<Material>, id: i32, sheet_elements: Vec<&MaterialTo>) -> Html {
     html! {
@@ -23,6 +23,7 @@ pub fn sheet_list(ctx: &Context<Material>, id: i32, sheet_elements: Vec<&Materia
 }
 
 fn sheet_element(ctx: &Context<Material>, id: i32, score: MaterialTo) -> Html {
+    let score_clone = score.clone();
     html! {
         <>
         <div class="row">
@@ -34,14 +35,24 @@ fn sheet_element(ctx: &Context<Material>, id: i32, score: MaterialTo) -> Html {
                 <h6> <i> { &score.file_name } </i> </h6>
             </div>
         </div>
-        <MaterialDeleteButton
-            onclick={
-                ctx.link().callback(move |_|
-                    Msg::Delete(DeleteMessage::DeleteButtonClick(score.clone()))
-                )
-            }
-            owner_id={ ctx.props().project_owner }
-        />
+        <div class="row">
+            <div class="col-auto">
+                <MaterialUpdateButton
+                        onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::ButtonClick(score_clone.clone()))) }
+                        owner_id={ ctx.props().project_owner }
+                />
+            </div>
+            <div class="col">
+                <MaterialDeleteButton
+                    onclick={
+                        ctx.link().callback(move |_|
+                            Msg::Delete(DeleteMessage::DeleteButtonClick(score.clone()))
+                        )
+                    }
+                    owner_id={ ctx.props().project_owner }
+                />
+            </div>
+        </div>
         </>
     }
 }
