@@ -246,12 +246,20 @@ pub fn get_element_text_content(name: &str) -> String {
 
 pub fn get_input_text_content(name: &str) -> String {
     let document = document();
-    let element: HtmlInputElement = document.get_element_by_id(name).unwrap_throw().dyn_into().unwrap_throw();
+    let element: HtmlInputElement = document
+        .get_element_by_id(name)
+        .unwrap_throw()
+        .dyn_into()
+        .unwrap_throw();
     element.value()
 }
 
 pub fn get_selected_value(id_of_select: &str) -> String {
     let document = document();
-    let element: HtmlSelectElement = document.get_element_by_id(id_of_select).unwrap_throw().dyn_into().unwrap_throw();
+    let element: HtmlSelectElement = document
+        .get_element_by_id(id_of_select)
+        .unwrap_throw()
+        .dyn_into()
+        .unwrap_throw();
     element.value()
 }

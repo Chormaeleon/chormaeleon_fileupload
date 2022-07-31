@@ -254,10 +254,8 @@ impl Component for Material {
     }
 }
 
-fn sort_material(material: &mut Vec<MaterialTo>) {
-    material.sort_by(|s, other| {
-        s.title.cmp(&other.title)
-    });
+fn sort_material(material: &mut [MaterialTo]) {
+    material.sort_by(|s, other| s.title.cmp(&other.title));
 }
 
 #[derive(Clone, PartialEq, Properties)]

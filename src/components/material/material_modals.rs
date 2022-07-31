@@ -63,10 +63,10 @@ pub struct MaterialChangeModal {
 }
 
 pub enum Msg {
-    OnCancel,
-    OnConfirm,
-    OnSuccess(MaterialTo),
-    OnError(FetchError),
+    Cancel,
+    Confirm,
+    Success(MaterialTo),
+    Error(FetchError),
 }
 
 impl Component for MaterialChangeModal {
@@ -85,12 +85,12 @@ impl Component for MaterialChangeModal {
             (
                 "Abbrechen".to_string(),
                 "btn btn-secondary".to_string(),
-                ctx.link().callback(|_| Msg::OnCancel),
+                ctx.link().callback(|_| Msg::Cancel),
             ),
             (
                 "Anpassen".to_string(),
                 "btn btn-danger".to_string(),
-                ctx.link().callback(|_| Msg::OnConfirm),
+                ctx.link().callback(|_| Msg::Confirm),
             ),
         ];
 
@@ -118,13 +118,13 @@ impl Component for MaterialChangeModal {
 
     fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::OnCancel => {
+            Msg::Cancel => {
                 ctx.props().on_cancel.emit(());
                 false
             }
-            Msg::OnConfirm => {
+            Msg::Confirm => {
                 let title = get_input_text_content(INPUT_UPDATE_MATERIAL_TITLE);
-                
+
                 let category = get_selected_value(INPUT_UPDATE_MATERIAL_CATEGORY);
                 let category = MaterialCategory::try_from(category.as_str()).unwrap_throw();
 
@@ -137,8 +137,8 @@ impl Component for MaterialChangeModal {
 
                 ctx.link().send_future(async move {
                     match update_material(id, updated).await {
-                        Ok(updated_value) => Msg::OnSuccess(updated_value),
-                        Err(error) => Msg::OnError(error),
+                        Ok(updated_value) => Msg::Success(updated_value),
+                        Err(error) => Msg::Error(error),
                     }
                 });
 
@@ -146,12 +146,12 @@ impl Component for MaterialChangeModal {
 
                 true
             }
-            Msg::OnSuccess(new_value) => {
+            Msg::Success(new_value) => {
                 ctx.props().on_success.emit(new_value);
                 self.sent_request = false;
                 false
             }
-            Msg::OnError(error) => {
+            Msg::Error(error) => {
                 ctx.props().on_error.emit(error);
                 self.sent_request = false;
                 false

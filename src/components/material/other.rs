@@ -68,7 +68,7 @@ fn other_element(ctx: &Context<Material>, other: MaterialTo) -> Html {
                             ctx.link().callback(move |_|
                                 Msg::Delete(DeleteMessage::DeleteButtonClick(other.clone()))
                             )
-                        } 
+                        }
                         owner_id={ ctx.props().project_owner }
                     />
                 </td>
