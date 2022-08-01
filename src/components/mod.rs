@@ -5,6 +5,6 @@ pub(crate) mod jwt_context;
 pub(crate) mod material;
 pub(crate) mod modal;
 pub(crate) mod progress;
-pub(crate) mod project_list;
+pub(crate) mod project;
 pub(crate) mod submission_list;
 pub(crate) mod upload;

@@ -1,12 +1,8 @@
 use chrono::NaiveDateTime;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
-use crate::{
-    components::project_list::Project,
-    pages::home::CreateProjectBody,
-    utilities::requests::fetch::{
-        delete_request, get_request_string, get_request_struct, post_request_struct, FetchError,
-    },
+use crate::utilities::requests::fetch::{
+    delete_request, get_request_string, get_request_struct, post_request_struct, FetchError,
 };
 
 use super::BACKEND_URL;
@@ -31,31 +27,64 @@ pub fn submission_upload_url(project_id: i32) -> String {
     format!("{BACKEND_URL}/projects/{project_id}")
 }
 
-pub async fn get_pending_projects() -> Result<Vec<Project>, FetchError> {
-    get_request_struct::<Vec<Project>>(&format!("{BACKEND_URL}/pendingProjects")).await
+pub async fn get_pending_projects() -> Result<Vec<ProjectTo>, FetchError> {
+    get_request_struct::<Vec<ProjectTo>>(&format!("{BACKEND_URL}/projects/pending")).await
 }
 
 pub async fn create_project(
     title: String,
     description: String,
     due_date: NaiveDateTime,
-) -> Result<Project, FetchError> {
+) -> Result<ProjectTo, FetchError> {
     let body = CreateProjectBody {
         title,
         description,
         due_date,
     };
 
-    post_request_struct::<CreateProjectBody, Project>(&format!("{BACKEND_URL}/projects"), body)
+    post_request_struct::<CreateProjectBody, ProjectTo>(&format!("{BACKEND_URL}/projects"), body)
         .await
 }
 
-#[derive(Deserialize, PartialEq, Clone)]
+pub async fn update_project(
+    project_id: i32,
+    title: String,
+    description: String,
+    due: NaiveDateTime,
+) -> Result<ProjectTo, FetchError> {
+    let body = UpdateProject {
+        title,
+        description,
+        due,
+    };
+
+    post_request_struct::<UpdateProject, ProjectTo>(
+        &format!("{BACKEND_URL}/projects/{project_id}"),
+        body,
+    )
+    .await
+}
+
+#[derive(Deserialize, PartialEq, Clone, Debug)]
 pub struct ProjectTo {
     pub id: i32,
     pub title: String,
     pub description: String,
     pub creator: i32,
     pub created_at: NaiveDateTime,
+    pub due: NaiveDateTime,
+}
+
+#[derive(Clone, Serialize)]
+pub struct CreateProjectBody {
+    pub title: String,
+    pub description: String,
+    pub due_date: NaiveDateTime,
+}
+
+#[derive(Clone, Serialize)]
+pub struct UpdateProject {
+    pub title: String,
+    pub description: String,
     pub due: NaiveDateTime,
 }

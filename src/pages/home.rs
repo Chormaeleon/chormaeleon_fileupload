@@ -1,42 +1,30 @@
 use crate::{
-    components::{modal::Modal, project_list::*},
-    service::project::{create_project, get_pending_projects},
+    components::project::{
+        project_list::ProjectList,
+        project_modals::{ProjectCreateModal, MODAL_NEW_PROJECT},
+    },
+    service::project::{get_pending_projects, ProjectTo},
     utilities::requests::fetch::FetchError,
 };
-use chrono::{NaiveDateTime, Utc};
+
 use gloo_console::{error, warn};
 use gloo_dialogs::alert;
 use gloo_utils::document;
-use serde::Serialize;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{HtmlInputElement, HtmlSelectElement};
 use yew::prelude::*;
 
 pub struct Home {
-    projects: Option<Vec<Project>>,
-    project_due_date: NaiveDateTime,
-    project_title: String,
-    project_description: String,
+    projects: Option<Vec<ProjectTo>>,
 }
 
 pub enum Msg {
-    ProjectsLoaded(Vec<Project>),
+    ProjectsLoaded(Vec<ProjectTo>),
     ProjectsLoadError(FetchError),
-    CreateProject(MouseEvent),
-    AbortCreateProject(MouseEvent),
-    NameInput(InputEvent),
-    DescriptionInput(InputEvent),
-    DateInput(Event),
-    CreateProjectSuccess(Project),
+    CreateProjectSuccess(ProjectTo),
     CreateProjectFail(FetchError),
     ProjectDeleted(i32),
-}
-
-#[derive(Clone, Serialize)]
-pub struct CreateProjectBody {
-    pub title: String,
-    pub description: String,
-    pub due_date: NaiveDateTime,
+    ProjectChanged(ProjectTo),
 }
 
 impl Component for Home {
@@ -44,12 +32,7 @@ impl Component for Home {
     type Properties = ();
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self {
-            projects: None,
-            project_due_date: Utc::now().naive_local(),
-            project_title: "".to_string(),
-            project_description: "".to_string(),
-        }
+        Self { projects: None }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -63,57 +46,18 @@ impl Component for Home {
                                 <h2> { "Alle Abgaben" } </h2>
                             </div>
                             <div class="col text-end">
-                                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalProjectCreate">{ "Neues Projekt" }</button>
+                                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_NEW_PROJECT}")}>{ "Neues Projekt" }</button>
                             </div>
                         </div>
                         if let Some(contributions) = self.projects.clone() {
-                            <ProjectList projects={contributions} project_delete={ ctx.link().callback(Msg::ProjectDeleted) }/>
+                            <ProjectList projects={contributions} project_delete={ ctx.link().callback(Msg::ProjectDeleted) } project_change={ ctx.link().callback(Msg::ProjectChanged)}/>
                         } else {
                             { "Abgaben werden geladen..." }
                         }
                     </div>
                 </div>
-                <Modal
-                    title={"Projekt erstellen".to_string() }
-                    id={ "modalProjectCreate".to_string() }
-                    actions = { vec![
-                        ("Abbrechen".to_string(), "btn btn-secondary".to_string(),  ctx.link().callback(Msg::AbortCreateProject)),
-                        ("Erstellen".to_string(), "btn btn-danger".to_string(),  ctx.link().callback(Msg::CreateProject))
-                        ]
-                    }
-                >
-                <>
-                    <script>
-                    {"tinymce.init({
-                        selector: '#textareaDescription',
-                        setup: (editor) => {
-                            editor.on('change', (e) => {
-                                textareaDescription.textContent = e.target.contentDocument.body.innerHTML;
-                            });
-                        }
-                    });"}
-                    </script>
-                    <form id="createProjectForm" class="">
-                        <div class="row">
-                            <div class="col">
-                                <label for="inputCreateProjectTitle">{ "Name des Projektes" }</label>
-                                <input id="inputCreateProjectTitle" type="text" class="form-control" placeholder="Name des Projektes" oninput={ ctx.link().callback(Msg::NameInput) }/>
-                            </div>
-                            <div class="col">
-                                <label for="inputCreateProjectDueDate">{ "Abgabedatum" }</label>
-                                <input id="inputCreateProjectDueDate" type="datetime-local" class="form-control" value={ self.project_due_date.to_string() } onchange={ ctx.link().callback(Msg::DateInput) }/>
-                            </div>
-                        </div>
-                        <div class="row mt-2">
-                            <div class="col">
-                                <label for="textareaDescription">{ "Beschreibung" }</label>
-                                <textarea id="textareaDescription" oninput={ ctx.link().callback(Msg::DescriptionInput) }></textarea>
-                            </div>
-                        </div>
-                    </form>
-                </>
-                </Modal>
             </div>
+            <ProjectCreateModal on_success={ctx.link().callback(Msg::CreateProjectSuccess)} on_error={ctx.link().callback(Msg::CreateProjectFail)}/>
 
             </>
         }
@@ -130,9 +74,10 @@ impl Component for Home {
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::ProjectsLoaded(projects) => {
+            Msg::ProjectsLoaded(mut projects) => {
+                sort_projects(&mut projects);
                 self.projects = Some(projects);
                 true
             }
@@ -141,50 +86,12 @@ impl Component for Home {
                 alert("Could not download list!");
                 true
             }
-
-            Msg::CreateProject(_) => {
-                if self.project_title.is_empty() {
-                    alert("Titel fehlt!");
-                    return false;
-                }
-
-                let title = self.project_title.clone();
-                let description = get_element_text_content("textareaDescription");
-                let due_date = self.project_due_date;
-
-                ctx.link().send_future(async move {
-                    match create_project(title, description, due_date).await {
-                        Ok(result) => Msg::CreateProjectSuccess(result),
-                        Err(error) => Msg::CreateProjectFail(error),
-                    }
-                });
-
-                false
-            }
-            Msg::NameInput(event) => {
-                self.project_title = get_value_from_input_event(event);
-                false
-            }
-            Msg::DescriptionInput(event) => {
-                self.project_description = get_value_from_input_event(event);
-                false
-            }
-            Msg::DateInput(event) => {
-                let date_string = get_value_from_event(event);
-                self.project_due_date =
-                    match NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%.3f") {
-                        Ok(date_time) => date_time,
-                        Err(_e) => NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S")
-                            .unwrap_or_else(|_| {
-                                NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M")
-                                    .expect("problem")
-                            }),
-                    };
-                false
-            }
             Msg::CreateProjectSuccess(new_item) => {
                 match &mut self.projects {
-                    Some(projects) => projects.push(new_item),
+                    Some(projects) => {
+                        projects.push(new_item);
+                        sort_projects(projects);
+                    }
                     None => self.projects = Some(vec![new_item]),
                 }
                 true
@@ -204,9 +111,23 @@ impl Component for Home {
                     false
                 }
             },
-            Msg::AbortCreateProject(_) => false,
+            Msg::ProjectChanged(project) => {
+                match &mut self.projects {
+                    Some(projects) => {
+                        projects.retain(|x| x.id != project.id);
+                        projects.push(project);
+                        sort_projects(projects);
+                    }
+                    None => (),
+                }
+                true
+            }
         }
     }
+}
+
+fn sort_projects(projects: &mut [ProjectTo]) {
+    projects.sort_by(|p1, p2| p1.due.cmp(&p2.due));
 }
 
 fn log_fetch_error(error: FetchError) {
@@ -223,7 +144,7 @@ fn log_fetch_error(error: FetchError) {
     }
 }
 
-fn get_value_from_input_event(e: InputEvent) -> String {
+pub fn get_value_from_input_event(e: InputEvent) -> String {
     // Shamelessly stolen yew example code. Conversions wont fail unless the element vanished into thin air or similar.
     let event: Event = e.dyn_into().unwrap_throw();
     let event_target = event.target().unwrap_throw();
@@ -231,17 +152,11 @@ fn get_value_from_input_event(e: InputEvent) -> String {
     target.value()
 }
 
-fn get_value_from_event(e: Event) -> String {
+pub fn get_value_from_event(e: Event) -> String {
     // Shamelessly stolen yew example code. Conversions wont fail unless the element vanished into thin air or similar.
     let event_target = e.target().unwrap_throw();
     let target: HtmlInputElement = event_target.dyn_into().unwrap_throw();
     target.value()
-}
-
-pub fn get_element_text_content(name: &str) -> String {
-    let document = document();
-    let element = document.get_element_by_id(name).unwrap_throw();
-    element.text_content().unwrap_throw()
 }
 
 pub fn get_input_text_content(name: &str) -> String {
