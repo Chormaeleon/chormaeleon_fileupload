@@ -51,7 +51,7 @@ impl Display for Section {
 }
 
 pub async fn submissions_by_project(project_id: i32) -> Result<Vec<Submission>, FetchError> {
-    get_request_struct::<Vec<Submission>>(format!(
+    get_request_struct::<Vec<Submission>>(&format!(
         "{BACKEND_URL}/projects/{}/submissions",
         project_id
     ))
@@ -62,7 +62,7 @@ pub async fn submissions_by_project_and_user(
     project_id: i32,
     user_id: i32,
 ) -> Result<Vec<Submission>, FetchError> {
-    get_request_struct::<Vec<Submission>>(format!(
+    get_request_struct::<Vec<Submission>>(&format!(
         "{BACKEND_URL}/projects/{project_id}/submissions/{user_id}"
     ))
     .await

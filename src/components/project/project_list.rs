@@ -1,42 +1,50 @@
-use gloo_console::warn;
+use gloo_console::{error, warn};
 use gloo_dialogs::alert;
-use serde::Deserialize;
+
 use web_sys::MouseEvent;
 use yew::{classes, html, Callback, Component, Properties};
 use yew_router::prelude::Link;
 
-use crate::{service::project::delete_project, utilities::requests::fetch::FetchError, Route};
-
-use crate::components::delete_modal::DeleteModal;
-
-#[derive(Default, Deserialize, PartialEq, Clone)]
-pub struct Project {
-    pub id: i32,
-    pub title: String,
-    pub due: String,
-}
+use crate::{
+    components::{
+        delete_modal::DeleteModal,
+        project::project_modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT},
+    },
+    service::project::{delete_project, ProjectTo},
+    utilities::requests::fetch::FetchError,
+    Route,
+};
 
 pub enum DeleteMessage {
-    ListItemButtonClick(Project),
+    ListItemButtonClick(ProjectTo),
     AcceptClick(MouseEvent),
     AbortClick(MouseEvent),
     Success(i32),
     Fail(FetchError),
 }
 
+pub enum UpdateMessage {
+    Update(ProjectTo),
+    Success(ProjectTo),
+    Error(FetchError),
+}
+
 #[allow(clippy::enum_variant_names)] // Messages are similar, but that could change
 pub enum Msg {
-    DeleteMessage(DeleteMessage),
+    Delete(DeleteMessage),
+    Update(UpdateMessage),
 }
 
 #[derive(Properties, PartialEq, Clone)]
 pub struct ProjectListProperties {
-    pub(crate) projects: Vec<Project>,
+    pub(crate) projects: Vec<ProjectTo>,
     pub(crate) project_delete: Callback<i32>,
+    pub(crate) project_change: Callback<ProjectTo>,
 }
 
 pub struct ProjectList {
-    selected_delete: Option<Project>,
+    selected_delete: Option<ProjectTo>,
+    selected_update: Option<ProjectTo>,
 }
 
 impl Component for ProjectList {
@@ -47,6 +55,7 @@ impl Component for ProjectList {
     fn create(_ctx: &yew::Context<Self>) -> Self {
         Self {
             selected_delete: None,
+            selected_update: None,
         }
     }
 
@@ -64,13 +73,14 @@ impl Component for ProjectList {
                             { "Abgabe bis" }
                         </th>
                         <th>
-                            { "Löschen" }
+                            { "Bearbeiten" }
                         </th>
                     </tr>
                     </thead>
                         <tbody>
                         { for projects.iter().map(|project| {
                             let project_clone = project.clone();
+                            let project_clone_2 = project.clone();
                             html!{
                             <tr>
                                 <td>
@@ -82,20 +92,23 @@ impl Component for ProjectList {
                                     { &project.due }
                                 </td>
                                 <td>
-                                    <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::DeleteMessage(DeleteMessage::ListItemButtonClick(project_clone.clone()))) }  data-bs-toggle="modal" data-bs-target="#modalProjectDelete">{ "Löschen" }</button>
-
-                                    </td>
+                                    <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Update(project_clone_2.clone()))) }  data-bs-toggle="modal" data-bs-target={format!("#{MODAL_UPDATE_PROJECT}")}>{ "Bearbeiten" }</button>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(project_clone.clone()))) }  data-bs-toggle="modal" data-bs-target="#modalProjectDelete">{ "Löschen" }</button>
+                                </td>
                             </tr>
                             }})
 
                         }
                         </tbody>
                 </table>
+                <ProjectUpdateModal project={ self.selected_update.clone() } on_success={ ctx.link().callback(|project| Msg::Update(UpdateMessage::Success(project))) } on_error={ ctx.link().callback(|error| Msg::Update(UpdateMessage::Error(error))) }/>
                 <DeleteModal
                     title={"Projekt löschen".to_string() }
                     id={ "modalProjectDelete".to_string() }
-                    on_cancel={ ctx.link().callback(|x| Msg::DeleteMessage(DeleteMessage::AbortClick(x))) }
-                    on_confirm={ ctx.link().callback(|x| Msg::DeleteMessage(DeleteMessage::AcceptClick(x))) }
+                    on_cancel={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AbortClick(x))) }
+                    on_confirm={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AcceptClick(x))) }
                 >
                 <>
                     <h4>
@@ -137,7 +150,7 @@ impl Component for ProjectList {
 
     fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::DeleteMessage(delete_message) => match delete_message {
+            Msg::Delete(delete_message) => match delete_message {
                 DeleteMessage::ListItemButtonClick(project) => {
                     self.selected_delete = Some(project);
                     true
@@ -179,14 +192,29 @@ impl Component for ProjectList {
                     ctx.link().send_future(async move {
                         let result = delete_project(project_id).await;
                         match result {
-                            Ok(()) => Msg::DeleteMessage(DeleteMessage::Success(project_id)),
-                            Err(error) => Msg::DeleteMessage(DeleteMessage::Fail(error)),
+                            Ok(()) => Msg::Delete(DeleteMessage::Success(project_id)),
+                            Err(error) => Msg::Delete(DeleteMessage::Fail(error)),
                         }
                     });
                     false
                 }
                 DeleteMessage::AbortClick(_) => {
                     self.selected_delete = None;
+                    false
+                }
+            },
+            Msg::Update(message) => match message {
+                UpdateMessage::Update(project) => {
+                    self.selected_update = Some(project);
+                    true
+                }
+                UpdateMessage::Success(updated_project) => {
+                    ctx.props().project_change.emit(updated_project);
+                    false
+                }
+                UpdateMessage::Error(error) => {
+                    error!(error.to_string());
+                    alert("Das Projekt konnte nicht angepasst werden. Überprüfe Deine Internetverbindung, versuche es erneut und wende dich sonst an den/die Administrator*in. Details siehe Konsole.");
                     false
                 }
             },

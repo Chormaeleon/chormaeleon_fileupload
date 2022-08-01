@@ -60,13 +60,13 @@ pub async fn get_request_string(url: String) -> Result<String, FetchError> {
 }
 
 pub async fn get_request_struct<T: for<'a> serde::de::Deserialize<'a>>(
-    url: String,
+    url: &str,
 ) -> Result<T, FetchError> {
     let mut opts = RequestInit::new();
     opts.method("GET");
     opts.mode(RequestMode::Cors);
 
-    let request = Request::new_with_str_and_init(&url, &opts)?;
+    let request = Request::new_with_str_and_init(url, &opts)?;
 
     set_authorization_header(&request)?;
 
