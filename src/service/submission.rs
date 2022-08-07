@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
@@ -19,6 +21,7 @@ pub struct Submission {
     pub creator_name: String,
     pub creator_section: Section,
     pub upload_at: NaiveDateTime,
+    pub kind: SubmissionKind
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -29,6 +32,25 @@ pub enum Section {
     Bass,
     Conductor,
     Instrument,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum SubmissionKind {
+    Audio,
+    Video,
+    Other,
+}
+
+impl Display for SubmissionKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let content = match self {
+            SubmissionKind::Audio => "Audio",
+            SubmissionKind::Video => "Video",
+            SubmissionKind::Other => "Sonstiges",
+        };
+
+        write!(f, "{}", content)
+    }
 }
 
 pub async fn submissions_by_project(project_id: i32) -> Result<Vec<Submission>, FetchError> {

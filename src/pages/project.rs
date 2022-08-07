@@ -1,6 +1,6 @@
 use crate::{
     components::{
-        iframe::IFrame, material::Material, submission_list::SubmissionList, upload::Upload,
+        iframe::IFrame, material::Material, submission_list::SubmissionList, upload::Upload, jwt_context::{get_token_data, Section},
     },
     service::{
         project::{
@@ -57,6 +57,7 @@ impl Component for ProjectComponent {
     }
 
     fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
+        let my_section = get_token_data().unwrap_throw().section;
         match &self.project_data {
             Some(metadata) => html! {
                 <>
@@ -86,6 +87,25 @@ impl Component for ProjectComponent {
                                 <div class="col">
                                     <label for="inputContentTitle"> { "Anmerkungen" } </label>
                                     <input id="inputContentTitle" type="text" class="form-control" name="note" maxlength="100" placeholder="z.B. Takt 15 bitte rausschneiden..."/>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="selectSection"> { "Stimme" } </label>
+                                    <select id="selectSection" name="section" class="form-control" required=true>
+                                        <option value="Soprano" selected={ my_section == Section::Soprano }> { "Sopran" }</option>
+                                        <option value="Alto" selected={ my_section == Section::Alto }> { "Alt" }</option>
+                                        <option value="Tenor" selected={ my_section == Section::Tenor }> { "Tenor" }</option>
+                                        <option value="Bass" selected={ my_section == Section::Bass }> { "Bass" }</option>
+                                        <option value="Conductor" selected={ my_section == Section::Conductor }> { "Dirigent" }</option>
+                                        <option value="Instrument" selected={ my_section == Section::Instrument }> { "Instrument" }</option>
+                                    </select>
+                                </div>
+                                <div class="col-auto">
+                                    <label for="selectSubmissionKind"> { "Art" } </label>
+                                    <select id="selectSubmissionKind" name="kind" class="form-control" required=true>
+                                        <option value="video">{ "Video" }</option>
+                                        <option value="audio">{ "Audio" }</option>
+                                        <option value="other">{ "Sonstiges" }</option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="row mt-2">

@@ -61,6 +61,9 @@ impl Component for SubmissionList {
                             { "Name" }
                         </th>
                         <th>
+                            { "Art" }
+                        </th>
+                        <th>
                             { "Kommentar" }
                         </th>
                         <th>
@@ -89,6 +92,9 @@ impl Component for SubmissionList {
                                 <tr>
                                     <td>
                                         { &submission.file_name }
+                                    </td>
+                                    <td>
+                                        { &submission.kind }
                                     </td>
                                     <td>
                                         { &submission.note }
