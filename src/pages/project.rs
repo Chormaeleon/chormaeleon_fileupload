@@ -123,7 +123,7 @@ impl Component for ProjectComponent {
                 </div>
                 <div class="row mt-2">
                     <div class="col">
-                        <SubmissionList id="list1" submissions={ self.my_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }/>
+                        <SubmissionList id="list1" submissions={ self.my_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } />
                     </div>
                 </div>
                 if let Some(all_submissions) = &self.all_submissions {
@@ -134,13 +134,10 @@ impl Component for ProjectComponent {
                     </div>
                     <div class="row mt-2">
                         <div class="col">
-                            <SubmissionList id="list2" submissions={ all_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }/>
+                            <SubmissionList id="list2" submissions={ all_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } />
                         </div>
                     </div>
                 }
-
-
-
                 </>
             },
             None => html! {

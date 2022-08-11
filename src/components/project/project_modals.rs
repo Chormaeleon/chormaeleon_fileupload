@@ -15,7 +15,7 @@ use crate::{
 pub const MODAL_NEW_PROJECT: &str = "modalNewProject";
 pub const MODAL_UPDATE_PROJECT: &str = "modalUpdateProject";
 
-#[wasm_bindgen]
+#[wasm_bindgen(module="/js/custom/tinymce_content.js")]
 extern "C" {
 
     #[wasm_bindgen]

@@ -6,9 +6,9 @@ use gloo_console::error;
 
 use crate::{
     components::delete_modal::DeleteModal,
-    service::submission::{
+    service::{submission::{
         delete_submission, get_submission_download_key, submission_download_url, Submission,
-    },
+    }, material::material_url},
     utilities::{download_from_link, requests::fetch::FetchError},
 };
 
@@ -120,7 +120,7 @@ impl Component for SubmissionList {
                                     if index as i32 == selected_index {
                                         <tr>
                                             <td colspan=7>
-                                                <SubmissionDetails submission={ submission.clone() }/>
+                                                <SubmissionDetails submission={ submission.clone() } />
                                             </td>
                                         </tr>
                                     }
@@ -266,6 +266,26 @@ fn submission_details(s: &SubmissionProperty) -> Html {
             <div class="col">
                 <b>{ "Autor (Id)" }</b>
                 { submission.creator }
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                {
+                    match submission.kind {
+                        crate::service::submission::SubmissionKind::Audio => html!{
+                            <audio controls=true src={ material_url(submission.project_id, &submission.file_technical_name) }></audio>
+            
+                        },
+                        crate::service::submission::SubmissionKind::Video => html!{
+                            <div class="ratio ratio-16x9">
+                                <video controls=true>
+                                    <source src={ material_url(submission.project_id, &submission.file_technical_name) }/>
+                                </video>
+                            </div>
+                        },
+                        crate::service::submission::SubmissionKind::Other => html!{},
+                    }
+                }
             </div>
         </div>
         </>)
