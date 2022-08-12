@@ -3,9 +3,7 @@ use std::fmt::Display;
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
-use crate::utilities::requests::fetch::{
-    delete_request, get_request_string, get_request_struct, FetchError,
-};
+use crate::utilities::requests::fetch::{delete_request, get_request_struct, FetchError};
 
 use super::BACKEND_URL;
 
@@ -21,7 +19,7 @@ pub struct Submission {
     pub creator_name: String,
     pub creator_section: Section,
     pub upload_at: NaiveDateTime,
-    pub kind: SubmissionKind
+    pub kind: SubmissionKind,
 }
 
 #[derive(Copy, Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -71,15 +69,8 @@ pub async fn submissions_by_project_and_user(
     .await
 }
 
-pub async fn get_submission_download_key(submission_id: i32) -> Result<String, FetchError> {
-    get_request_string(format!(
-        "{BACKEND_URL}/submissions/{submission_id}/downloadKey"
-    ))
-    .await
-}
-
-pub fn submission_download_url(submission_id: i32, download_key: String) -> String {
-    format!("{BACKEND_URL}/submissions/{submission_id}?jwt={download_key}")
+pub fn submission_download_url(submission_id: i32) -> String {
+    format!("{BACKEND_URL}/submissions/{submission_id}")
 }
 
 pub async fn delete_submission(submission_id: i32) -> Result<(), FetchError> {

@@ -7,8 +7,6 @@ use crate::components::progress::ProgressComponent;
 
 use xmlhttp::xmlhttp_post_request::{PostRequest, SentRequest};
 
-use super::jwt_context::get_token;
-
 pub enum Msg {
     Files,
     UploadFile,
@@ -78,11 +76,6 @@ impl Component for Upload {
                         "Noch nicht verfügbar, siehe Konsole (F11)".to_string(),
                     ));
                 };
-
-                request.set_header(
-                    "Authorization".to_string(),
-                    format!("Bearer {}", get_token()),
-                );
 
                 request.set_upload_onprogress(Some(Box::new(progress_callback)));
                 request.set_upload_onerror(Some(Box::new(error_callback)));

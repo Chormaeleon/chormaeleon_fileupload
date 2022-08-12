@@ -1,4 +1,3 @@
-use gloo_dialogs::alert;
 use web_sys::MouseEvent;
 use yew::{function_component, html, Callback, Component, Properties};
 
@@ -6,10 +5,8 @@ use gloo_console::error;
 
 use crate::{
     components::delete_modal::DeleteModal,
-    service::{submission::{
-        delete_submission, get_submission_download_key, submission_download_url, Submission,
-    }, material::material_url},
-    utilities::{download_from_link, requests::fetch::FetchError},
+    service::submission::{delete_submission, submission_download_url, Submission},
+    utilities::requests::fetch::FetchError,
 };
 
 pub struct SubmissionList {
@@ -35,9 +32,6 @@ pub enum DeleteMessage {
 pub enum Msg {
     SelectOrUnselect(i32),
     Delete(DeleteMessage),
-    DownloadClicked(i32),
-    DownloadKey(i32, String),
-    DownloadKeyError(FetchError),
 }
 
 impl Component for SubmissionList {
@@ -109,7 +103,11 @@ impl Component for SubmissionList {
                                         <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::SelectOrUnselect(index as i32)) }>{"Details"}</button>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::DownloadClicked(submission_clone.id)) }>{"Herunterladen"}</button>
+                                        <a href={ submission_download_url(submission.id) }>
+                                            <button class="btn btn-sm btn-outline-danger">
+                                                {"Herunterladen"}
+                                            </button>
+                                        </a>
                                     </td>
                                     <td>
                                         <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
@@ -212,28 +210,6 @@ impl Component for SubmissionList {
                     true
                 }
             },
-            Msg::DownloadClicked(id) => {
-                ctx.link().send_future(async move {
-                    match get_submission_download_key(id).await {
-                        Ok(key) => Msg::DownloadKey(id, key),
-                        Err(error) => Msg::DownloadKeyError(error),
-                    }
-                });
-                false
-            }
-            Msg::DownloadKey(submission_id, key) => {
-                download_from_link(&submission_download_url(submission_id, key));
-                false
-            }
-            Msg::DownloadKeyError(error) => {
-                error!(format!(
-                    "Could not get download key for submission. Error: {:?}",
-                    error
-                ));
-
-                alert("Download konnte nicht beendet werden. Fehler siehe Konsole. Bitte es erneut versuchen und sich dann an den/die Administrator*in wenden.");
-                false
-            }
         }
     }
 }
@@ -273,13 +249,13 @@ fn submission_details(s: &SubmissionProperty) -> Html {
                 {
                     match submission.kind {
                         crate::service::submission::SubmissionKind::Audio => html!{
-                            <audio controls=true src={ material_url(submission.project_id, &submission.file_technical_name) }></audio>
+                            <audio controls=true src={ submission_download_url( submission.id) }></audio>
             
                         },
                         crate::service::submission::SubmissionKind::Video => html!{
                             <div class="ratio ratio-16x9">
                                 <video controls=true>
-                                    <source src={ material_url(submission.project_id, &submission.file_technical_name) }/>
+                                    <source src={ submission_download_url( submission.id) }/>
                                 </video>
                             </div>
                         },

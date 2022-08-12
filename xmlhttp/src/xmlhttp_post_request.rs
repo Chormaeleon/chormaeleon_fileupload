@@ -161,9 +161,11 @@ impl PostRequest {
 
     fn open_request(&self, url: &str) -> XmlHttpRequest {
         let request = XmlHttpRequest::new().expect("Could not create request!");
+        request.set_with_credentials(true);
         request
             .open_with_async("POST", url, self._async)
             .expect("Could not open request");
+        request.set_with_credentials(true);
         request
     }
 

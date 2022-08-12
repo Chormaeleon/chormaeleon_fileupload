@@ -1,15 +1,19 @@
 use crate::{
     components::{
-        iframe::IFrame, material::Material, submission_list::SubmissionList, upload::Upload, jwt_context::{get_token_data, Section},
+        iframe::IFrame,
+        jwt_context::{get_token_data, Section},
+        material::Material,
+        submission_list::SubmissionList,
+        upload::Upload,
     },
     service::{
         project::{
-            all_submissions_download_key, all_submissions_link, project_data,
+           all_submissions_link, project_data,
             submission_upload_url, ProjectTo,
         },
         submission::{submissions_by_project, submissions_by_project_and_user, Submission},
     },
-    utilities::{download_from_link, requests::fetch::FetchError},
+    utilities::{requests::fetch::FetchError},
 };
 
 use wasm_bindgen::UnwrapThrowExt;
@@ -28,8 +32,6 @@ pub enum Msg {
     SubmissionDeleted(i32),
     SubmissionUploaded(String),
     SubmissionUploadError(String),
-    ProjectDownloadClick,
-    ProjectDownloadKeyLoaded(String),
 }
 
 pub struct ProjectComponent {
@@ -73,7 +75,9 @@ impl Component for ProjectComponent {
                     </div>
 
                     <div class="col">
-                       <button class="btn btn-danger" onclick={ ctx.link().callback(|_| Msg::ProjectDownloadClick) } >{ "Abgaben downloaden" } </button>
+                        <a href={ all_submissions_link(metadata.id) }>
+                        <button class="btn btn-danger">{ "Abgaben downloaden" } </button>
+                        </a>
                     </div>
                 </div>
 
@@ -171,7 +175,7 @@ impl Component for ProjectComponent {
         }
     }
 
-    fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::MetadataLoaded(metadata) => {
                 self.project_data = Some(metadata);
@@ -237,20 +241,7 @@ impl Component for ProjectComponent {
                 ));
                 false
             }
-            Msg::ProjectDownloadClick => {
-                let project_id = ctx.props().id;
-                ctx.link().send_future(async move {
-                    match all_submissions_download_key(project_id).await {
-                        Ok(key) => Msg::ProjectDownloadKeyLoaded(key),
-                        Err(error) => Msg::MetadataLoadError(error),
-                    }
-                });
-                false
-            }
-            Msg::ProjectDownloadKeyLoaded(key) => {
-                download_from_link(&all_submissions_link(ctx.props().id, key));
-                false
-            }
+            
         }
     }
 }
