@@ -7,7 +7,6 @@ use crate::{
             list::SubmissionList, InputSubmissionKind, InputSubmissionNote, InputSubmissionSection,
         },
         upload::Upload,
-        PlaceholderOrContent,
     },
     service::{
         project::{all_submissions_link, project_data, submission_upload_url, ProjectTo},
@@ -58,109 +57,6 @@ impl Component for ProjectComponent {
             project_data: None,
             all_submissions: None,
             my_submissions: Vec::new(),
-        }
-    }
-
-    fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
-        let my_section = get_token_data().unwrap_throw().section;
-        match &self.project_data {
-            Some(metadata) => html! {
-                <>
-                <div class="row mt-2">
-                    <div class="col">
-                        <h1>{ &metadata.title }</h1>
-                        <IFrame content={metadata.description.clone()}/>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col">
-                        <a href="/"> <button type="button" class="btn btn-outline-danger"> { "zurück" } </button></a>
-                    </div>
-
-                    <div class="col">
-                        <a href={ all_submissions_link(metadata.id) }>
-                        <button class="btn btn-danger">{ "Abgaben downloaden" } </button>
-                        </a>
-                    </div>
-                </div>
-
-                <Material id={ctx.props().id} project_owner={metadata.creator}/>
-
-                <div class="row mt-2">
-                    <div class="col">
-                        <h2>{ "Neue Datei hochladen" }</h2>
-                        <form id="inputSubmissionUpload" class="" name="formMaterial" enctype="multipart/form-data">
-                            <div class="row">
-                                <div class="col">
-                                    <InputSubmissionNote id={ "inputContentTitle".to_string() } placeholder_or_content={PlaceholderOrContent::Placeholder("z.B. Takt 15 bitte rausschneiden...".into())}/>
-                                </div>
-                                <div class="col-auto">
-                                    <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ crate::service::submission::Section::from(my_section) }/>
-                                </div>
-                                <div class="col-auto">
-                                    <InputSubmissionKind id={ "selectSubmissionKind".to_string() } selected={ SubmissionKind::Other }/>
-                                </div>
-                            </div>
-                            <div class="row mt-2">
-                                <div class="col">
-                                    <Upload form_id="inputSubmissionUpload" field_name="file" target_url={ submission_upload_url(ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) } failure_callback={ ctx.link().callback(Msg::SubmissionUploadError) } />
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col">
-                        <h4>{ "Meine Abgaben" }</h4>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col">
-                        <SubmissionList id="list1" submissions={ self.my_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } submission_update={ ctx.link().callback(Msg::SubmissionUpdated) } />
-                    </div>
-                </div>
-                if let Some(all_submissions) = &self.all_submissions {
-                    <div class="row mt-2">
-                        <div class="col">
-                            <h4>{ "Alle Abgaben" }</h4>
-                        </div>
-                    </div>
-                    <div class="row mt-2">
-                        <div class="col">
-                            <SubmissionList id="list2" submissions={ all_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }/>
-                        </div>
-                    </div>
-                }
-                </>
-            },
-            None => html! {
-                <h2>{ "Daten werden geladen" }</h2>
-            },
-        }
-    }
-
-    fn rendered(&mut self, ctx: &yew::Context<Self>, first_render: bool) {
-        if first_render {
-            load_data(ctx);
-
-            let project_id = ctx.props().id;
-            ctx.link().send_future(async move {
-                let submissions = submissions_by_project(project_id).await;
-
-                match submissions {
-                    Ok(contributions) => Msg::AllSubmissionsLoaded(contributions),
-                    Err(error) => Msg::SubmissionsLoadError(error),
-                }
-            });
-
-            ctx.link().send_future(async move {
-                let submissions = submissions_by_project_and_user(project_id, 1).await;
-
-                match submissions {
-                    Ok(contributions) => Msg::MySubmissionsLoaded(contributions),
-                    Err(error) => Msg::SubmissionsLoadError(error),
-                }
-            });
         }
     }
 
@@ -249,6 +145,109 @@ impl Component for ProjectComponent {
 
                 true
             }
+        }
+    }
+
+    fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
+        let my_section = get_token_data().unwrap_throw().section;
+        match &self.project_data {
+            Some(metadata) => html! {
+                <>
+                <div class="row mt-2">
+                    <div class="col">
+                        <h1>{ &metadata.title }</h1>
+                        <IFrame content={metadata.description.clone()}/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <a href="/"> <button type="button" class="btn btn-outline-danger"> { "zurück" } </button></a>
+                    </div>
+
+                    <div class="col">
+                        <a href={ all_submissions_link(metadata.id) }>
+                        <button class="btn btn-danger">{ "Abgaben downloaden" } </button>
+                        </a>
+                    </div>
+                </div>
+
+                <Material id={ctx.props().id} project_owner={metadata.creator}/>
+
+                <div class="row mt-2">
+                    <div class="col">
+                        <h2>{ "Neue Datei hochladen" }</h2>
+                        <form id="inputSubmissionUpload" class="" name="formMaterial" enctype="multipart/form-data">
+                            <div class="row">
+                                <div class="col">
+                                    <InputSubmissionNote id={ "inputContentTitle".to_string() } />
+                                </div>
+                                <div class="col-auto">
+                                    <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ crate::service::submission::Section::from(my_section) }/>
+                                </div>
+                                <div class="col-auto">
+                                    <InputSubmissionKind id={ "selectSubmissionKind".to_string() } selected={ SubmissionKind::Other }/>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col">
+                                    <Upload form_id="inputSubmissionUpload" field_name="file" target_url={ submission_upload_url(ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) } failure_callback={ ctx.link().callback(Msg::SubmissionUploadError) } />
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col">
+                        <h4>{ "Meine Abgaben" }</h4>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col">
+                        <SubmissionList id="list1" submissions={ self.my_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } submission_update={ ctx.link().callback(Msg::SubmissionUpdated) } />
+                    </div>
+                </div>
+                if let Some(all_submissions) = &self.all_submissions {
+                    <div class="row mt-2">
+                        <div class="col">
+                            <h4>{ "Alle Abgaben" }</h4>
+                        </div>
+                    </div>
+                    <div class="row mt-2">
+                        <div class="col">
+                            <SubmissionList id="list2" submissions={ all_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }/>
+                        </div>
+                    </div>
+                }
+                </>
+            },
+            None => html! {
+                <h2>{ "Daten werden geladen" }</h2>
+            },
+        }
+    }
+
+    fn rendered(&mut self, ctx: &yew::Context<Self>, first_render: bool) {
+        if first_render {
+            load_data(ctx);
+
+            let project_id = ctx.props().id;
+            ctx.link().send_future(async move {
+                let submissions = submissions_by_project(project_id).await;
+
+                match submissions {
+                    Ok(contributions) => Msg::AllSubmissionsLoaded(contributions),
+                    Err(error) => Msg::SubmissionsLoadError(error),
+                }
+            });
+
+            ctx.link().send_future(async move {
+                let submissions = submissions_by_project_and_user(project_id, 1).await;
+
+                match submissions {
+                    Ok(contributions) => Msg::MySubmissionsLoaded(contributions),
+                    Err(error) => Msg::SubmissionsLoadError(error),
+                }
+            });
         }
     }
 }

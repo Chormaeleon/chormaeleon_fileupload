@@ -8,9 +8,3 @@ pub(crate) mod progress;
 pub(crate) mod project;
 pub(crate) mod submission;
 pub(crate) mod upload;
-
-#[derive(Clone, Debug, Eq, PartialEq, PartialOrd)]
-pub enum PlaceholderOrContent {
-    Placeholder(String),
-    Content(String),
-}

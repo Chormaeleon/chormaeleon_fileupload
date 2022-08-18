@@ -2,7 +2,7 @@ use wasm_bindgen::UnwrapThrowExt;
 use yew::{function_component, html, Callback, Component, Properties};
 
 use crate::{
-    components::{modal::Modal, upload::Upload, PlaceholderOrContent},
+    components::{modal::Modal, upload::Upload},
     pages::home::{get_input_text_content, get_selected_value},
     service::material::{
         material_upload_url, update_material, MaterialCategory, MaterialTo, UpdateMaterial,
@@ -34,7 +34,7 @@ pub fn material_upload_modal(props: &MaterialUploadModalProperties) -> Html {
             <form id="formMaterialUpload" class="" name="formUpload" enctype="multipart/form-data">
                 <div class="row">
                     <div class="col">
-                        <InputMaterialTitle id="inputMaterialTitle" name="title" placeholder_content={PlaceholderOrContent::Placeholder("Titel der Datei".to_string())} form="formMaterialUpload"/>
+                        <InputMaterialTitle id="inputMaterialTitle" name="title" form="formMaterialUpload"/>
                     </div>
                     <div class="col">
                         <InputMaterialCategory id="selectMaterialCategory" name="material_category" form="formMaterialUpload"/>
@@ -80,42 +80,6 @@ impl Component for MaterialChangeModal {
         }
     }
 
-    fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
-        let actions = vec![
-            (
-                "Abbrechen".to_string(),
-                "btn btn-secondary".to_string(),
-                ctx.link().callback(|_| Msg::Cancel),
-            ),
-            (
-                "Anpassen".to_string(),
-                "btn btn-danger".to_string(),
-                ctx.link().callback(|_| Msg::Confirm),
-            ),
-        ];
-
-        html! {
-            <Modal id={MODAL_MATERIAL_UPDATE} title="Übungsmaterial anpassen" actions={ actions }>
-                {
-                    if let Some(material) = &ctx.props().material_to_change {
-                        html!{
-                            <div class="row">
-                            <div class="col">
-                                <InputMaterialTitle id={INPUT_UPDATE_MATERIAL_TITLE} placeholder_content={ PlaceholderOrContent::Content( material.title.clone() ) } form=""/>
-                            </div>
-                            <div class="col">
-                                <InputMaterialCategory id={INPUT_UPDATE_MATERIAL_CATEGORY} selected={ material.category } form=""/>
-                            </div>
-                            </div>
-                        }
-                    } else {
-                        html!{ { "Nicht zum Update ausgewählt!" } }
-                    }
-                }
-                </Modal>
-        }
-    }
-
     fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Cancel => {
@@ -158,6 +122,42 @@ impl Component for MaterialChangeModal {
             }
         }
     }
+
+    fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
+        let actions = vec![
+            (
+                "Abbrechen".to_string(),
+                "btn btn-secondary".to_string(),
+                ctx.link().callback(|_| Msg::Cancel),
+            ),
+            (
+                "Anpassen".to_string(),
+                "btn btn-danger".to_string(),
+                ctx.link().callback(|_| Msg::Confirm),
+            ),
+        ];
+
+        html! {
+            <Modal id={MODAL_MATERIAL_UPDATE} title="Übungsmaterial anpassen" actions={ actions }>
+                {
+                    if let Some(material) = &ctx.props().material_to_change {
+                        html!{
+                            <div class="row">
+                            <div class="col">
+                                <InputMaterialTitle id={INPUT_UPDATE_MATERIAL_TITLE} value={  material.title.clone() } form=""/>
+                            </div>
+                            <div class="col">
+                                <InputMaterialCategory id={INPUT_UPDATE_MATERIAL_CATEGORY} selected={ material.category } form=""/>
+                            </div>
+                            </div>
+                        }
+                    } else {
+                        html!{ { "Nicht zum Update ausgewählt!" } }
+                    }
+                }
+                </Modal>
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Properties)]
@@ -166,15 +166,15 @@ struct InputMaterialTitleProperties {
     id: String,
     #[prop_or("title".to_string())]
     name: String,
-    #[prop_or(PlaceholderOrContent::Placeholder("".to_string()))]
-    placeholder_content: PlaceholderOrContent,
+    #[prop_or_default]
+    value: Option<String>,
     form: String,
 }
 
 #[function_component(InputMaterialTitle)]
 fn input_material_title(props: &InputMaterialTitleProperties) -> Html {
     let props = props.clone();
-    html! {
+    html! (
         <>
         <label for={props.id.clone()}>{ "Name für die Datei" }</label>
         <input
@@ -182,24 +182,12 @@ fn input_material_title(props: &InputMaterialTitleProperties) -> Html {
             type="text"
             class="form-control"
             name={props.name}
-            placeholder={
-                if let PlaceholderOrContent::Placeholder(s) = &props.placeholder_content {
-                    s.clone()
-                } else {
-                    "".to_string()
-                }
-            }
-            value={
-                if let PlaceholderOrContent::Content(s) = &props.placeholder_content {
-                    s.clone()
-                } else {
-                    "".to_string()
-                }
-            }
+            placeholder="Titel der Datei"
+            value={ props.value.clone() }
             form={props.form}
         />
         </>
-    }
+    )
 }
 
 #[derive(Clone, PartialEq, Properties)]

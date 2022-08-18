@@ -9,27 +9,28 @@ use crate::{
     utilities::callback::{convert_select_input_to_enum_callback, convert_string_callback},
 };
 
-use super::PlaceholderOrContent;
-
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct InputSubmissionNoteProperties {
     #[prop_or_default]
     pub on_input: Callback<String>,
-    pub placeholder_or_content: PlaceholderOrContent,
+    #[prop_or_default]
+    pub value: Option<String>,
     pub id: String,
 }
 
 #[function_component(InputSubmissionNote)]
 pub fn input_submission_note(props: &InputSubmissionNoteProperties) -> Html {
-    let (value, placeholder) = match &props.placeholder_or_content {
-        PlaceholderOrContent::Content(value) => (Some(value.to_owned()), None),
-
-        PlaceholderOrContent::Placeholder(placeholder) => (None, Some(placeholder.to_owned())),
-    };
     html! {
         <>
         <label for={ props.id.clone() }> { "Anmerkungen" } </label>
-        <input id={ props.id.clone() } type="text" class="form-control" name="note" maxlength="100" value={value} placeholder={placeholder} oninput={convert_string_callback(props.on_input.clone())}/>
+        <input id={ props.id.clone() }
+            type="text"
+            class="form-control"
+            name="note"
+            maxlength="100"
+            value={ props.value.clone() }
+            placeholder="z.B. Takt 15 bitte rausschneiden..."
+            oninput={convert_string_callback(props.on_input.clone())}/>
         </>
     }
 }

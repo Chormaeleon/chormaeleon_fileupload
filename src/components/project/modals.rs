@@ -47,12 +47,6 @@ impl Component for ProjectUpdateModal {
         Self {}
     }
 
-    fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
-        html! {
-            <ProjectEditModal on_submit={ctx.link().callback(UpdateMessage::ButtonClick)} project={ctx.props().project.clone()} id={ MODAL_UPDATE_PROJECT }/>
-        }
-    }
-
     fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
         match msg {
             UpdateMessage::Success(project) => {
@@ -87,6 +81,12 @@ impl Component for ProjectUpdateModal {
             }
         }
     }
+
+    fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
+        html! (
+            <ProjectEditModal on_submit={ctx.link().callback(UpdateMessage::ButtonClick)} project={ctx.props().project.clone()} id={ MODAL_UPDATE_PROJECT }/>
+        )
+    }
 }
 
 pub struct ProjectCreateModal {}
@@ -109,12 +109,6 @@ impl Component for ProjectCreateModal {
 
     fn create(_ctx: &yew::Context<Self>) -> Self {
         Self {}
-    }
-
-    fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
-        html! {
-            <ProjectEditModal on_submit={ctx.link().callback(CreateMessage::ButtonClick)} id={ MODAL_NEW_PROJECT }/>
-        }
     }
 
     fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
@@ -143,6 +137,12 @@ impl Component for ProjectCreateModal {
                 false
             }
         }
+    }
+
+    fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
+        html! (
+            <ProjectEditModal on_submit={ctx.link().callback(CreateMessage::ButtonClick)} id={ MODAL_NEW_PROJECT }/>
+        )
     }
 }
 
@@ -193,6 +193,40 @@ impl Component for ProjectEditModal {
         }
     }
 
+    fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::NameInput(event) => {
+                self.title = get_value_from_input_event(event);
+                false
+            }
+            Msg::DateInput(event) => {
+                let date_string = get_value_from_event(event);
+                info!(date_string.clone());
+                self.due =
+                    match NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%.3f") {
+                        Ok(date_time) => date_time,
+                        Err(_e) => NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S")
+                            .unwrap_or_else(|_| {
+                                NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M")
+                                    .expect("problem")
+                            }),
+                    };
+                false
+            }
+            Msg::AbortClick(_) => false,
+            Msg::CreateClick(_) => {
+                ctx.props().on_submit.emit(ModalResult {
+                    id: self.id,
+                    title: self.title.clone(),
+                    description: get_tinymce_content(self.text_area_name(ctx)),
+                    due: self.due,
+                });
+
+                false
+            }
+        }
+    }
+
     fn changed(&mut self, ctx: &yew::Context<Self>) -> bool {
         if let Some(project) = &ctx.props().project {
             self.id = Some(project.id);
@@ -224,7 +258,7 @@ impl Component for ProjectEditModal {
             set_tinymce_content(text_area_name.clone(), description);
         }
 
-        html! {
+        html! (
             <Modal
                 title={"Projekt erstellen".to_string() }
                 id={ ctx.props().id.clone() }
@@ -260,41 +294,7 @@ impl Component for ProjectEditModal {
                 </form>
             </>
             </Modal>
-        }
-    }
-
-    fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
-        match msg {
-            Msg::NameInput(event) => {
-                self.title = get_value_from_input_event(event);
-                false
-            }
-            Msg::DateInput(event) => {
-                let date_string = get_value_from_event(event);
-                info!(date_string.clone());
-                self.due =
-                    match NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%.3f") {
-                        Ok(date_time) => date_time,
-                        Err(_e) => NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S")
-                            .unwrap_or_else(|_| {
-                                NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M")
-                                    .expect("problem")
-                            }),
-                    };
-                false
-            }
-            Msg::AbortClick(_) => false,
-            Msg::CreateClick(_) => {
-                ctx.props().on_submit.emit(ModalResult {
-                    id: self.id,
-                    title: self.title.clone(),
-                    description: get_tinymce_content(self.text_area_name(ctx)),
-                    due: self.due,
-                });
-
-                false
-            }
-        }
+        )
     }
 }
 

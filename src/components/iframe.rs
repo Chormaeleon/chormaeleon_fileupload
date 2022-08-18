@@ -55,7 +55,9 @@ impl Component for IFrame {
         };
 
         html! {
-            <iframe {srcdoc} onload={ctx.link().callback(Msg::Resize)} width="100%"></iframe>
+            <div class="embed-responsive">
+                <iframe {srcdoc} class="embed-responsive-item" onload={ctx.link().callback(Msg::Resize)} width="100%"></iframe>
+            </div>
         }
     }
 }
