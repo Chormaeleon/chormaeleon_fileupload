@@ -1,2 +1,2 @@
-pub mod project_list;
-pub mod project_modals;
+pub mod list;
+pub mod modals;

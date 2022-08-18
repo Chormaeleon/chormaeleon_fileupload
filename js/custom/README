@@ -1,0 +1,4 @@
+This folder contains custom javascript called from the wasm application.
+There, they are imported via the #[wasm_bindgen(module = "/js/custom/...")] extern function directives.
+Changes in the method signatures must match between the rust and the js file! 
+The contents of this folder dont need to be imported in index.html - wasm_bindgen takes care of that at compile time.

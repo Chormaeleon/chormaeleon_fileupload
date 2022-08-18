@@ -2,7 +2,7 @@ use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
 use crate::utilities::requests::fetch::{
-    delete_request, get_request_string, get_request_struct, post_request_struct, FetchError,
+    delete_request, get_request_struct, post_request_struct, FetchError,
 };
 
 use super::BACKEND_URL;
@@ -15,12 +15,8 @@ pub async fn project_data(project_id: i32) -> Result<ProjectTo, FetchError> {
     get_request_struct::<ProjectTo>(&format!("{BACKEND_URL}/projects/{}", project_id)).await
 }
 
-pub fn all_submissions_link(project_id: i32, key: String) -> String {
-    format!("{BACKEND_URL}/projects/{project_id}/allSubmissions?jwt={key}")
-}
-
-pub async fn all_submissions_download_key(project_id: i32) -> Result<String, FetchError> {
-    get_request_string(format!("{BACKEND_URL}/projects/{project_id}/downloadKey")).await
+pub fn all_submissions_link(project_id: i32) -> String {
+    format!("{BACKEND_URL}/projects/{project_id}/allSubmissions")
 }
 
 pub fn submission_upload_url(project_id: i32) -> String {
@@ -65,7 +61,7 @@ pub async fn update_project(
     .await
 }
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct ProjectTo {
     pub id: i32,
     pub title: String,

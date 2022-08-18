@@ -31,7 +31,7 @@ pub async fn delete_material(material_id: i32) -> Result<(), FetchError> {
     delete_request(&url).await
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Clone)]
+#[derive(Serialize, Deserialize, Eq, PartialEq, Clone)]
 pub struct MaterialTo {
     pub id: i32,
     pub project_id: i32,
@@ -67,7 +67,7 @@ impl TryFrom<&str> for MaterialCategory {
     type Error = ();
 }
 
-#[derive(Clone, Debug, PartialEq, PartialOrd, Deserialize, Serialize)]
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Deserialize, Serialize)]
 pub struct UpdateMaterial {
     pub title: String,
     pub category: MaterialCategory,

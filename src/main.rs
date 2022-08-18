@@ -12,7 +12,7 @@ use pages::home::Home;
 mod service;
 mod utilities;
 
-#[derive(Routable, PartialEq, Clone, Debug)]
+#[derive(Routable, PartialEq, Eq, Clone, Debug)]
 pub enum Route {
     #[at("/")]
     Home,
@@ -51,6 +51,7 @@ impl Component for App {
     }
 }
 
+#[allow(clippy::let_unit_value)]
 fn switch(routes: &Route) -> Html {
     match routes.clone() {
         Route::Home => {

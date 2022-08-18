@@ -7,9 +7,7 @@ use gloo_utils::window;
 use serde::Serialize;
 use wasm_bindgen::{JsCast, JsValue};
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response};
-
-use crate::components::jwt_context::get_token;
+use web_sys::{Request, RequestCredentials, RequestInit, RequestMode, Response};
 
 /// Something wrong has occurred while fetching an external resource.
 #[derive(Debug)]
@@ -38,14 +36,14 @@ impl From<serde_json::error::Error> for FetchError {
     }
 }
 
+#[allow(dead_code)]
 pub async fn get_request_string(url: String) -> Result<String, FetchError> {
     let mut opts = RequestInit::new();
     opts.method("GET");
     opts.mode(RequestMode::Cors);
+    opts.credentials(RequestCredentials::Include);
 
     let request = Request::new_with_str_and_init(&url, &opts)?;
-
-    set_authorization_header(&request)?;
 
     let resp = send_request(&request).await?;
 
@@ -65,10 +63,9 @@ pub async fn get_request_struct<T: for<'a> serde::de::Deserialize<'a>>(
     let mut opts = RequestInit::new();
     opts.method("GET");
     opts.mode(RequestMode::Cors);
+    opts.credentials(RequestCredentials::Include);
 
     let request = Request::new_with_str_and_init(url, &opts)?;
-
-    set_authorization_header(&request)?;
 
     request.headers().set("Accept", "application/json")?;
 
@@ -91,13 +88,12 @@ pub async fn post_request_struct<
     let mut opts = RequestInit::new();
     opts.method("POST");
     opts.mode(RequestMode::Cors);
+    opts.credentials(RequestCredentials::Include);
 
     let serialized = serde_json::to_string(&payload).map_err(FetchError::from)?;
     opts.body(Some(&serialized.into()));
 
     let request = Request::new_with_str_and_init(url, &opts)?;
-
-    set_authorization_header(&request)?;
 
     request.headers().set("Content-Type", "application/json")?;
 
@@ -112,10 +108,9 @@ pub async fn delete_request(url: &str) -> Result<(), FetchError> {
     let mut opts = RequestInit::new();
     opts.method("DELETE");
     opts.mode(RequestMode::Cors);
+    opts.credentials(RequestCredentials::Include);
 
     let request = Request::new_with_str_and_init(url, &opts)?;
-
-    set_authorization_header(&request)?;
 
     let response = send_request(&request).await?;
 
@@ -144,14 +139,6 @@ async fn parse_result<T: for<'a> serde::de::Deserialize<'a>>(
     // Use serde to parse the JSON into a struct.
     let result = json.into_serde()?;
     Ok(result)
-}
-
-fn set_authorization_header(request: &Request) -> Result<(), FetchError> {
-    request
-        .headers()
-        .set("Authorization", &format!("Bearer {}", get_token()))?;
-
-    Ok(())
 }
 
 fn check_status(response: &Response) -> Result<(), FetchError> {

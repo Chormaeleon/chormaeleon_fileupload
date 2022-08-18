@@ -1,10 +1,11 @@
+use chrono::Utc;
 use gloo_console::debug;
 use gloo_console::error;
 use serde::Deserialize;
-use wasm_bindgen::UnwrapThrowExt;
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use yew::prelude::*;
 
-use web_sys::UrlSearchParams;
+use web_sys::{HtmlDocument, UrlSearchParams};
 
 #[derive(Properties, Debug, PartialEq)]
 pub struct JWTProviderProps {
@@ -29,24 +30,25 @@ pub fn get_token() -> String {
 
     let document = gloo_utils::document();
 
-    let storage = window.local_storage().unwrap_throw().unwrap_throw();
+    let doc: HtmlDocument = window.document().unwrap_throw().dyn_into().unwrap();
 
     let param = get_jwt_from_url_param(document);
     if let Ok(p) = param {
-        debug!("Got jwt, saving");
-        storage.set_item("jwt", &p).unwrap_throw();
+        doc.set_cookie(&format!("jwt=Bearer {p} Domain=localhost"))
+            .unwrap_throw();
         return p;
     }
 
-    match storage.get_item("jwt").unwrap_throw() {
-        Some(jwt) => {
-            debug!("Retrieved jwt from local storage");
-            return jwt;
-        }
-        None => (),
+    if let Some(jwt) = doc
+        .cookie()
+        .unwrap_throw()
+        .split("; ")
+        .into_iter()
+        .find(|x| x.starts_with("jwt="))
+        .map(|x| x.trim_start_matches("jwt="))
+    {
+        return jwt.to_string();
     }
-
-    debug!("jwt not found in local storage");
 
     window
         .location()
@@ -66,12 +68,13 @@ pub enum Section {
     Instrument,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct PerformerData {
     pub section: Section,
     pub user_id: i32,
     pub name: String,
     pub is_admin: bool,
+    pub exp: i64,
 }
 
 pub fn get_token_data() -> Result<PerformerData, ()> {
@@ -120,6 +123,11 @@ pub fn get_token_data() -> Result<PerformerData, ()> {
             return Err(());
         }
     };
+
+    if data.exp < Utc::now().timestamp() {
+        error!("JWT expired!");
+        return Err(());
+    }
 
     Ok(data)
 

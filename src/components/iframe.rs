@@ -6,7 +6,7 @@ const BOOTSTRAP_CSS_LINK: &str = "<link href=\"https://cdn.jsdelivr.net/npm/boot
 
 pub struct IFrame {}
 
-#[derive(PartialEq, Properties)]
+#[derive(Eq, PartialEq, Properties)]
 pub struct IFrameProperties {
     pub content: String,
     #[prop_or(10)]
