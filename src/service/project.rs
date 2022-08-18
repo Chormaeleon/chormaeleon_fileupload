@@ -61,7 +61,7 @@ pub async fn update_project(
     .await
 }
 
-#[derive(Deserialize, PartialEq, Clone, Debug)]
+#[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct ProjectTo {
     pub id: i32,
     pub title: String,

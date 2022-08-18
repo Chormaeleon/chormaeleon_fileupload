@@ -1,4 +1,5 @@
 use chrono::{NaiveDateTime, Utc};
+use gloo_console::info;
 use gloo_dialogs::alert;
 use web_sys::{Event, InputEvent, MouseEvent};
 use yew::{html, Callback, Component, Properties};
@@ -186,7 +187,7 @@ impl Component for ProjectEditModal {
             },
             None => Self {
                 id: None,
-                due: Utc::now().naive_local(),
+                due: Utc::now().naive_local().date().and_hms(23, 59, 00),
                 title: "".to_string(),
             },
         }
@@ -270,6 +271,7 @@ impl Component for ProjectEditModal {
             }
             Msg::DateInput(event) => {
                 let date_string = get_value_from_event(event);
+                info!(date_string.clone());
                 self.due =
                     match NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%.3f") {
                         Ok(date_time) => date_time,

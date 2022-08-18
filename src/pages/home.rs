@@ -1,7 +1,7 @@
 use crate::{
     components::project::{
-        project_list::ProjectList,
-        project_modals::{ProjectCreateModal, MODAL_NEW_PROJECT},
+        list::ProjectList,
+        modals::{ProjectCreateModal, MODAL_NEW_PROJECT},
     },
     service::project::{get_pending_projects, ProjectTo},
     utilities::requests::fetch::FetchError,
@@ -145,10 +145,7 @@ fn log_fetch_error(error: FetchError) {
 }
 
 pub fn get_value_from_input_event(e: InputEvent) -> String {
-    // Shamelessly stolen yew example code. Conversions wont fail unless the element vanished into thin air or similar.
-    let event: Event = e.dyn_into().unwrap_throw();
-    let event_target = event.target().unwrap_throw();
-    let target: HtmlInputElement = event_target.dyn_into().unwrap_throw();
+    let target: HtmlInputElement = e.target_dyn_into().unwrap_throw();
     target.value()
 }
 
@@ -160,8 +157,7 @@ pub fn get_value_from_event(e: Event) -> String {
 }
 
 pub fn get_input_text_content(name: &str) -> String {
-    let document = document();
-    let element: HtmlInputElement = document
+    let element: HtmlInputElement = document()
         .get_element_by_id(name)
         .unwrap_throw()
         .dyn_into()
@@ -170,8 +166,7 @@ pub fn get_input_text_content(name: &str) -> String {
 }
 
 pub fn get_selected_value(id_of_select: &str) -> String {
-    let document = document();
-    let element: HtmlSelectElement = document
+    let element: HtmlSelectElement = document()
         .get_element_by_id(id_of_select)
         .unwrap_throw()
         .dyn_into()

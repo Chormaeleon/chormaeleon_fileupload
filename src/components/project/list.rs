@@ -8,7 +8,7 @@ use yew_router::prelude::Link;
 use crate::{
     components::{
         delete_modal::DeleteModal,
-        project::project_modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT},
+        project::modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT},
     },
     service::project::{delete_project, ProjectTo},
     utilities::requests::fetch::FetchError,

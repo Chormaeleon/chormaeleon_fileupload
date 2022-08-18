@@ -56,7 +56,7 @@ pub enum DeleteMessage {
     Fail(FetchError),
 }
 
-#[derive(Clone, PartialEq, Properties)]
+#[derive(Clone, Eq, PartialEq, Properties)]
 pub struct MaterialProperties {
     pub id: i32,
     pub project_owner: i32,

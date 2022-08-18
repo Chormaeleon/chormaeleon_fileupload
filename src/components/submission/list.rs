@@ -1,24 +1,43 @@
+use gloo_dialogs::alert;
 use web_sys::MouseEvent;
-use yew::{function_component, html, Callback, Component, Properties};
+use yew::{html, Callback, Component, Properties};
 
 use gloo_console::error;
 
 use crate::{
-    components::delete_modal::DeleteModal,
-    service::submission::{delete_submission, submission_download_url, Submission},
+    components::{
+        delete_modal::DeleteModal,
+        submission::{
+            details::SubmissionDetails,
+            update::{SubmissionUpdate, SubmissionUpdateData, MODAL_UPDATE_SUBMISSION},
+        },
+    },
+    service::submission::{
+        delete_submission, submission_download_url, update_submission, Submission, UpdateSubmission,
+    },
     utilities::requests::fetch::FetchError,
 };
 
 pub struct SubmissionList {
     selected_submission: Option<i32>,
     selected_delete: Option<Submission>,
+    selected_update: Option<Submission>,
 }
 
 #[derive(PartialEq, Properties)]
 pub struct SubmissionListProperties {
     pub submissions: Vec<Submission>,
     pub submission_delete: Callback<i32>,
+    pub submission_update: Callback<Submission>,
     pub id: String,
+}
+
+pub enum UpdateMessage {
+    Init(Submission),
+    Abort(MouseEvent),
+    Submit(SubmissionUpdateData),
+    Success(Submission),
+    Error(FetchError),
 }
 
 pub enum DeleteMessage {
@@ -32,6 +51,7 @@ pub enum DeleteMessage {
 pub enum Msg {
     SelectOrUnselect(i32),
     Delete(DeleteMessage),
+    Update(UpdateMessage),
 }
 
 impl Component for SubmissionList {
@@ -42,6 +62,7 @@ impl Component for SubmissionList {
         Self {
             selected_submission: None,
             selected_delete: None,
+            selected_update: None,
         }
     }
 
@@ -73,6 +94,9 @@ impl Component for SubmissionList {
                             { "Herunterladen" }
                         </th>
                         <th>
+                            { "Ändern" }
+                        </th>
+                        <th>
                             { "Löschen" }
                         </th>
                     </tr>
@@ -81,6 +105,7 @@ impl Component for SubmissionList {
                     {
                         for ctx.props().submissions.iter().enumerate().map(|(index, submission)| {
                             let submission_clone = submission.clone();
+                            let submission_clone_2 = submission.clone();
                             html!{
                                 <>
                                 <tr>
@@ -94,7 +119,7 @@ impl Component for SubmissionList {
                                         { &submission.note }
                                     </td>
                                     <td>
-                                        { format!("{:?}", &submission.creator_section) }
+                                        { submission.creator_section }
                                     </td>
                                     <td>
                                         { &submission.creator_name }
@@ -110,7 +135,10 @@ impl Component for SubmissionList {
                                         </a>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{MODAL_UPDATE_SUBMISSION}") }>{ "Ändern" }</button>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
                                     </td>
 
                                 </tr>
@@ -129,6 +157,7 @@ impl Component for SubmissionList {
                     }
                 </tbody>
             </table>
+            <SubmissionUpdate submission={ self.selected_update.clone() } on_abort={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Abort(x))) } on_submit={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Submit(x))) }/>
             <DeleteModal
                     title={"Projekt löschen".to_string() }
                     id={ calc_id(&ctx.props().id) }
@@ -210,59 +239,50 @@ impl Component for SubmissionList {
                     true
                 }
             },
+            Msg::Update(message) => match message {
+                UpdateMessage::Init(submission) => {
+                    self.selected_update = Some(submission);
+                    true
+                }
+                UpdateMessage::Abort(_) => {
+                    self.selected_delete = None;
+                    true
+                }
+                UpdateMessage::Submit(data) => {
+                    ctx.link().send_future(async move {
+                        match update_submission(
+                            data.id,
+                            UpdateSubmission {
+                                note: data.note,
+                                section: data.section,
+                                kind: data.kind,
+                            },
+                        )
+                        .await
+                        {
+                            Ok(submission) => Msg::Update(UpdateMessage::Success(submission)),
+                            Err(error) => Msg::Update(UpdateMessage::Error(error)),
+                        }
+                    });
+
+                    self.selected_update = None;
+
+                    true
+                }
+                UpdateMessage::Success(submission) => {
+                    ctx.props().submission_update.emit(submission);
+                    false
+                }
+                UpdateMessage::Error(error) => {
+                    alert("Daten der Abgabe konnten nicht geändert werden. Details siehe Konsole.");
+                    error!(format!("{}", error));
+                    false
+                }
+            },
         }
     }
 }
 
 fn calc_id(own_id: &str) -> String {
     format!("modalSubmissionDelete{own_id}")
-}
-
-#[derive(PartialEq, Properties)]
-pub struct SubmissionProperty {
-    submission: Submission,
-}
-
-#[function_component(SubmissionDetails)]
-fn submission_details(s: &SubmissionProperty) -> Html {
-    let submission = &s.submission;
-    html!(<>
-        <h4>
-            { &submission.note }
-        </h4>
-        <div class="row">
-            <div class="col">
-                <b>{ "Dateiname: " }</b>
-                <i>{ &submission.file_name } </i>
-            </div>
-            <div class="col">
-                <b>{ "Id: " }</b>
-                { submission.id }
-            </div>
-            <div class="col">
-                <b>{ "Autor (Id)" }</b>
-                { submission.creator }
-            </div>
-        </div>
-        <div class="row">
-            <div class="col">
-                {
-                    match submission.kind {
-                        crate::service::submission::SubmissionKind::Audio => html!{
-                            <audio controls=true src={ submission_download_url( submission.id) }></audio>
-            
-                        },
-                        crate::service::submission::SubmissionKind::Video => html!{
-                            <div class="ratio ratio-16x9">
-                                <video controls=true>
-                                    <source src={ submission_download_url( submission.id) }/>
-                                </video>
-                            </div>
-                        },
-                        crate::service::submission::SubmissionKind::Other => html!{},
-                    }
-                }
-            </div>
-        </div>
-        </>)
 }

@@ -33,11 +33,12 @@ pub fn get_token() -> String {
 
     let param = get_jwt_from_url_param(document);
     if let Ok(p) = param {
-        doc.set_cookie(&format!("jwt=Bearer {p}")).unwrap_throw();
+        doc.set_cookie(&format!("jwt=Bearer {p} Domain=localhost"))
+            .unwrap_throw();
         return p;
     }
 
-    match doc
+    if let Some(jwt) = doc
         .cookie()
         .unwrap_throw()
         .split("; ")
@@ -45,8 +46,7 @@ pub fn get_token() -> String {
         .find(|x| x.starts_with("jwt="))
         .map(|x| x.trim_start_matches("jwt="))
     {
-        Some(jwt) => return jwt.to_string(),
-        None => (),
+        return jwt.to_string();
     }
 
     window
@@ -67,7 +67,7 @@ pub enum Section {
     Instrument,
 }
 
-#[derive(Clone, Debug, Deserialize, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct PerformerData {
     pub section: Section,
     pub user_id: i32,

@@ -2,7 +2,7 @@ use wasm_bindgen::UnwrapThrowExt;
 use yew::{function_component, html, Callback, Component, Properties};
 
 use crate::{
-    components::{modal::Modal, upload::Upload},
+    components::{modal::Modal, upload::Upload, PlaceholderOrContent},
     pages::home::{get_input_text_content, get_selected_value},
     service::material::{
         material_upload_url, update_material, MaterialCategory, MaterialTo, UpdateMaterial,
@@ -158,12 +158,6 @@ impl Component for MaterialChangeModal {
             }
         }
     }
-}
-
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
-enum PlaceholderOrContent {
-    Placeholder(String),
-    Content(String),
 }
 
 #[derive(Clone, PartialEq, Properties)]

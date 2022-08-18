@@ -36,6 +36,7 @@ impl From<serde_json::error::Error> for FetchError {
     }
 }
 
+#[allow(dead_code)]
 pub async fn get_request_string(url: String) -> Result<String, FetchError> {
     let mut opts = RequestInit::new();
     opts.method("GET");
