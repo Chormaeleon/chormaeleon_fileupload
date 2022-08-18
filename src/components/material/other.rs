@@ -8,7 +8,7 @@ use crate::{
 use super::{DeleteMessage, Material, Msg, UpdateMessage};
 
 pub fn other_list(ctx: &Context<Material>, other_elements: Vec<&MaterialTo>) -> Html {
-    html! {
+    html! (
         <div class="row mt-2">
             <div class="col">
                 <h2>{ "Sonstige Dateien + Downloads" }</h2>
@@ -42,7 +42,7 @@ pub fn other_list(ctx: &Context<Material>, other_elements: Vec<&MaterialTo>) -> 
                 </table>
             </div>
         </div>
-    }
+    )
 }
 
 fn other_element(ctx: &Context<Material>, other: MaterialTo) -> Html {
@@ -53,12 +53,21 @@ fn other_element(ctx: &Context<Material>, other: MaterialTo) -> Html {
                 { &other.title }
             </td>
             <td>
-                <a href={ material_url(ctx.props().id, &other.file_technical_name) } download={ other.file_name.clone().to_string() }> { &other.file_name } </a>
+                <a
+                    href={ material_url(ctx.props().id, &other.file_technical_name) }
+                    download={ other.file_name.clone().to_string() }
+                >
+                    { &other.file_name }
+                </a>
             </td>
             <AdminOrOwner owner_id={ ctx.props().project_owner }>
                 <td>
                     <MaterialUpdateButton
-                        onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::ButtonClick(other_clone.clone()))) }
+                        onclick={ ctx.link().callback(
+                            move |_| Msg::Update(
+                                UpdateMessage::ButtonClick(other_clone.clone())
+                            )
+                        )}
                         owner_id={ ctx.props().project_owner }
                     />
                 </td>
