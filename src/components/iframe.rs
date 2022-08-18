@@ -2,7 +2,7 @@ use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{Event, HtmlIFrameElement};
 use yew::{html, Component, Context, Properties};
 
-const BOOTSTRAP_CSS_LINK: &str = "<link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC\" crossorigin=\"anonymous\">";
+const BOOTSTRAP_CSS_LINK: &str = "<link href=\"/bootstrap-min/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC\">";
 
 pub struct IFrame {}
 
@@ -27,18 +27,6 @@ impl Component for IFrame {
         Self {}
     }
 
-    fn view(&self, ctx: &Context<Self>) -> yew::Html {
-        let srcdoc = if ctx.props().include_style {
-            format!("{}\n\n{}", BOOTSTRAP_CSS_LINK, ctx.props().content)
-        } else {
-            ctx.props().content.clone()
-        };
-
-        html! {
-            <iframe {srcdoc} onload={ctx.link().callback(Msg::Resize)} width="100%"></iframe>
-        }
-    }
-
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Resize(event) => {
@@ -56,6 +44,18 @@ impl Component for IFrame {
                 iframe.set_height(&format!("{height}px"));
                 true
             }
+        }
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> yew::Html {
+        let srcdoc = if ctx.props().include_style {
+            format!("{}\n\n{}", BOOTSTRAP_CSS_LINK, ctx.props().content)
+        } else {
+            ctx.props().content.clone()
+        };
+
+        html! {
+            <iframe {srcdoc} onload={ctx.link().callback(Msg::Resize)} width="100%"></iframe>
         }
     }
 }
