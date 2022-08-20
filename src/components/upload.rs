@@ -1,6 +1,6 @@
 use gloo_dialogs::alert;
 use wasm_bindgen::UnwrapThrowExt;
-use web_sys::{ErrorEvent, ProgressEvent};
+use web_sys::{ErrorEvent, Event, InputEvent, ProgressEvent};
 use yew::{html, Callback, Component, Context, Html, Properties};
 
 use crate::components::progress::ProgressComponent;
@@ -35,6 +35,10 @@ pub struct UploadProperties {
     pub multiple: bool,
     pub success_callback: Callback<String>,
     pub failure_callback: Callback<String>,
+    #[prop_or_default]
+    pub change_callback: Callback<Event>,
+    #[prop_or_default]
+    pub input_callback: Callback<InputEvent>,
 }
 
 impl Component for Upload {
@@ -151,7 +155,14 @@ impl Component for Upload {
             <div>
                 <div>
 
-                    <input type="file" class="form-control" name={ctx.props().field_name.clone()} multiple={ ctx.props().multiple }/>
+                    <input
+                        type="file"
+                        class="form-control"
+                        name={ctx.props().field_name.clone()}
+                        multiple={ ctx.props().multiple }
+                        onchange={ ctx.props().change_callback.clone() }
+                        oninput={ ctx.props().input_callback.clone() }
+                    />
 
                     if let Some(progress) = &self.progress {
                         <div class="mt-2">
@@ -171,7 +182,7 @@ impl Component for Upload {
                             if self.current_request.is_some() {
                                 <button type="button" class="btn btn-danger" onclick={ctx.link().callback(move|_| { Msg::Abort })}> { "Abbrechen" } </button>
                             } else {
-                            <button type="button" class="btn btn-danger" onclick={ctx.link().callback(move |_| { Msg::Files })}> { "Upload starten" }</button>
+                                <button type="button" class="btn btn-danger" onclick={ctx.link().callback(move |_| { Msg::Files })}> { "Upload starten" }</button>
                             }
                         </div>
                     </div>

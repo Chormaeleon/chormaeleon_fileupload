@@ -12,8 +12,6 @@ use crate::{
     service::submission::{Section, Submission, SubmissionKind},
 };
 
-use super::PlaceholderOrContent;
-
 pub const MODAL_UPDATE_SUBMISSION: &str = "ModalUpdateSubmission";
 
 #[derive(Clone, Debug, PartialEq, Properties)]
@@ -38,7 +36,7 @@ pub struct SubmissionUpdateData {
 pub enum UpdateMsg {
     Note(String),
     Section(Result<Section, ()>),
-    Kind(Result<SubmissionKind, ()>),
+    Kind(SubmissionKind),
     Submit(MouseEvent),
 }
 
@@ -50,52 +48,6 @@ impl Component for SubmissionUpdate {
     fn create(ctx: &yew::Context<Self>) -> Self {
         Self {
             data: Self::submission_changed(ctx),
-        }
-    }
-
-    fn changed(&mut self, ctx: &yew::Context<Self>) -> bool {
-        self.data = Self::submission_changed(ctx);
-        true
-    }
-
-    fn view(&self, ctx: &yew::Context<Self>) -> Html {
-        let submission = &ctx.props().submission;
-
-        html! {
-            <Modal
-                title={ "Abgabe anpassen".to_string() }
-                id= { MODAL_UPDATE_SUBMISSION.to_string() }
-                actions = { vec![
-                    ("Abbrechen".to_string(), "btn btn-secondary".to_string(), ctx.props().on_abort.clone()),
-                    ("Erstellen".to_string(), "btn btn-danger".to_string(), ctx.link().callback(UpdateMsg::Submit))
-                    ]
-                }
-            >
-            {
-                match submission {
-                    Some(submission) => {
-                        html!{
-                        <form>
-                            <div class="row">
-                                    <div class="col">
-                                        <InputSubmissionNote id={ "inputUpdatedSubmissionNote".to_string() } placeholder_or_content={PlaceholderOrContent::Content(submission.note.clone())} on_input={ctx.link().callback(UpdateMsg::Note)}/>
-                                    </div>
-                                    <div class="col-auto">
-                                        <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ submission.creator_section } on_input={ctx.link().callback(UpdateMsg::Section)}/>
-                                    </div>
-                                    <div class="col-auto">
-                                        <InputSubmissionKind id={ "selectUpdatedSubmissionKind".to_string() } selected={ submission.kind } on_input={ctx.link().callback(UpdateMsg::Kind)}/>
-                                    </div>
-                                </div>
-                        </form>
-                        }
-                    }
-
-                    None => html!{{ "Fehler! Keine Abgabe ausgewählt!" }}
-                }
-
-            }
-            </Modal>
         }
     }
 
@@ -126,14 +78,6 @@ impl Component for SubmissionUpdate {
                 false
             }
             UpdateMsg::Kind(kind) => {
-                let kind = match kind {
-                    Ok(kind) => kind,
-                    Err(_) => {
-                        enum_implement_warning("kind");
-                        return false;
-                    }
-                };
-
                 data.kind = kind;
                 false
             }
@@ -142,6 +86,52 @@ impl Component for SubmissionUpdate {
                 self.data = None;
                 false
             }
+        }
+    }
+
+    fn changed(&mut self, ctx: &yew::Context<Self>) -> bool {
+        self.data = Self::submission_changed(ctx);
+        true
+    }
+
+    fn view(&self, ctx: &yew::Context<Self>) -> Html {
+        let submission = &ctx.props().submission;
+
+        html! {
+            <Modal
+                title={ "Abgabe anpassen".to_string() }
+                id= { MODAL_UPDATE_SUBMISSION.to_string() }
+                actions = { vec![
+                    ("Abbrechen".to_string(), "btn btn-secondary".to_string(), ctx.props().on_abort.clone()),
+                    ("Erstellen".to_string(), "btn btn-danger".to_string(), ctx.link().callback(UpdateMsg::Submit))
+                    ]
+                }
+            >
+            {
+                match submission {
+                    Some(submission) => {
+                        html!{
+                        <form>
+                            <div class="row">
+                                    <div class="col">
+                                        <InputSubmissionNote id={ "inputUpdatedSubmissionNote".to_string() } value={ submission.note.clone() } on_input={ctx.link().callback(UpdateMsg::Note)}/>
+                                    </div>
+                                    <div class="col-auto">
+                                        <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ submission.creator_section } on_input={ctx.link().callback(UpdateMsg::Section)}/>
+                                    </div>
+                                    <div class="col-auto">
+                                        <InputSubmissionKind id={ "selectUpdatedSubmissionKind".to_string() } selected={ submission.kind } on_input={ctx.link().callback(UpdateMsg::Kind)}/>
+                                    </div>
+                                </div>
+                        </form>
+                        }
+                    }
+
+                    None => html!{{ "Fehler! Keine Abgabe ausgewählt!" }}
+                }
+
+            }
+            </Modal>
         }
     }
 }
