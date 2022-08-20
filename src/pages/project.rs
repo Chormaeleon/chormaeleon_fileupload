@@ -173,7 +173,7 @@ impl Component for ProjectComponent {
 
                 let mut kind = ext.and_then(|x| x.to_str().map(SubmissionKind::from));
 
-                if matches!(Some(SubmissionKind::Other), _kind) {
+                if matches!(kind, Some(SubmissionKind::Other)) {
                     kind = None;
                 }
 
