@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use crate::{
     components::{
         iframe::IFrame,
@@ -17,9 +19,11 @@ use crate::{
     utilities::requests::fetch::FetchError,
 };
 
-use wasm_bindgen::UnwrapThrowExt;
+use gloo_utils::document;
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
 
-use yew::{html, Component, Properties};
+use web_sys::{HtmlInputElement, HtmlSelectElement, InputEvent};
+use yew::{html, Component, Properties, TargetCast};
 
 use gloo_console::error;
 use gloo_dialogs::alert;
@@ -34,12 +38,14 @@ pub enum Msg {
     SubmissionUpdated(Submission),
     SubmissionUploaded(String),
     SubmissionUploadError(String),
+    SubmissionFileInput(InputEvent),
 }
 
 pub struct ProjectComponent {
     project_data: Option<ProjectTo>,
     all_submissions: Option<Vec<Submission>>,
     my_submissions: Vec<Submission>,
+    selected_submission_kind: SubmissionKind,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Properties)]
@@ -57,6 +63,7 @@ impl Component for ProjectComponent {
             project_data: None,
             all_submissions: None,
             my_submissions: Vec::new(),
+            selected_submission_kind: SubmissionKind::Other,
         }
     }
 
@@ -145,6 +152,43 @@ impl Component for ProjectComponent {
 
                 true
             }
+            Msg::SubmissionFileInput(change) => {
+                let target: HtmlInputElement = change.target_dyn_into().unwrap_throw();
+                let files = target.files().unwrap_throw();
+
+                if files.length() < 1 {
+                    return false;
+                }
+
+                let file = files.item(0).unwrap_throw();
+                let name = file.name();
+
+                let path = PathBuf::from(name);
+                let ext = path.extension();
+
+                let mut kind = ext.and_then(|x| x.to_str().map(SubmissionKind::from));
+
+                if matches!(Some(SubmissionKind::Other), _kind) {
+                    kind = None;
+                }
+
+                if let Some(kind) = kind {
+                    self.selected_submission_kind = kind;
+                    let element: HtmlSelectElement = document()
+                        .get_element_by_id("selectSubmissionKind")
+                        .unwrap_throw()
+                        .dyn_into()
+                        .unwrap_throw();
+                    element.set_selected_index(match kind {
+                        SubmissionKind::Audio => 1,
+                        SubmissionKind::Video => 0,
+                        SubmissionKind::Other => 2,
+                    });
+                    return true;
+                }
+
+                false
+            }
         }
     }
 
@@ -185,12 +229,19 @@ impl Component for ProjectComponent {
                                     <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ crate::service::submission::Section::from(my_section) }/>
                                 </div>
                                 <div class="col-auto">
-                                    <InputSubmissionKind id={ "selectSubmissionKind".to_string() } selected={ SubmissionKind::Other }/>
+                                    <InputSubmissionKind id={ "selectSubmissionKind".to_string() } selected={ self.selected_submission_kind }/>
                                 </div>
                             </div>
                             <div class="row mt-2">
                                 <div class="col">
-                                    <Upload form_id="inputSubmissionUpload" field_name="file" target_url={ submission_upload_url(ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) } failure_callback={ ctx.link().callback(Msg::SubmissionUploadError) } />
+                                    <Upload
+                                        form_id="inputSubmissionUpload"
+                                        field_name="file"
+                                        target_url={ submission_upload_url(ctx.props().id) }
+                                        multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) }
+                                        failure_callback={ ctx.link().callback(Msg::SubmissionUploadError) }
+                                        input_callback={ ctx.link().callback(Msg::SubmissionFileInput) }
+                                    />
                                 </div>
                             </div>
                         </form>
