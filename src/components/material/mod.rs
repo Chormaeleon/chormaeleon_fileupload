@@ -1,6 +1,6 @@
 mod audio;
 mod material_modals;
-mod other;
+mod other_and_all;
 mod sheet;
 mod video;
 
@@ -22,7 +22,7 @@ use crate::{
     utilities::requests::fetch::FetchError,
 };
 
-use self::{audio::audio_list, other::other_list, sheet::sheet_list, video::video_list};
+use self::{audio::audio_list, other_and_all::other_and_all_list, sheet::sheet_list, video::video_list};
 
 const MODAL_MATERIAL_DELETE: &str = "modalMaterialDelete";
 
@@ -96,7 +96,7 @@ impl Component for Material {
             </div>
 
             {
-                audio_list(ctx, ctx.props().id, material.iter().filter(|x| x.category == MaterialCategory::Audio).collect())
+                audio_list(ctx.props().id, material.iter().filter(|x| x.category == MaterialCategory::Audio).collect())
             }
 
             {
@@ -104,11 +104,11 @@ impl Component for Material {
             }
 
             {
-                sheet_list(ctx, ctx.props().id, material.iter().filter(|x| x.category == MaterialCategory::SheetMusic).collect())
+                sheet_list(ctx.props().id, material.iter().filter(|x| x.category == MaterialCategory::SheetMusic).collect())
             }
 
             {
-                other_list(ctx, material.iter().filter(|x| x.category == MaterialCategory::Other).collect())
+                other_and_all_list(ctx, material.iter().collect())
             }
 
             <MaterialUploadModal
@@ -270,7 +270,7 @@ pub fn update_button(props: &MaterialUpdateButtonProperties) -> Html {
 
     html! {
     <AdminOrOwner owner_id={props.owner_id}>
-        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_MATERIAL_UPDATE}")} onclick={props.onclick}> { "Ändern" } </button>
+        <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_MATERIAL_UPDATE}")} onclick={props.onclick}> { "Ändern" } </button>
     </AdminOrOwner>
     }
 }
@@ -287,7 +287,7 @@ pub fn delete_button(props: &MaterialDeleteButtonProperties) -> Html {
 
     html! {
     <AdminOrOwner owner_id={props.owner_id}>
-        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_MATERIAL_DELETE}")} onclick={props.onclick}> { "Löschen" } </button>
+        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_MATERIAL_DELETE}")} onclick={props.onclick}> { "Löschen" } </button>
     </AdminOrOwner>
     }
 }

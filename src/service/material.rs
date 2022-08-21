@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
 
@@ -65,6 +67,19 @@ impl TryFrom<&str> for MaterialCategory {
     }
 
     type Error = ();
+}
+
+impl Display for MaterialCategory {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let category = match self {
+            MaterialCategory::Audio => "Audio",
+            MaterialCategory::Video => "Video",
+            MaterialCategory::SheetMusic => "Noten",
+            MaterialCategory::Other => "Sonstiges",
+        };
+
+        write!(f, "{}", category)
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Deserialize, Serialize)]
