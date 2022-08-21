@@ -7,13 +7,13 @@ use crate::{
 
 use super::{DeleteMessage, Material, Msg, UpdateMessage};
 
-pub fn other_list(ctx: &Context<Material>, other_elements: Vec<&MaterialTo>) -> Html {
+pub fn other_and_all_list(ctx: &Context<Material>, elements: Vec<&MaterialTo>) -> Html {
     html! {
         <div class="row mt-2">
             <div class="col">
-                <h2>{ "Sonstige Dateien + Downloads" }</h2>
+                <h2>{ "Alle Dateien" }</h2>
 
-                <table class="table table-striped">
+                <table class="table table-striped table-hover">
                     <thead>
                         <tr>
                             <th>
@@ -21,6 +21,9 @@ pub fn other_list(ctx: &Context<Material>, other_elements: Vec<&MaterialTo>) -> 
                             </th>
                             <th>
                                 { "Link" }
+                            </th>
+                            <th>
+                                { "Kategorie" }
                             </th>
                             <AdminOrOwner owner_id={ ctx.props().project_owner }>
                                 <th>
@@ -34,7 +37,7 @@ pub fn other_list(ctx: &Context<Material>, other_elements: Vec<&MaterialTo>) -> 
                     </thead>
                     <tbody>
                     {
-                        for other_elements.iter().map(|other| {
+                        for elements.iter().map(|other| {
                             other_element(ctx, (*other).clone())
                         })
                     }
@@ -47,6 +50,12 @@ pub fn other_list(ctx: &Context<Material>, other_elements: Vec<&MaterialTo>) -> 
 
 fn other_element(ctx: &Context<Material>, other: MaterialTo) -> Html {
     let other_clone = other.clone();
+
+    let category_color = match other.category {
+        crate::service::material::MaterialCategory::Other => "bg-info",
+        _ => "",
+    };
+
     html! {
         <tr>
             <td>
@@ -54,6 +63,9 @@ fn other_element(ctx: &Context<Material>, other: MaterialTo) -> Html {
             </td>
             <td>
                 <a href={ material_url(ctx.props().id, &other.file_technical_name) } download={ other.file_name.clone().to_string() }> { &other.file_name } </a>
+            </td>
+            <td class={ category_color }>
+                { &other.category }
             </td>
             <AdminOrOwner owner_id={ ctx.props().project_owner }>
                 <td>
