@@ -7,6 +7,7 @@ use yew_router::prelude::Link;
 
 use crate::{
     components::{
+        admin_only::AdminOrOwner,
         delete_modal::DeleteModal,
         project::modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT},
     },
@@ -166,6 +167,7 @@ impl Component for ProjectList {
                                 <td>
                                     { &project.due }
                                 </td>
+                                <AdminOrOwner owner_id={ project.creator }>
                                 <td>
                                     <button
                                         class="btn btn-sm btn-outline-danger"
@@ -191,6 +193,7 @@ impl Component for ProjectList {
                                         { "Löschen" }
                                     </button>
                                 </td>
+                                </AdminOrOwner>
                             </tr>
                             }})
 

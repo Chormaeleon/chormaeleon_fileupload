@@ -7,14 +7,22 @@ pub fn audio_list(id: i32, audio_elements: Vec<&MaterialTo>) -> Html {
         <>
         <div class="row mt-2">
             <div class="col">
-                <h2>{ "Playbacks" }</h2>
+                <h4>{ "Playbacks" }</h4>
             </div>
         </div>
         <div class="row">
         {
-            for audio_elements.iter().map(move |audio|  {
-                audio_element(id, (*audio).clone())
-            })
+            if audio_elements.is_empty() {
+                html!{
+                    <p>{ "Noch keine Audiodateien gefunden!" }</p>
+                }
+            } else {
+                html! {
+                    for audio_elements.iter().map(move |audio|  {
+                        audio_element(id, (*audio).clone())
+                    })
+                }
+            }
         }
         </div>
         </>

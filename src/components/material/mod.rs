@@ -87,14 +87,16 @@ impl Component for Material {
         let material = &self.material;
         html! {
             <>
-            <div class="row mt-2">
-                <div class="col text-end">
-                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_MATERIAL_UPLOAD}")}>
-                        { "Übungsmaterial hinzufügen" }
-                    </button>
+            <AdminOrOwner owner_id={ ctx.props().project_owner }>
+                <div class="row mt-2">
+                    <div class="col text-end">
+                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_MATERIAL_UPLOAD}")}>
+                            { "Übungsmaterial hinzufügen" }
+                        </button>
+                    </div>
                 </div>
-            </div>
-
+            </AdminOrOwner>
+            
             {
                 audio_list(ctx.props().id, material.iter().filter(|x| x.category == MaterialCategory::Audio).collect())
             }
@@ -111,32 +113,33 @@ impl Component for Material {
                 other_and_all_list(ctx, material.iter().collect())
             }
 
-            <MaterialUploadModal
-                id={ctx.props().id}
-                on_success={ctx.link().callback(Msg::MaterialUploadSuccess)}
-                on_error={ctx.link().callback(Msg::MaterialUploadError)}
-            />
+            <AdminOrOwner owner_id={ ctx.props().project_owner }>
+                <MaterialUploadModal
+                    id={ctx.props().id}
+                    on_success={ctx.link().callback(Msg::MaterialUploadSuccess)}
+                    on_error={ctx.link().callback(Msg::MaterialUploadError)}
+                />
 
+                <MaterialChangeModal
+                    on_cancel={ctx.link().callback(|_| Msg::Update(UpdateMessage::Cancel))}
+                    on_error={ctx.link().callback(|error| Msg::Update(UpdateMessage::Error(error)))}
+                    on_success={ctx.link().callback(|updated_material| Msg::Update(UpdateMessage::Success(updated_material)))}
+                    material_to_change={self.change_selected_material.clone()}
+                />
 
-            <MaterialChangeModal
-                on_cancel={ctx.link().callback(|_| Msg::Update(UpdateMessage::Cancel))}
-                on_error={ctx.link().callback(|error| Msg::Update(UpdateMessage::Error(error)))}
-                on_success={ctx.link().callback(|updated_material| Msg::Update(UpdateMessage::Success(updated_material)))}
-                material_to_change={self.change_selected_material.clone()}
-            />
-
-            <DeleteModal id={MODAL_MATERIAL_DELETE}
-                title="Material wirklich löschen?"
-                on_cancel={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AbortClick(e))) }
-                on_confirm={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AcceptClick(e)))  }
-            >
-                if let Some(mat) = &self.delete_selected_material {
-                    <p> { "Beschreibung: " } { &mat.title } </p>
-                    <p> { "Dateiname: " } <i> { &mat.file_name } </i> </p>
-                } else {
-                    { "Kein zu löschendes Element ausgewählt!" }
-                }
-            </DeleteModal>
+                <DeleteModal id={MODAL_MATERIAL_DELETE}
+                    title="Material wirklich löschen?"
+                    on_cancel={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AbortClick(e))) }
+                    on_confirm={ ctx.link().callback(|e| Msg::Delete(DeleteMessage::AcceptClick(e)))  }
+                >
+                    if let Some(mat) = &self.delete_selected_material {
+                        <p> { "Beschreibung: " } { &mat.title } </p>
+                        <p> { "Dateiname: " } <i> { &mat.file_name } </i> </p>
+                    } else {
+                        { "Kein zu löschendes Element ausgewählt!" }
+                    }
+                </DeleteModal>
+            </AdminOrOwner>
             </>
         }
     }

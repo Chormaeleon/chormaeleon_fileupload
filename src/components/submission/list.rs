@@ -102,68 +102,85 @@ impl Component for SubmissionList {
                     </tr>
                 </thead>
                 <tbody>
-                    {
-                        for ctx.props().submissions.iter().enumerate().map(|(index, submission)| {
-                            let submission_clone = submission.clone();
-                            let submission_clone_2 = submission.clone();
-                            html!{
-                                <>
-                                <tr>
-                                    <td>
-                                        { &submission.file_name }
-                                    </td>
-                                    <td>
-                                        { &submission.kind }
-                                    </td>
-                                    <td>
-                                        { &submission.note }
-                                    </td>
-                                    <td>
-                                        { submission.creator_section }
-                                    </td>
-                                    <td>
-                                        { &submission.creator_name }
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::SelectOrUnselect(index as i32)) }>{"Details"}</button>
-                                    </td>
-                                    <td>
-                                        <a href={ submission_download_url(submission.id) }>
-                                            <button class="btn btn-sm btn-outline-danger">
-                                                {"Herunterladen"}
-                                            </button>
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{MODAL_UPDATE_SUBMISSION}") }>{ "Ändern" }</button>
-                                    </td>
-                                    <td>
-                                        <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
-                                    </td>
-
-                                </tr>
-                                if let Some(selected_index) = self.selected_submission  {
-                                    if index as i32 == selected_index {
-                                        <tr>
-                                            <td colspan=7>
-                                                <SubmissionDetails submission={ submission.clone() } />
-                                            </td>
-                                        </tr>
+                {
+                    if ctx.props().submissions.is_empty() {
+                        html!{
+                            <td>{ "Keine Abgaben gefunden" }</td>
+                        }
+                    } else {
+                        html!{
+                        {
+                            for ctx.props().submissions.iter().enumerate().map(|(index, submission)| {
+                                let submission_clone = submission.clone();
+                                let submission_clone_2 = submission.clone();
+                                html!{
+                                    <>
+                                    <tr>
+                                        <td>
+                                            { &submission.file_name }
+                                        </td>
+                                        <td>
+                                            { &submission.kind }
+                                        </td>
+                                        <td>
+                                            { &submission.note }
+                                        </td>
+                                        <td>
+                                            { submission.creator_section }
+                                        </td>
+                                        <td>
+                                            { &submission.creator_name }
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::SelectOrUnselect(index as i32)) }>{"Details"}</button>
+                                        </td>
+                                        <td>
+                                            <a href={ submission_download_url(submission.id) }>
+                                                <button class="btn btn-sm btn-outline-danger">
+                                                    {"Herunterladen"}
+                                                </button>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{MODAL_UPDATE_SUBMISSION}") }>{ "Ändern" }</button>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
+                                        </td>
+                                    </tr>
+        
+                                    if let Some(selected_index) = self.selected_submission  {
+                                        if index as i32 == selected_index {
+                                            <tr>
+                                                <td colspan=7>
+                                                    <SubmissionDetails submission={ submission.clone() } />
+                                                </td>
+                                            </tr>
+                                        }
                                     }
+                                    </>
                                 }
-                                </>
-                            }
-                        })
+                            })
+                        }
+                        }
                     }
+                }
+                
                 </tbody>
             </table>
-            <SubmissionUpdate submission={ self.selected_update.clone() } on_abort={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Abort(x))) } on_submit={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Submit(x))) }/>
+
+            <SubmissionUpdate 
+                submission={ self.selected_update.clone() } 
+                on_abort={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Abort(x))) } 
+                on_submit={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Submit(x))) }
+            />
+
             <DeleteModal
                     title={"Projekt löschen".to_string() }
                     id={ calc_id(&ctx.props().id) }
                     on_cancel={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AbortClick(x))) }
                     on_confirm={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AcceptClick(x))) }
-                >
+            >
                 <>
                     <p>
                         { "Warnung! Kann " }

@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use crate::{
     components::{
+        admin_only::AdminOrOwner,
         iframe::IFrame,
         jwt_context::get_token_data,
         material::Material,
@@ -16,7 +17,7 @@ use crate::{
             submissions_by_project, submissions_by_project_and_user, Submission, SubmissionKind,
         },
     },
-    utilities::requests::fetch::FetchError,
+    utilities::{requests::fetch::FetchError, date::format_datetime_human_readable},
 };
 
 use gloo_utils::document;
@@ -203,20 +204,45 @@ impl Component for ProjectComponent {
             Some(metadata) => html! {
                 <>
                 <div class="row mt-2">
+                    <div class="col-auto">
+                        <a href="/"> <button type="button" class="btn btn-outline-danger"> { "Zurück" } </button></a>
+                    </div>
+                    <AdminOrOwner owner_id={ metadata.creator }>
+                        <div class="col">
+                            <a href={ all_submissions_link(metadata.id) }>
+                            <button class="btn btn-danger">{ "Abgaben downloaden" } </button>
+                            </a>
+                        </div>
+                    </AdminOrOwner>
+                </div>
+                <div class="row mt-2">
                     <div class="col">
                         <h1>{ &metadata.title }</h1>
                         <IFrame content={metadata.description.clone()}/>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mt-2">
                     <div class="col">
-                        <a href="/"> <button type="button" class="btn btn-outline-danger"> { "zurück" } </button></a>
-                    </div>
-
-                    <div class="col">
-                        <a href={ all_submissions_link(metadata.id) }>
-                        <button class="btn btn-danger">{ "Abgaben downloaden" } </button>
-                        </a>
+                        <h4>
+                            { "Projektdaten" }
+                        </h4>
+                        <table class="table">
+                            <tr>
+                            <td>{ "Id: " } </td><td> { metadata.id }</td>
+                            </tr>
+                            <tr>
+                            <td>{ "Besitzer-Id: " } </td>
+                            <td> { metadata.creator }</td>
+                            </tr>
+                            <tr>
+                            <td>{ "Abgabe bis: " } </td>
+                            <th> { format_datetime_human_readable(&metadata.due) } </th>
+                            </tr>
+                            <tr>
+                            <td>{ "Erstellt: " } </td>
+                            <td> { format_datetime_human_readable(&metadata.created_at) } </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
 
@@ -224,7 +250,7 @@ impl Component for ProjectComponent {
 
                 <div class="row mt-2">
                     <div class="col">
-                        <h2>{ "Neue Datei hochladen" }</h2>
+                        <h4>{ "Neue Datei hochladen" }</h4>
                         <form id="inputSubmissionUpload" class="" name="formMaterial" enctype="multipart/form-data">
                             <div class="row">
                                 <div class="col">
@@ -259,7 +285,12 @@ impl Component for ProjectComponent {
                 </div>
                 <div class="row mt-2">
                     <div class="col">
-                        <SubmissionList id="list1" submissions={ self.my_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } submission_update={ ctx.link().callback(Msg::SubmissionUpdated) } />
+                        <SubmissionList 
+                            id="list1" 
+                            submissions={ self.my_submissions.clone() } 
+                            submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } 
+                            submission_update={ ctx.link().callback(Msg::SubmissionUpdated) } 
+                        />
                     </div>
                 </div>
                 if let Some(all_submissions) = &self.all_submissions {
@@ -270,7 +301,12 @@ impl Component for ProjectComponent {
                     </div>
                     <div class="row mt-2">
                         <div class="col">
-                            <SubmissionList id="list2" submissions={ all_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }/>
+                            <SubmissionList 
+                            id="list2" 
+                            submissions={ all_submissions.clone() } 
+                            submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } 
+                            submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }
+                        />
                         </div>
                     </div>
                 }

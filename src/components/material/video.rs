@@ -10,13 +10,20 @@ pub fn video_list(ctx: &Context<Material>, video_elements: Vec<&MaterialTo>) -> 
     html! {
         <div class="row mt-2">
             <div class="col">
-                <h2>{ "Videos" }</h2>
+                <h4>{ "Videos" }</h4>
                 {
-                    for video_elements.iter().map(|video| {
-                        video_element(ctx, (*video).clone())
-                    })
+                    if video_elements.is_empty() {
+                        html!{
+                            <p>{ "Noch keine Videodateien gefunden!" }</p>
+                        }
+                    } else {
+                        html! {
+                            for video_elements.iter().map(|video| {
+                                video_element(ctx, (*video).clone())
+                            })
+                        }
+                    }
                 }
-
             </div>
         </div>
     }

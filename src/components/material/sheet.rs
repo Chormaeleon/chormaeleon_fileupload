@@ -6,11 +6,21 @@ pub fn sheet_list(id: i32, sheet_elements: Vec<&MaterialTo>) -> Html {
     html! {
         <div class="row mt-2">
             <div class="col">
-                <h2>{ "Noten" }</h2>
+                <h4>{ "Noten" }</h4>
                 {
-                    for sheet_elements.iter().map(|score| {
-                        sheet_element(id, (*score).clone())
-                    })
+                    if sheet_elements.is_empty() {
+                        html!{
+                            <p>{ "Noch keine Noten gefunden!" }</p>
+                        }
+                    } else {
+                        html! {
+                        {
+                            for sheet_elements.iter().map(|score| {
+                                sheet_element(id, (*score).clone())
+                            })
+                        }
+                    }
+                    }
                 }
             </div>
         </div>
