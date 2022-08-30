@@ -11,7 +11,7 @@ pub fn other_and_all_list(ctx: &Context<Material>, elements: Vec<&MaterialTo>) -
     html! {
         <div class="row mt-2">
             <div class="col">
-                <h2>{ "Alle Dateien" }</h2>
+                <h4>{ "Alle Dateien" }</h4>
 
                 <table class="table table-striped table-hover">
                     <thead>
@@ -37,9 +37,19 @@ pub fn other_and_all_list(ctx: &Context<Material>, elements: Vec<&MaterialTo>) -
                     </thead>
                     <tbody>
                     {
-                        for elements.iter().map(|other| {
-                            other_element(ctx, (*other).clone())
-                        })
+                        if elements.is_empty() {
+                            html!{
+                                <td colspan="3">{ "Noch keine Dateien gefunden!" }</td>
+                            }
+                        } else {
+                            html! {
+                                {
+                                    for elements.iter().map(|other| {
+                                        other_element(ctx, (*other).clone())
+                                    })
+                                }
+                            }
+                        }
                     }
                     </tbody>
                 </table>

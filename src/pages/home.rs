@@ -1,8 +1,8 @@
 use crate::{
-    components::project::{
+    components::{project::{
         list::ProjectList,
         modals::{ProjectCreateModal, MODAL_NEW_PROJECT},
-    },
+    }, jwt_context::get_token_data},
     service::project::{get_pending_projects, ProjectTo},
     utilities::requests::fetch::FetchError,
 };
@@ -36,26 +36,36 @@ impl Component for Home {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let user = get_token_data().unwrap_throw();
         html! {
             <>
             <div class="container">
                 <div class="row mt-2">
                     <div class="col">
-                        <div class="row">
-                            <div class="col">
-                                <h2> { "Alle Abgaben" } </h2>
-                            </div>
-                            <div class="col text-end">
-                                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_NEW_PROJECT}")}>{ "Neues Projekt" }</button>
-                            </div>
-                        </div>
-                        if let Some(contributions) = self.projects.clone() {
-                            <ProjectList projects={contributions} project_delete={ ctx.link().callback(Msg::ProjectDeleted) } project_change={ ctx.link().callback(Msg::ProjectChanged)}/>
-                        } else {
-                            { "Abgaben werden geladen..." }
-                        }
+                        { "Angemeldet als: " }
+                        { "Name: " }
+                        <i>{ &user.name }</i>
+                        { "; Stimme: " }
+                        <i>{ user.section }</i>
+                        { "; Id: " }
+                        <i>{ user.user_id }</i>
                     </div>
                 </div>
+
+                <div class="row mt-2">
+                    <div class="col">
+                        <h2> { "Alle Abgaben" } </h2>
+                    </div>
+                    <div class="col text-end">
+                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_NEW_PROJECT}")}>{ "Neues Projekt" }</button>
+                    </div>
+                </div>
+                if let Some(contributions) = self.projects.clone() {
+                    <ProjectList projects={contributions} project_delete={ ctx.link().callback(Msg::ProjectDeleted) } project_change={ ctx.link().callback(Msg::ProjectChanged)}/>
+                } else {
+                    { "Abgaben werden geladen..." }
+                }
+         
             </div>
             <ProjectCreateModal on_success={ctx.link().callback(Msg::CreateProjectSuccess)} on_error={ctx.link().callback(Msg::CreateProjectFail)}/>
 
