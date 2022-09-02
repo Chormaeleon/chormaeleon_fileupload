@@ -17,7 +17,7 @@ use crate::{
             submissions_by_project, submissions_by_project_and_user, Submission, SubmissionKind,
         },
     },
-    utilities::{requests::fetch::FetchError, date::format_datetime_human_readable},
+    utilities::{date::format_datetime_human_readable, requests::fetch::FetchError},
 };
 
 use gloo_utils::document;
@@ -69,10 +69,26 @@ impl Component for ProjectComponent {
         }
     }
 
-    fn update(&mut self, _ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::MetadataLoaded(metadata) => {
+                let user = get_token_data().unwrap_throw();
+
+                let project_id = metadata.id;
+
+                if user.is_admin || user.user_id == metadata.creator {
+                    ctx.link().send_future(async move {
+                        let submissions = submissions_by_project(project_id).await;
+
+                        match submissions {
+                            Ok(contributions) => Msg::AllSubmissionsLoaded(contributions),
+                            Err(error) => Msg::SubmissionsLoadError(error),
+                        }
+                    });
+                }
+
                 self.project_data = Some(metadata);
+
                 true
             }
             Msg::MetadataLoadError(error) => {
@@ -104,11 +120,6 @@ impl Component for ProjectComponent {
                 true
             }
             Msg::SubmissionsLoadError(error) => {
-                if let FetchError::StatusCode(status) = error {
-                    if status == 401 {
-                        return false;
-                    }
-                }
                 gloo_console::error!(format!("{:?}", error));
                 alert("Could not get submissions! For more info see the console log.");
 
@@ -285,11 +296,11 @@ impl Component for ProjectComponent {
                 </div>
                 <div class="row mt-2">
                     <div class="col">
-                        <SubmissionList 
-                            id="list1" 
-                            submissions={ self.my_submissions.clone() } 
-                            submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } 
-                            submission_update={ ctx.link().callback(Msg::SubmissionUpdated) } 
+                        <SubmissionList
+                            id="list1"
+                            submissions={ self.my_submissions.clone() }
+                            submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }
+                            submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }
                         />
                     </div>
                 </div>
@@ -301,10 +312,10 @@ impl Component for ProjectComponent {
                     </div>
                     <div class="row mt-2">
                         <div class="col">
-                            <SubmissionList 
-                            id="list2" 
-                            submissions={ all_submissions.clone() } 
-                            submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } 
+                            <SubmissionList
+                            id="list2"
+                            submissions={ all_submissions.clone() }
+                            submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }
                             submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }
                         />
                         </div>
@@ -323,17 +334,11 @@ impl Component for ProjectComponent {
             load_data(ctx);
 
             let project_id = ctx.props().id;
-            ctx.link().send_future(async move {
-                let submissions = submissions_by_project(project_id).await;
 
-                match submissions {
-                    Ok(contributions) => Msg::AllSubmissionsLoaded(contributions),
-                    Err(error) => Msg::SubmissionsLoadError(error),
-                }
-            });
+            let user = get_token_data().unwrap_throw();
 
             ctx.link().send_future(async move {
-                let submissions = submissions_by_project_and_user(project_id, 1).await;
+                let submissions = submissions_by_project_and_user(project_id, user.user_id).await;
 
                 match submissions {
                     Ok(contributions) => Msg::MySubmissionsLoaded(contributions),

@@ -135,7 +135,7 @@ impl Component for SubmissionList {
                                             <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::SelectOrUnselect(index as i32)) }>{"Details"}</button>
                                         </td>
                                         <td>
-                                            <a href={ submission_download_url(submission.id) }>
+                                            <a href={ submission_download_url(submission.id) } download="true" target="_blank">
                                                 <button class="btn btn-sm btn-outline-danger">
                                                     {"Herunterladen"}
                                                 </button>
@@ -148,7 +148,7 @@ impl Component for SubmissionList {
                                             <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
                                         </td>
                                     </tr>
-        
+
                                     if let Some(selected_index) = self.selected_submission  {
                                         if index as i32 == selected_index {
                                             <tr>
@@ -165,13 +165,13 @@ impl Component for SubmissionList {
                         }
                     }
                 }
-                
+
                 </tbody>
             </table>
 
-            <SubmissionUpdate 
-                submission={ self.selected_update.clone() } 
-                on_abort={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Abort(x))) } 
+            <SubmissionUpdate
+                submission={ self.selected_update.clone() }
+                on_abort={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Abort(x))) }
                 on_submit={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Submit(x))) }
             />
 
