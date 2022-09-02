@@ -1,10 +1,8 @@
 use yew::{html, Context, Html};
 
-use crate::{
-    service::material::{material_url, MaterialTo},
-};
+use crate::service::material::{material_url, MaterialTo};
 
-use super::{ Material};
+use super::Material;
 
 pub fn video_list(ctx: &Context<Material>, video_elements: Vec<&MaterialTo>) -> Html {
     html! {
