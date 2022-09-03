@@ -22,7 +22,9 @@ use crate::{
     utilities::requests::fetch::FetchError,
 };
 
-use self::{audio::audio_list, other_and_all::other_and_all_list, sheet::sheet_list, video::video_list};
+use self::{
+    audio::audio_list, other_and_all::other_and_all_list, sheet::sheet_list, video::video_list,
+};
 
 const MODAL_MATERIAL_DELETE: &str = "modalMaterialDelete";
 
@@ -96,7 +98,7 @@ impl Component for Material {
                     </div>
                 </div>
             </AdminOrOwner>
-            
+
             {
                 audio_list(ctx.props().id, material.iter().filter(|x| x.category == MaterialCategory::Audio).collect())
             }
