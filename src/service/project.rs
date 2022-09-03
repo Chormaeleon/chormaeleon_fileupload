@@ -27,6 +27,13 @@ pub async fn get_pending_projects() -> Result<Vec<ProjectTo>, FetchError> {
     get_request_struct::<Vec<ProjectTo>>(&format!("{BACKEND_URL}/projects/pending")).await
 }
 
+pub async fn get_my_projects() -> Result<Vec<ProjectTo>, FetchError> {
+    get_request_struct::<Vec<ProjectTo>>(&format!("{BACKEND_URL}/projects/myProjects")).await
+}
+pub async fn get_all_projects() -> Result<Vec<ProjectTo>, FetchError> {
+    get_request_struct::<Vec<ProjectTo>>(&format!("{BACKEND_URL}/projects/all")).await
+}
+
 pub async fn create_project(
     title: String,
     description: String,
