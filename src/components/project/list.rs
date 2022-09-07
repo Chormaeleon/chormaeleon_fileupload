@@ -151,7 +151,7 @@ impl Component for ProjectLists {
                 on_delete={ ctx.link().callback(move |project| Msg::Delete(DeleteMessage::ListItemButtonClick(project)))}
             />
             }
-            
+
             if let Some(projects) = &ctx.props().all_projects {
             <div class="row mt-2">
                 <div class="col">

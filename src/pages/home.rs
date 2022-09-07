@@ -11,7 +11,7 @@ use crate::{
 };
 
 use chrono::Utc;
-use gloo_console::{debug, error};
+use gloo_console::error;
 use gloo_dialogs::alert;
 use gloo_utils::document;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
@@ -121,7 +121,6 @@ impl Component for Home {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::PendingProjectsLoaded(mut projects) => {
-                debug!(&format!("pending projects loaded ({})", projects.len()));
                 sort_projects(&mut projects);
                 self.pending_projects = Some(projects);
                 true

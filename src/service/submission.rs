@@ -144,6 +144,10 @@ pub fn submission_download_url(submission_id: i32) -> String {
     format!("{BACKEND_URL}/submissions/{submission_id}")
 }
 
+pub fn submission_stream_url(project_id: i32, file_technical_name: &str) -> String {
+    format!("{BACKEND_URL}/submissions/stream/{project_id}/{file_technical_name}")
+}
+
 pub async fn update_submission(
     submission_id: i32,
     update_data: UpdateSubmission,

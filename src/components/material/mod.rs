@@ -102,15 +102,15 @@ impl Component for Material {
             {
                 audio_list(ctx.props().id, material.iter().filter(|x| x.category == MaterialCategory::Audio).collect())
             }
-
+            <hr class="bg-secondary border-1 border-top border-secondary"/>
             {
                 video_list(ctx, material.iter().filter(|x| x.category == MaterialCategory::Video).collect())
             }
-
+            <hr class="bg-secondary border-1 border-top border-secondary"/>
             {
                 sheet_list(ctx.props().id, material.iter().filter(|x| x.category == MaterialCategory::SheetMusic).collect())
             }
-
+            <hr class="bg-secondary border-1 border-top border-secondary"/>
             {
                 other_and_all_list(ctx, material.iter().collect())
             }
