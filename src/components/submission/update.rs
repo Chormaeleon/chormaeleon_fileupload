@@ -36,7 +36,7 @@ pub struct SubmissionUpdateData {
 pub enum UpdateMsg {
     Note(String),
     Section(Result<Section, ()>),
-    Kind(Result<SubmissionKind, ()>),
+    Kind(SubmissionKind),
     Submit(MouseEvent),
 }
 
@@ -78,14 +78,6 @@ impl Component for SubmissionUpdate {
                 false
             }
             UpdateMsg::Kind(kind) => {
-                let kind = match kind {
-                    Ok(kind) => kind,
-                    Err(_) => {
-                        enum_implement_warning("kind");
-                        return false;
-                    }
-                };
-
                 data.kind = kind;
                 false
             }

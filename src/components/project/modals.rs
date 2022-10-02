@@ -249,7 +249,7 @@ impl Component for ProjectEditModal {
             Some(project) => (
                 project.title.clone(),
                 project.description.clone(),
-                format_date(project.due),
+                format_date_to_end_of_day(project.due),
             ),
             None => ("".to_string(), "".to_string(), end_of_today()),
         };
@@ -305,9 +305,9 @@ impl ProjectEditModal {
 }
 
 fn end_of_today() -> String {
-    format_date(Utc::now().naive_local())
+    format_date_to_end_of_day(Utc::now().naive_local())
 }
 
-fn format_date(date_time: NaiveDateTime) -> String {
+fn format_date_to_end_of_day(date_time: NaiveDateTime) -> String {
     date_time.format("%Y-%m-%dT23:59").to_string()
 }

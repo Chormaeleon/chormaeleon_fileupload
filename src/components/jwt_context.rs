@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use chrono::Utc;
 use gloo_console::error;
 use serde::Deserialize;
@@ -65,6 +67,20 @@ pub enum Section {
     Bass,
     Conductor,
     Instrument,
+}
+
+impl Display for Section {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Section::Soprano => "Sopran",
+            Section::Alto => "Alt",
+            Section::Tenor => "Tenor",
+            Section::Bass => "Bass",
+            Section::Conductor => "Dirigent",
+            Section::Instrument => "Instrument",
+        };
+        write!(f, "{}", s)
+    }
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]

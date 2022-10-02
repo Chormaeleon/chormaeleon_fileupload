@@ -4,6 +4,7 @@ use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::HtmlAnchorElement;
 
 pub mod callback;
+pub mod date;
 pub(crate) mod requests;
 
 #[allow(dead_code)]

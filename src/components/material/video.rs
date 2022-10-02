@@ -1,32 +1,34 @@
 use yew::{html, Context, Html};
 
-use crate::{
-    components::material::{MaterialDeleteButton, MaterialUpdateButton},
-    service::material::{material_url, MaterialTo},
-};
+use crate::service::material::{material_url, MaterialTo};
 
-use super::{DeleteMessage, Material, Msg, UpdateMessage};
+use super::Material;
 
 pub fn video_list(ctx: &Context<Material>, video_elements: Vec<&MaterialTo>) -> Html {
     html! {
         <div class="row mt-2">
             <div class="col">
-                <h2>{ "Videos" }</h2>
+                <h4>{ "Videos" }</h4>
                 {
-                    for video_elements.iter().map(|video| {
-                        video_element(ctx, (*video).clone())
-                    })
+                    if video_elements.is_empty() {
+                        html!{
+                            <p>{ "Noch keine Videodateien gefunden!" }</p>
+                        }
+                    } else {
+                        html! {
+                            for video_elements.iter().map(|video| {
+                                video_element(ctx, (*video).clone())
+                            })
+                        }
+                    }
                 }
-
             </div>
         </div>
     }
 }
 
 fn video_element(ctx: &Context<Material>, video_element: MaterialTo) -> Html {
-    let video_clone = video_element.clone();
     html! {
-        <>
         <div class="row">
             <div class="col">
             <h5> { &video_element.title } </h5>
@@ -38,24 +40,5 @@ fn video_element(ctx: &Context<Material>, video_element: MaterialTo) -> Html {
                 <h6> <i> { &video_element.file_name } </i> </h6>
             </div>
         </div>
-        <div class="row">
-            <div class="col-auto">
-                <MaterialUpdateButton
-                        onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::ButtonClick(video_clone.clone()))) }
-                        owner_id={ ctx.props().project_owner }
-                />
-            </div>
-            <div class="col">
-            <MaterialDeleteButton
-                onclick={
-                    ctx.link().callback(move |_|
-                        Msg::Delete(DeleteMessage::DeleteButtonClick(video_element.clone()))
-                    )
-                }
-                owner_id={ ctx.props().project_owner }
-            />
-            </div>
-        </div>
-        </>
     }
 }

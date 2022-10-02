@@ -2,11 +2,12 @@ use gloo_console::{error, warn};
 use gloo_dialogs::alert;
 
 use web_sys::MouseEvent;
-use yew::{classes, html, Callback, Component, Properties};
+use yew::{classes, function_component, html, Callback, Component, Properties};
 use yew_router::prelude::Link;
 
 use crate::{
     components::{
+        admin_only::AdminOrOwner,
         delete_modal::DeleteModal,
         project::modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT},
     },
@@ -29,28 +30,29 @@ pub enum UpdateMessage {
     Error(FetchError),
 }
 
-#[allow(clippy::enum_variant_names)] // Messages are similar, but that could change
 pub enum Msg {
     Delete(DeleteMessage),
     Update(UpdateMessage),
 }
 
 #[derive(Properties, PartialEq, Clone)]
-pub struct ProjectListProperties {
-    pub(crate) projects: Vec<ProjectTo>,
+pub struct ProjectListsProperties {
+    pub(crate) projects: Option<Vec<ProjectTo>>,
+    pub(crate) all_projects: Option<Vec<ProjectTo>>,
+    pub(crate) my_projects: Option<Vec<ProjectTo>>,
     pub(crate) project_delete: Callback<i32>,
     pub(crate) project_change: Callback<ProjectTo>,
 }
 
-pub struct ProjectList {
+pub struct ProjectLists {
     selected_delete: Option<ProjectTo>,
     selected_update: Option<ProjectTo>,
 }
 
-impl Component for ProjectList {
+impl Component for ProjectLists {
     type Message = Msg;
 
-    type Properties = ProjectListProperties;
+    type Properties = ProjectListsProperties;
 
     fn create(_ctx: &yew::Context<Self>) -> Self {
         Self {
@@ -135,116 +137,169 @@ impl Component for ProjectList {
     }
 
     fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
-        let projects = &ctx.props().projects;
         html! {
             <>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>
-                            { "Stück" }
-                        </th>
-                        <th>
-                            { "Abgabe bis" }
-                        </th>
-                        <th colspan="2">
-                            { "Bearbeiten" }
-                        </th>
-                    </tr>
-                    </thead>
-                        <tbody>
-                        { for projects.iter().map(|project| {
-                            let project_clone = project.clone();
-                            let project_clone_2 = project.clone();
-                            html!{
-                            <tr>
-                                <td>
-                                    <Link<Route> classes={classes!("navbar-item")} to={Route::Event{id: project.id}}>
-                                        { &project.title }
-                                    </Link<Route>>
-                                </td>
-                                <td>
-                                    { &project.due }
-                                </td>
-                                <td>
-                                    <button
-                                        class="btn btn-sm btn-outline-danger"
-                                        onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Update(project_clone_2.clone()))) }
-                                        data-bs-toggle="modal"
-                                        data-bs-target={format!("#{MODAL_UPDATE_PROJECT}")}
-                                    >
-                                        { "Bearbeiten" }
-                                    </button>
-                                </td>
-                                <td>
-                                    <button
-                                        class="btn btn-sm btn-danger"
-                                        onclick={ ctx.link().callback(
-                                            move |_|
-                                                Msg::Delete(
-                                                    DeleteMessage::ListItemButtonClick(
-                                                        project_clone.clone()
-                                                ))
-                                        ) }
-                                        data-bs-toggle="modal" data-bs-target="#modalProjectDelete"
-                                    >
-                                        { "Löschen" }
-                                    </button>
-                                </td>
-                            </tr>
-                            }})
+            if let Some(projects) = &ctx.props().projects {
+            <div class="row mt-2">
+                <div class="col">
+                    <h3> { "Ausstehende Projekte" } </h3>
+                </div>
+            </div>
+            <ProjectList
+                projects={projects.clone()}
+                on_change={ ctx.link().callback(move |project| Msg::Update(UpdateMessage::Update(project)))}
+                on_delete={ ctx.link().callback(move |project| Msg::Delete(DeleteMessage::ListItemButtonClick(project)))}
+            />
+            }
 
-                        }
-                        </tbody>
-                </table>
+            if let Some(projects) = &ctx.props().all_projects {
+            <div class="row mt-2">
+                <div class="col">
+                    <h3> { "Alle Projekte" } </h3>
+                </div>
+            </div>
+            <ProjectList
+                projects={projects.clone()}
+                on_change={ ctx.link().callback(move |project| Msg::Update(UpdateMessage::Update(project)))}
+                on_delete={ ctx.link().callback(move |project| Msg::Delete(DeleteMessage::ListItemButtonClick(project)))}
+            />
+            }
 
-                <ProjectUpdateModal
-                    project={ self.selected_update.clone() }
-                    on_success={ ctx.link().callback(|project| Msg::Update(UpdateMessage::Success(project))) }
-                    on_error={ ctx.link().callback(|error| Msg::Update(UpdateMessage::Error(error))) }
-                />
+            if let Some(projects) =  &ctx.props().my_projects {
+            <div class="row mt-2">
+                <div class="col">
+                    <h3> { "Meine Projekte" } </h3>
+                </div>
+            </div>
+            <ProjectList
+                projects={projects.clone()}
+                on_change={ ctx.link().callback(move |project| Msg::Update(UpdateMessage::Update(project)))}
+                on_delete={ ctx.link().callback(move |project| Msg::Delete(DeleteMessage::ListItemButtonClick(project)))}
+            />
+            }
 
-                <DeleteModal
-                    title={"Projekt löschen".to_string() }
-                    id={ "modalProjectDelete".to_string() }
-                    on_cancel={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AbortClick(x))) }
-                    on_confirm={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AcceptClick(x))) }
-                >
-                <>
-                    <h4>
-                        { "Warnung!" }
-                    </h4>
-                    <p>
-                        { "Kann " }
-                        <b>
-                            { "nicht rückgängig " }
-                        </b>
-                        { "gemacht werden!" }
-                    </p>
-                    <p>
-                        <b>
-                            { "Alle Abgaben " }
-                        </b>
-                        { "werden " }
-                        <b>
-                            { "unwiederruflich " }
-                        </b>
-                        { " gelöscht!" }
-                    </p>
-                    <p>
-                        { "Das Projekt " }
-                        <i>if let Some(project) = &self.selected_delete {
-                            { &project.title }
-                        }
-                        else {
-                            { "Fehler! kein Projekt ausgewählt" }
-                        }
-                        </i>
-                        { " wirklich löschen?" }
-                    </p>
-                </>
-                </DeleteModal>
-                </>
+            <ProjectUpdateModal
+                project={ self.selected_update.clone() }
+                on_success={ ctx.link().callback(|project| Msg::Update(UpdateMessage::Success(project))) }
+                on_error={ ctx.link().callback(|error| Msg::Update(UpdateMessage::Error(error))) }
+            />
+
+            <DeleteModal
+                title={"Projekt löschen".to_string() }
+                id={ "modalProjectDelete".to_string() }
+                on_cancel={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AbortClick(x))) }
+                on_confirm={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AcceptClick(x))) }
+            >
+            <>
+                <h4>
+                    { "Warnung!" }
+                </h4>
+                <p>
+                    { "Kann " }
+                    <b>
+                        { "nicht rückgängig " }
+                    </b>
+                    { "gemacht werden!" }
+                </p>
+                <p>
+                    <b>
+                        { "Alle Abgaben " }
+                    </b>
+                    { "werden " }
+                    <b>
+                        { "unwiederruflich " }
+                    </b>
+                    { " gelöscht!" }
+                </p>
+                <p>
+                    { "Das Projekt " }
+                    <i>if let Some(project) = &self.selected_delete {
+                        { &project.title }
+                    }
+                    else {
+                        { "Fehler! kein Projekt ausgewählt" }
+                    }
+                    </i>
+                    { " wirklich löschen?" }
+                </p>
+            </>
+            </DeleteModal>
+            </>
         }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Properties)]
+struct ProjectListProperties {
+    pub(crate) projects: Vec<ProjectTo>,
+    pub(crate) on_delete: Callback<ProjectTo>,
+    pub(crate) on_change: Callback<ProjectTo>,
+}
+
+#[function_component(ProjectList)]
+fn project_list(props: &ProjectListProperties) -> Html {
+    let props = props.clone();
+    let project_change = props.on_change.clone();
+    html! {
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>
+                        { "Stück" }
+                    </th>
+                    <th>
+                        { "Abgabe bis" }
+                    </th>
+                    <th colspan="2">
+                        { "Bearbeiten" }
+                    </th>
+                </tr>
+                </thead>
+                    <tbody>
+                    if props.projects.is_empty() {
+                        <td>{ "Es gibt keine Projekte in dieser Kategorie." }</td>
+                    }
+                    { for props.projects.iter().map(|project| {
+                        let project_change = project_change.clone();
+                        let project_delete = props.on_delete.clone();
+                        let project_clone = project.clone();
+                        let project_clone_2 = project.clone();
+                        html!{
+                        <tr>
+                            <td>
+                                <Link<Route> classes={classes!("navbar-item")} to={Route::Event{id: project.id}}>
+                                    { &project.title }
+                                </Link<Route>>
+                            </td>
+                            <td>
+                                { &project.due }
+                            </td>
+                            <AdminOrOwner owner_id={ project.creator }>
+                            <td>
+                                <button
+                                    class="btn btn-sm btn-outline-danger"
+                                    onclick={ move |_| project_change.emit(project_clone.clone()) }
+                                    data-bs-toggle="modal"
+                                    data-bs-target={format!("#{MODAL_UPDATE_PROJECT}")}
+                                >
+                                    { "Bearbeiten" }
+                                </button>
+                            </td>
+                            <td>
+                                <button
+                                    class="btn btn-sm btn-danger"
+                                    onclick={ move |_| project_delete.emit(project_clone_2.clone()) }
+                                    data-bs-toggle="modal" data-bs-target="#modalProjectDelete"
+                                >
+                                    { "Löschen" }
+                                </button>
+                            </td>
+                            </AdminOrOwner>
+                        </tr>
+                        }})
+
+                    }
+                    </tbody>
+            </table>
     }
 }

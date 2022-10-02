@@ -1,6 +1,6 @@
 use yew::{function_component, html, Properties};
 
-use crate::service::submission::{submission_download_url, Submission};
+use crate::service::submission::{submission_stream_url, Submission};
 
 #[derive(Eq, PartialEq, Properties)]
 pub struct SubmissionProperties {
@@ -33,13 +33,13 @@ pub fn submission_details(s: &SubmissionProperties) -> Html {
                 {
                     match submission.kind {
                         crate::service::submission::SubmissionKind::Audio => html!{
-                            <audio controls=true src={ submission_download_url( submission.id) }></audio>
+                            <audio controls=true src={ submission_stream_url(submission.project_id, &submission.file_technical_name) }></audio>
 
                         },
                         crate::service::submission::SubmissionKind::Video => html!{
                             <div class="ratio ratio-16x9">
                                 <video controls=true>
-                                    <source src={ submission_download_url( submission.id) }/>
+                                    <source src={ submission_stream_url(submission.project_id, &submission.file_technical_name) }/>
                                 </video>
                             </div>
                         },

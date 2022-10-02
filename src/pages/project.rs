@@ -1,5 +1,8 @@
+use std::path::PathBuf;
+
 use crate::{
     components::{
+        admin_only::AdminOrOwner,
         iframe::IFrame,
         jwt_context::get_token_data,
         material::Material,
@@ -14,12 +17,14 @@ use crate::{
             submissions_by_project, submissions_by_project_and_user, Submission, SubmissionKind,
         },
     },
-    utilities::requests::fetch::FetchError,
+    utilities::{date::format_datetime_human_readable, requests::fetch::FetchError},
 };
 
-use wasm_bindgen::UnwrapThrowExt;
+use gloo_utils::document;
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
 
-use yew::{html, Component, Properties};
+use web_sys::{HtmlInputElement, HtmlSelectElement, InputEvent};
+use yew::{html, Component, Properties, TargetCast};
 
 use gloo_console::error;
 use gloo_dialogs::alert;
@@ -34,12 +39,14 @@ pub enum Msg {
     SubmissionUpdated(Submission),
     SubmissionUploaded(String),
     SubmissionUploadError(String),
+    SubmissionFileInput(InputEvent),
 }
 
 pub struct ProjectComponent {
     project_data: Option<ProjectTo>,
     all_submissions: Option<Vec<Submission>>,
     my_submissions: Vec<Submission>,
+    selected_submission_kind: SubmissionKind,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Properties)]
@@ -57,13 +64,30 @@ impl Component for ProjectComponent {
             project_data: None,
             all_submissions: None,
             my_submissions: Vec::new(),
+            selected_submission_kind: SubmissionKind::Other,
         }
     }
 
-    fn update(&mut self, _ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::MetadataLoaded(metadata) => {
+                let user = get_token_data().unwrap_throw();
+
+                let project_id = metadata.id;
+
+                if user.is_admin || user.user_id == metadata.creator {
+                    ctx.link().send_future(async move {
+                        let submissions = submissions_by_project(project_id).await;
+
+                        match submissions {
+                            Ok(contributions) => Msg::AllSubmissionsLoaded(contributions),
+                            Err(error) => Msg::SubmissionsLoadError(error),
+                        }
+                    });
+                }
+
                 self.project_data = Some(metadata);
+
                 true
             }
             Msg::MetadataLoadError(error) => {
@@ -95,11 +119,6 @@ impl Component for ProjectComponent {
                 true
             }
             Msg::SubmissionsLoadError(error) => {
-                if let FetchError::StatusCode(status) = error {
-                    if status == 401 {
-                        return false;
-                    }
-                }
                 gloo_console::error!(format!("{:?}", error));
                 alert("Could not get submissions! For more info see the console log.");
 
@@ -145,6 +164,43 @@ impl Component for ProjectComponent {
 
                 true
             }
+            Msg::SubmissionFileInput(change) => {
+                let target: HtmlInputElement = change.target_dyn_into().unwrap_throw();
+                let files = target.files().unwrap_throw();
+
+                if files.length() < 1 {
+                    return false;
+                }
+
+                let file = files.item(0).unwrap_throw();
+                let name = file.name();
+
+                let path = PathBuf::from(name);
+                let ext = path.extension();
+
+                let mut kind = ext.and_then(|x| x.to_str().map(SubmissionKind::from));
+
+                if matches!(kind, Some(SubmissionKind::Other)) {
+                    kind = None;
+                }
+
+                if let Some(kind) = kind {
+                    self.selected_submission_kind = kind;
+                    let element: HtmlSelectElement = document()
+                        .get_element_by_id("selectSubmissionKind")
+                        .unwrap_throw()
+                        .dyn_into()
+                        .unwrap_throw();
+                    element.set_selected_index(match kind {
+                        SubmissionKind::Audio => 1,
+                        SubmissionKind::Video => 0,
+                        SubmissionKind::Other => 2,
+                    });
+                    return true;
+                }
+
+                false
+            }
         }
     }
 
@@ -154,20 +210,45 @@ impl Component for ProjectComponent {
             Some(metadata) => html! {
                 <>
                 <div class="row mt-2">
+                    <div class="col-auto">
+                        <a href="/"> <button type="button" class="btn btn-outline-danger"> { "Zurück" } </button></a>
+                    </div>
+                    <AdminOrOwner owner_id={ metadata.creator }>
+                        <div class="col">
+                            <a href={ all_submissions_link(metadata.id) }>
+                            <button class="btn btn-danger">{ "Abgaben downloaden" } </button>
+                            </a>
+                        </div>
+                    </AdminOrOwner>
+                </div>
+                <div class="row mt-2">
                     <div class="col">
                         <h1>{ &metadata.title }</h1>
                         <IFrame content={metadata.description.clone()}/>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row mt-2">
                     <div class="col">
-                        <a href="/"> <button type="button" class="btn btn-outline-danger"> { "zurück" } </button></a>
-                    </div>
-
-                    <div class="col">
-                        <a href={ all_submissions_link(metadata.id) }>
-                        <button class="btn btn-danger">{ "Abgaben downloaden" } </button>
-                        </a>
+                        <h4>
+                            { "Projektdaten" }
+                        </h4>
+                        <table class="table">
+                            <tr>
+                            <td>{ "Id: " } </td><td> { metadata.id }</td>
+                            </tr>
+                            <tr>
+                            <td>{ "Besitzer-Id: " } </td>
+                            <td> { metadata.creator }</td>
+                            </tr>
+                            <tr>
+                            <td>{ "Abgabe bis: " } </td>
+                            <th> { format_datetime_human_readable(&metadata.due) } </th>
+                            </tr>
+                            <tr>
+                            <td>{ "Erstellt: " } </td>
+                            <td> { format_datetime_human_readable(&metadata.created_at) } </td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
 
@@ -175,7 +256,7 @@ impl Component for ProjectComponent {
 
                 <div class="row mt-2">
                     <div class="col">
-                        <h2>{ "Neue Datei hochladen" }</h2>
+                        <h4>{ "Neue Datei hochladen" }</h4>
                         <form id="inputSubmissionUpload" class="" name="formMaterial" enctype="multipart/form-data">
                             <div class="row">
                                 <div class="col">
@@ -185,12 +266,19 @@ impl Component for ProjectComponent {
                                     <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ crate::service::submission::Section::from(my_section) }/>
                                 </div>
                                 <div class="col-auto">
-                                    <InputSubmissionKind id={ "selectSubmissionKind".to_string() } selected={ SubmissionKind::Other }/>
+                                    <InputSubmissionKind id={ "selectSubmissionKind".to_string() } selected={ self.selected_submission_kind }/>
                                 </div>
                             </div>
                             <div class="row mt-2">
                                 <div class="col">
-                                    <Upload form_id="inputSubmissionUpload" field_name="file" target_url={ submission_upload_url(ctx.props().id) } multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) } failure_callback={ ctx.link().callback(Msg::SubmissionUploadError) } />
+                                    <Upload
+                                        form_id="inputSubmissionUpload"
+                                        field_name="file"
+                                        target_url={ submission_upload_url(ctx.props().id) }
+                                        multiple=true success_callback={ ctx.link().callback(Msg::SubmissionUploaded) }
+                                        failure_callback={ ctx.link().callback(Msg::SubmissionUploadError) }
+                                        input_callback={ ctx.link().callback(Msg::SubmissionFileInput) }
+                                    />
                                 </div>
                             </div>
                         </form>
@@ -203,7 +291,12 @@ impl Component for ProjectComponent {
                 </div>
                 <div class="row mt-2">
                     <div class="col">
-                        <SubmissionList id="list1" submissions={ self.my_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } submission_update={ ctx.link().callback(Msg::SubmissionUpdated) } />
+                        <SubmissionList
+                            id="list1"
+                            submissions={ self.my_submissions.clone() }
+                            submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }
+                            submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }
+                        />
                     </div>
                 </div>
                 if let Some(all_submissions) = &self.all_submissions {
@@ -214,7 +307,12 @@ impl Component for ProjectComponent {
                     </div>
                     <div class="row mt-2">
                         <div class="col">
-                            <SubmissionList id="list2" submissions={ all_submissions.clone() } submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) } submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }/>
+                            <SubmissionList
+                            id="list2"
+                            submissions={ all_submissions.clone() }
+                            submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }
+                            submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }
+                        />
                         </div>
                     </div>
                 }
@@ -231,17 +329,11 @@ impl Component for ProjectComponent {
             load_data(ctx);
 
             let project_id = ctx.props().id;
-            ctx.link().send_future(async move {
-                let submissions = submissions_by_project(project_id).await;
 
-                match submissions {
-                    Ok(contributions) => Msg::AllSubmissionsLoaded(contributions),
-                    Err(error) => Msg::SubmissionsLoadError(error),
-                }
-            });
+            let user = get_token_data().unwrap_throw();
 
             ctx.link().send_future(async move {
-                let submissions = submissions_by_project_and_user(project_id, 1).await;
+                let submissions = submissions_by_project_and_user(project_id, user.user_id).await;
 
                 match submissions {
                     Ok(contributions) => Msg::MySubmissionsLoaded(contributions),

@@ -102,18 +102,16 @@ impl Display for SubmissionKind {
     }
 }
 
-impl TryFrom<&str> for SubmissionKind {
-    type Error = ();
+/// mainly for matching file extensions
+impl From<&str> for SubmissionKind {
+    fn from(s: &str) -> Self {
+        match s.to_lowercase().as_str() {
+            "wav" | "mp3" | "flac" | "wma" | "aac" | "ogg" | "audio" => SubmissionKind::Audio,
+            "mp4" | "avi" | "mov" | "flv" | "f4v" | "swf" | "wmv" | "avchd" | "mkv" | "webm"
+            | "video" => SubmissionKind::Video,
 
-    fn try_from(s: &str) -> Result<Self, Self::Error> {
-        let kind = match s.to_lowercase().as_str() {
-            "audio" => Self::Audio,
-            "video" => Self::Video,
-            "other" => Self::Other,
-            _ => return Err(()),
-        };
-
-        Ok(kind)
+            _ => SubmissionKind::Other,
+        }
     }
 }
 
@@ -144,6 +142,10 @@ pub async fn submissions_by_project_and_user(
 
 pub fn submission_download_url(submission_id: i32) -> String {
     format!("{BACKEND_URL}/submissions/{submission_id}")
+}
+
+pub fn submission_stream_url(project_id: i32, file_technical_name: &str) -> String {
+    format!("{BACKEND_URL}/submissions/stream/{project_id}/{file_technical_name}")
 }
 
 pub async fn update_submission(
