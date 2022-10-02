@@ -69,105 +69,107 @@ impl Component for SubmissionList {
     fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
         html! {
             <>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>
-                            { "Name" }
-                        </th>
-                        <th>
-                            { "Art" }
-                        </th>
-                        <th>
-                            { "Kommentar" }
-                        </th>
-                        <th>
-                            { "Stimme" }
-                        </th>
-                        <th>
-                            { "Autor*in" }
-                        </th>
-                        <th>
-                            { "Details" }
-                        </th>
-                        <th>
-                            { "Herunterladen" }
-                        </th>
-                        <th>
-                            { "Ändern" }
-                        </th>
-                        <th>
-                            { "Löschen" }
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                {
-                    if ctx.props().submissions.is_empty() {
-                        html!{
-                            <td>{ "Keine Abgaben gefunden" }</td>
-                        }
-                    } else {
-                        html!{
-                        {
-                            for ctx.props().submissions.iter().enumerate().map(|(index, submission)| {
-                                let submission_clone = submission.clone();
-                                let submission_clone_2 = submission.clone();
-                                html!{
-                                    <>
-                                    <tr>
-                                        <td>
-                                            { &submission.file_name }
-                                        </td>
-                                        <td>
-                                            { &submission.kind }
-                                        </td>
-                                        <td>
-                                            { &submission.note }
-                                        </td>
-                                        <td>
-                                            { submission.creator_section }
-                                        </td>
-                                        <td>
-                                            { &submission.creator_name }
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::SelectOrUnselect(index as i32)) }>{"Details"}</button>
-                                        </td>
-                                        <td>
-                                            <a href={ submission_download_url(submission.id) } download="true" target="_blank">
-                                                <button class="btn btn-sm btn-outline-danger">
-                                                    {"Herunterladen"}
-                                                </button>
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{MODAL_UPDATE_SUBMISSION}") }>{ "Ändern" }</button>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
-                                        </td>
-                                    </tr>
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>
+                                { "Name" }
+                            </th>
+                            <th>
+                                { "Art" }
+                            </th>
+                            <th>
+                                { "Kommentar" }
+                            </th>
+                            <th>
+                                { "Stimme" }
+                            </th>
+                            <th>
+                                { "Autor*in" }
+                            </th>
+                            <th>
+                                { "Details" }
+                            </th>
+                            <th>
+                                { "Herunterladen" }
+                            </th>
+                            <th>
+                                { "Ändern" }
+                            </th>
+                            <th>
+                                { "Löschen" }
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {
+                        if ctx.props().submissions.is_empty() {
+                            html!{
+                                <td>{ "Keine Abgaben gefunden" }</td>
+                            }
+                        } else {
+                            html!{
+                            {
+                                for ctx.props().submissions.iter().enumerate().map(|(index, submission)| {
+                                    let submission_clone = submission.clone();
+                                    let submission_clone_2 = submission.clone();
+                                    html!{
+                                        <>
+                                        <tr>
+                                            <td>
+                                                { &submission.file_name }
+                                            </td>
+                                            <td>
+                                                { &submission.kind }
+                                            </td>
+                                            <td>
+                                                { &submission.note }
+                                            </td>
+                                            <td>
+                                                { submission.creator_section }
+                                            </td>
+                                            <td>
+                                                { &submission.creator_name }
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::SelectOrUnselect(index as i32)) }>{"Details"}</button>
+                                            </td>
+                                            <td>
+                                                <a href={ submission_download_url(submission.id) } download="true" target="_blank">
+                                                    <button class="btn btn-sm btn-outline-danger">
+                                                        {"Herunterladen"}
+                                                    </button>
+                                                </a>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{MODAL_UPDATE_SUBMISSION}") }>{ "Ändern" }</button>
+                                            </td>
+                                            <td>
+                                                <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
+                                            </td>
+                                        </tr>
 
-                                    if let Some(selected_index) = self.selected_submission  {
-                                        if index as i32 == selected_index {
-                                            <tr>
-                                                <td colspan=7>
-                                                    <SubmissionDetails submission={ submission.clone() } />
-                                                </td>
-                                            </tr>
+                                        if let Some(selected_index) = self.selected_submission  {
+                                            if index as i32 == selected_index {
+                                                <tr>
+                                                    <td colspan=7>
+                                                        <SubmissionDetails submission={ submission.clone() } />
+                                                    </td>
+                                                </tr>
+                                            }
                                         }
+                                        </>
                                     }
-                                    </>
-                                }
-                            })
-                        }
+                                })
+                            }
+                            }
                         }
                     }
-                }
 
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
 
             <SubmissionUpdate
                 submission={ self.selected_update.clone() }
