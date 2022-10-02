@@ -241,65 +241,67 @@ fn project_list(props: &ProjectListProperties) -> Html {
     let props = props.clone();
     let project_change = props.on_change.clone();
     html! {
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>
-                        { "Stück" }
-                    </th>
-                    <th>
-                        { "Abgabe bis" }
-                    </th>
-                    <th colspan="2">
-                        { "Bearbeiten" }
-                    </th>
-                </tr>
-                </thead>
-                    <tbody>
-                    if props.projects.is_empty() {
-                        <td>{ "Es gibt keine Projekte in dieser Kategorie." }</td>
-                    }
-                    { for props.projects.iter().map(|project| {
-                        let project_change = project_change.clone();
-                        let project_delete = props.on_delete.clone();
-                        let project_clone = project.clone();
-                        let project_clone_2 = project.clone();
-                        html!{
-                        <tr>
-                            <td>
-                                <Link<Route> classes={classes!("navbar-item")} to={Route::Event{id: project.id}}>
-                                    { &project.title }
-                                </Link<Route>>
-                            </td>
-                            <td>
-                                { &project.due }
-                            </td>
-                            <AdminOrOwner owner_id={ project.creator }>
-                            <td>
-                                <button
-                                    class="btn btn-sm btn-outline-danger"
-                                    onclick={ move |_| project_change.emit(project_clone.clone()) }
-                                    data-bs-toggle="modal"
-                                    data-bs-target={format!("#{MODAL_UPDATE_PROJECT}")}
-                                >
-                                    { "Bearbeiten" }
-                                </button>
-                            </td>
-                            <td>
-                                <button
-                                    class="btn btn-sm btn-danger"
-                                    onclick={ move |_| project_delete.emit(project_clone_2.clone()) }
-                                    data-bs-toggle="modal" data-bs-target="#modalProjectDelete"
-                                >
-                                    { "Löschen" }
-                                </button>
-                            </td>
-                            </AdminOrOwner>
-                        </tr>
-                        }})
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>
+                            { "Stück" }
+                        </th>
+                        <th>
+                            { "Abgabe bis" }
+                        </th>
+                        <th colspan="2">
+                            { "Bearbeiten" }
+                        </th>
+                    </tr>
+                    </thead>
+                        <tbody>
+                        if props.projects.is_empty() {
+                            <td>{ "Es gibt keine Projekte in dieser Kategorie." }</td>
+                        }
+                        { for props.projects.iter().map(|project| {
+                            let project_change = project_change.clone();
+                            let project_delete = props.on_delete.clone();
+                            let project_clone = project.clone();
+                            let project_clone_2 = project.clone();
+                            html!{
+                            <tr>
+                                <td>
+                                    <Link<Route> classes={classes!("navbar-item")} to={Route::Event{id: project.id}}>
+                                        { &project.title }
+                                    </Link<Route>>
+                                </td>
+                                <td>
+                                    { &project.due }
+                                </td>
+                                <AdminOrOwner owner_id={ project.creator }>
+                                <td>
+                                    <button
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick={ move |_| project_change.emit(project_clone.clone()) }
+                                        data-bs-toggle="modal"
+                                        data-bs-target={format!("#{MODAL_UPDATE_PROJECT}")}
+                                    >
+                                        { "Bearbeiten" }
+                                    </button>
+                                </td>
+                                <td>
+                                    <button
+                                        class="btn btn-sm btn-danger"
+                                        onclick={ move |_| project_delete.emit(project_clone_2.clone()) }
+                                        data-bs-toggle="modal" data-bs-target="#modalProjectDelete"
+                                    >
+                                        { "Löschen" }
+                                    </button>
+                                </td>
+                                </AdminOrOwner>
+                            </tr>
+                            }})
 
-                    }
-                    </tbody>
-            </table>
+                        }
+                        </tbody>
+                </table>
+            </div>
     }
 }
