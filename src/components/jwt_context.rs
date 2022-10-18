@@ -52,9 +52,14 @@ pub fn get_token() -> String {
         return jwt.to_string();
     }
 
+    let hostname = window
+        .location()
+        .hostname()
+        .unwrap_or_else(|_| "localhost".to_string());
+
     window
         .location()
-        .set_href("http://localhost:8081/turnin")
+        .set_href(&format!("http://{hostname}:25432/turnin"))
         .unwrap_throw();
 
     "".to_string()
@@ -146,7 +151,6 @@ pub fn get_token_data() -> Result<PerformerData, ()> {
     }
 
     Ok(data)
-
 }
 
 fn get_jwt_from_url_param(document: web_sys::Document) -> Result<String, ()> {
