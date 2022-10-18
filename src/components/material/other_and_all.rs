@@ -12,47 +12,48 @@ pub fn other_and_all_list(ctx: &Context<Material>, elements: Vec<&MaterialTo>) -
         <div class="row mt-2">
             <div class="col">
                 <h4>{ "Alle Dateien" }</h4>
-
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>
-                                { "Dateibeschreibung" }
-                            </th>
-                            <th>
-                                { "Link" }
-                            </th>
-                            <th>
-                                { "Kategorie" }
-                            </th>
-                            <AdminOrOwner owner_id={ ctx.props().project_owner }>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
                                 <th>
-                                    { "Ändern" }
+                                    { "Dateibeschreibung" }
                                 </th>
                                 <th>
-                                    { "Löschen" }
+                                    { "Link" }
                                 </th>
-                            </AdminOrOwner>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {
-                        if elements.is_empty() {
-                            html!{
-                                <td colspan="3">{ "Noch keine Dateien gefunden!" }</td>
-                            }
-                        } else {
-                            html! {
-                                {
-                                    for elements.iter().map(|other| {
-                                        other_element(ctx, (*other).clone())
-                                    })
+                                <th>
+                                    { "Kategorie" }
+                                </th>
+                                <AdminOrOwner owner_id={ ctx.props().project_owner }>
+                                    <th>
+                                        { "Ändern" }
+                                    </th>
+                                    <th>
+                                        { "Löschen" }
+                                    </th>
+                                </AdminOrOwner>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {
+                            if elements.is_empty() {
+                                html!{
+                                    <td colspan="3">{ "Noch keine Dateien gefunden!" }</td>
+                                }
+                            } else {
+                                html! {
+                                    {
+                                        for elements.iter().map(|other| {
+                                            other_element(ctx, (*other).clone())
+                                        })
+                                    }
                                 }
                             }
                         }
-                    }
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     }
@@ -72,7 +73,12 @@ fn other_element(ctx: &Context<Material>, other: MaterialTo) -> Html {
                 { &other.title }
             </td>
             <td>
-                <a href={ material_url(ctx.props().id, &other.file_technical_name) } download={ other.file_name.clone().to_string() }> { &other.file_name } </a>
+                <a
+                    href={ material_url(ctx.props().id, &other.file_technical_name) }
+                    download={ other.file_name.clone().to_string() }
+                >
+                    { &other.file_name }
+                </a>
             </td>
             <td class={ category_color }>
                 { &other.category }
@@ -80,7 +86,11 @@ fn other_element(ctx: &Context<Material>, other: MaterialTo) -> Html {
             <AdminOrOwner owner_id={ ctx.props().project_owner }>
                 <td>
                     <MaterialUpdateButton
-                        onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::ButtonClick(other_clone.clone()))) }
+                        onclick={ ctx.link().callback(
+                            move |_| Msg::Update(
+                                UpdateMessage::ButtonClick(other_clone.clone())
+                            )
+                        )}
                         owner_id={ ctx.props().project_owner }
                     />
                 </td>
