@@ -19,7 +19,7 @@ use crate::{
 };
 
 pub struct SubmissionList {
-    selected_submission: Option<i32>,
+    selected_submission: Option<i64>,
     selected_delete: Option<Submission>,
     selected_update: Option<Submission>,
 }
@@ -27,7 +27,7 @@ pub struct SubmissionList {
 #[derive(PartialEq, Properties)]
 pub struct SubmissionListProperties {
     pub submissions: Vec<Submission>,
-    pub submission_delete: Callback<i32>,
+    pub submission_delete: Callback<i64>,
     pub submission_update: Callback<Submission>,
     pub id: String,
 }
@@ -44,12 +44,12 @@ pub enum DeleteMessage {
     ListItemButtonClick(Submission),
     AcceptClick(MouseEvent),
     AbortClick(MouseEvent),
-    Success(i32),
+    Success(i64),
     Fail(FetchError),
 }
 
 pub enum Msg {
-    SelectOrUnselect(i32),
+    SelectOrUnselect(i64),
     Delete(DeleteMessage),
     Update(UpdateMessage),
 }
@@ -69,106 +69,108 @@ impl Component for SubmissionList {
     fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
         html! {
             <>
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th>
-                            { "Name" }
-                        </th>
-                        <th>
-                            { "Art" }
-                        </th>
-                        <th>
-                            { "Kommentar" }
-                        </th>
-                        <th>
-                            { "Stimme" }
-                        </th>
-                        <th>
-                            { "Autor*in" }
-                        </th>
-                        <th>
-                            { "Details" }
-                        </th>
-                        <th>
-                            { "Herunterladen" }
-                        </th>
-                        <th>
-                            { "Ändern" }
-                        </th>
-                        <th>
-                            { "Löschen" }
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                {
-                    if ctx.props().submissions.is_empty() {
-                        html!{
-                            <td>{ "Keine Abgaben gefunden" }</td>
-                        }
-                    } else {
-                        html!{
-                        {
-                            for ctx.props().submissions.iter().enumerate().map(|(index, submission)| {
-                                let submission_clone = submission.clone();
-                                let submission_clone_2 = submission.clone();
-                                html!{
-                                    <>
-                                    <tr>
-                                        <td>
-                                            { &submission.file_name }
-                                        </td>
-                                        <td>
-                                            { &submission.kind }
-                                        </td>
-                                        <td>
-                                            { &submission.note }
-                                        </td>
-                                        <td>
-                                            { submission.creator_section }
-                                        </td>
-                                        <td>
-                                            { &submission.creator_name }
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::SelectOrUnselect(index as i32)) }>{"Details"}</button>
-                                        </td>
-                                        <td>
-                                            <a href={ submission_download_url(submission.id) } download="true" target="_blank">
-                                                <button class="btn btn-sm btn-outline-danger">
-                                                    {"Herunterladen"}
-                                                </button>
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{MODAL_UPDATE_SUBMISSION}") }>{ "Ändern" }</button>
-                                        </td>
-                                        <td>
-                                            <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
-                                        </td>
-                                    </tr>
-
-                                    if let Some(selected_index) = self.selected_submission  {
-                                        if index as i32 == selected_index {
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>
+                                { "Name" }
+                            </th>
+                            <th>
+                                { "Art" }
+                            </th>
+                            <th>
+                                { "Kommentar" }
+                            </th>
+                            <th>
+                                { "Stimme" }
+                            </th>
+                            <th>
+                                { "Autor*in" }
+                            </th>
+                            <th>
+                                { "Details" }
+                            </th>
+                            <th>
+                                { "Herunterladen" }
+                            </th>
+                            <th>
+                                { "Ändern" }
+                            </th>
+                            <th>
+                                { "Löschen" }
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {
+                        if ctx.props().submissions.is_empty() {
+                            html!{
+                                <td>{ "Keine Abgaben gefunden" }</td>
+                            }
+                        } else {
+                            html! { 
+                                <>
+                                {
+                                    for ctx.props().submissions.iter().enumerate().map(|(index, submission)| {
+                                        let submission_clone = submission.clone();
+                                        let submission_clone_2 = submission.clone();
+                                        html! {
+                                            <>
                                             <tr>
-                                                <td colspan=7>
-                                                    <SubmissionDetails submission={ submission.clone() } />
+                                                <td>
+                                                    { &submission.file_name }
+                                                </td>
+                                                <td>
+                                                    { &submission.kind }
+                                                </td>
+                                                <td>
+                                                    { &submission.note }
+                                                </td>
+                                                <td>
+                                                    { submission.creator_section }
+                                                </td>
+                                                <td>
+                                                    { &submission.creator_name }
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::SelectOrUnselect(index as i64)) }>{"Details"}</button>
+                                                </td>
+                                                <td>
+                                                    <a href={ submission_download_url(submission.id) } download="true" target="_blank">
+                                                        <button class="btn btn-sm btn-outline-danger">
+                                                            {"Herunterladen"}
+                                                        </button>
+                                                    </a>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{MODAL_UPDATE_SUBMISSION}") }>{ "Ändern" }</button>
+                                                </td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
                                                 </td>
                                             </tr>
+
+                                            if let Some(selected_index) = self.selected_submission  {
+                                                if index as i64 == selected_index {
+                                                    <tr>
+                                                        <td colspan=7>
+                                                            <SubmissionDetails submission={ submission.clone() } />
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                            </>
                                         }
-                                    }
-                                    </>
+                                    })
                                 }
-                            })
-                        }
+                                </>
+                            }
                         }
                     }
-                }
-
-                </tbody>
-            </table>
-
+                    </tbody>
+                </table>
+            </div>
             <SubmissionUpdate
                 submission={ self.selected_update.clone() }
                 on_abort={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Abort(x))) }

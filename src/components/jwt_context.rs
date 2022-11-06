@@ -86,7 +86,7 @@ impl Display for Section {
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct PerformerData {
     pub section: Section,
-    pub user_id: i32,
+    pub user_id: i64,
     pub name: String,
     pub is_admin: bool,
     pub exp: i64,

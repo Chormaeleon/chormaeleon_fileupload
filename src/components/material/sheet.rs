@@ -2,7 +2,7 @@ use yew::{html, Html};
 
 use crate::service::material::{material_url, MaterialTo};
 
-pub fn sheet_list(id: i32, sheet_elements: Vec<&MaterialTo>) -> Html {
+pub fn sheet_list(id: i64, sheet_elements: Vec<&MaterialTo>) -> Html {
     html! {
         <div class="row mt-2">
             <div class="col">
@@ -27,7 +27,7 @@ pub fn sheet_list(id: i32, sheet_elements: Vec<&MaterialTo>) -> Html {
     }
 }
 
-fn sheet_element(id: i32, score: MaterialTo) -> Html {
+fn sheet_element(id: i64, score: MaterialTo) -> Html {
     html! {
         <div class="row">
             <div class="col">

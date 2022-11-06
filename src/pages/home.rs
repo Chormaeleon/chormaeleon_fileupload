@@ -31,7 +31,7 @@ pub enum Msg {
     ProjectsLoadError(FetchError),
     CreateProjectSuccess(ProjectTo),
     CreateProjectFail(FetchError),
-    ProjectDeleted(i32),
+    ProjectDeleted(i64),
     ProjectChanged(ProjectTo),
 }
 
@@ -177,7 +177,7 @@ impl Component for Home {
     }
 }
 
-fn delete_project(vec: &mut Option<Vec<ProjectTo>>, id: i32) {
+fn delete_project(vec: &mut Option<Vec<ProjectTo>>, id: i64) {
     if let Some(vec) = vec {
         vec.retain(|x| x.id != id)
     }

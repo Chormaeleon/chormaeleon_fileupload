@@ -35,11 +35,11 @@ pub enum Msg {
     AllSubmissionsLoaded(Vec<Submission>),
     MySubmissionsLoaded(Vec<Submission>),
     SubmissionsLoadError(FetchError),
-    SubmissionDeleted(i32),
-    SubmissionUpdated(Submission),
     SubmissionUploaded(String),
     SubmissionUploadError(String),
-    SubmissionFileInput(InputEvent),
+    SubmissionDeleted(i64),
+    SubmissionUpdated(Submission),
+    SubmissionFileInput(InputEvent)
 }
 
 pub struct ProjectComponent {
@@ -51,7 +51,7 @@ pub struct ProjectComponent {
 
 #[derive(Clone, Debug, Eq, PartialEq, Properties)]
 pub struct ProjectProperties {
-    pub id: i32,
+    pub id: i64,
 }
 
 impl Component for ProjectComponent {

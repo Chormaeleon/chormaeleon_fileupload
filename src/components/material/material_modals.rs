@@ -17,7 +17,7 @@ const INPUT_UPDATE_MATERIAL_CATEGORY: &str = "inputUpdateMaterialCategory";
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct MaterialUploadModalProperties {
-    pub id: i32,
+    pub id: i64,
     pub on_success: Callback<String>,
     pub on_error: Callback<String>,
 }

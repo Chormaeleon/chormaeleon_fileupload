@@ -60,8 +60,8 @@ pub enum DeleteMessage {
 
 #[derive(Clone, Eq, PartialEq, Properties)]
 pub struct MaterialProperties {
-    pub id: i32,
-    pub project_owner: i32,
+    pub id: i64,
+    pub project_owner: i64,
 }
 
 impl Component for Material {
@@ -265,7 +265,7 @@ fn sort_material(material: &mut [MaterialTo]) {
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct MaterialUpdateButtonProperties {
-    pub owner_id: i32,
+    pub owner_id: i64,
     pub onclick: Callback<MouseEvent>,
 }
 
@@ -282,7 +282,7 @@ pub fn update_button(props: &MaterialUpdateButtonProperties) -> Html {
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct MaterialDeleteButtonProperties {
-    pub owner_id: i32,
+    pub owner_id: i64,
     pub onclick: Callback<MouseEvent>,
 }
 

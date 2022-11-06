@@ -137,7 +137,8 @@ async fn parse_result<T: for<'a> serde::de::Deserialize<'a>>(
     let json = JsFuture::from(response.json()?).await?;
 
     // Use serde to parse the JSON into a struct.
-    let result = json.into_serde()?;
+    let result =
+        serde_wasm_bindgen::from_value(json).map_err(|error| FetchError::JsError(error.into()))?;
     Ok(result)
 }
 

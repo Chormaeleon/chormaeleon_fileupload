@@ -20,7 +20,7 @@ pub enum DeleteMessage {
     ListItemButtonClick(ProjectTo),
     AcceptClick(MouseEvent),
     AbortClick(MouseEvent),
-    Success(i32),
+    Success(i64),
     Fail(FetchError),
 }
 
@@ -40,7 +40,7 @@ pub struct ProjectListsProperties {
     pub(crate) projects: Option<Vec<ProjectTo>>,
     pub(crate) all_projects: Option<Vec<ProjectTo>>,
     pub(crate) my_projects: Option<Vec<ProjectTo>>,
-    pub(crate) project_delete: Callback<i32>,
+    pub(crate) project_delete: Callback<i64>,
     pub(crate) project_change: Callback<ProjectTo>,
 }
 

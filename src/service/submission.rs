@@ -14,13 +14,13 @@ use super::BACKEND_URL;
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
 pub struct Submission {
-    pub id: i32,
-    pub project_id: i32,
+    pub id: i64,
+    pub project_id: i64,
     pub note: String,
     pub file_name: String,
     pub file_technical_name: String,
-    pub submitter: i32,
-    pub creator: i32,
+    pub submitter: i64,
+    pub creator: i64,
     pub creator_name: String,
     pub creator_section: Section,
     pub upload_at: NaiveDateTime,
@@ -122,7 +122,7 @@ pub struct UpdateSubmission {
     pub kind: SubmissionKind,
 }
 
-pub async fn submissions_by_project(project_id: i32) -> Result<Vec<Submission>, FetchError> {
+pub async fn submissions_by_project(project_id: i64) -> Result<Vec<Submission>, FetchError> {
     get_request_struct::<Vec<Submission>>(&format!(
         "{BACKEND_URL}/projects/{}/submissions",
         project_id
@@ -131,8 +131,8 @@ pub async fn submissions_by_project(project_id: i32) -> Result<Vec<Submission>, 
 }
 
 pub async fn submissions_by_project_and_user(
-    project_id: i32,
-    user_id: i32,
+    project_id: i64,
+    user_id: i64,
 ) -> Result<Vec<Submission>, FetchError> {
     get_request_struct::<Vec<Submission>>(&format!(
         "{BACKEND_URL}/projects/{project_id}/submissions/{user_id}"
@@ -140,16 +140,16 @@ pub async fn submissions_by_project_and_user(
     .await
 }
 
-pub fn submission_download_url(submission_id: i32) -> String {
+pub fn submission_download_url(submission_id: i64) -> String {
     format!("{BACKEND_URL}/submissions/{submission_id}")
 }
 
-pub fn submission_stream_url(project_id: i32, file_technical_name: &str) -> String {
+pub fn submission_stream_url(project_id: i64, file_technical_name: &str) -> String {
     format!("{BACKEND_URL}/submissions/stream/{project_id}/{file_technical_name}")
 }
 
 pub async fn update_submission(
-    submission_id: i32,
+    submission_id: i64,
     update_data: UpdateSubmission,
 ) -> Result<Submission, FetchError> {
     post_request_struct(
@@ -159,6 +159,6 @@ pub async fn update_submission(
     .await
 }
 
-pub async fn delete_submission(submission_id: i32) -> Result<(), FetchError> {
+pub async fn delete_submission(submission_id: i64) -> Result<(), FetchError> {
     delete_request(&format!("{BACKEND_URL}/submissions/{submission_id}")).await
 }

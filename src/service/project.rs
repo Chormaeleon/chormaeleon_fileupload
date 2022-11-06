@@ -7,19 +7,19 @@ use crate::utilities::requests::fetch::{
 
 use super::BACKEND_URL;
 
-pub async fn delete_project(project_id: i32) -> Result<(), FetchError> {
+pub async fn delete_project(project_id: i64) -> Result<(), FetchError> {
     delete_request(&format!("{BACKEND_URL}/projects/{project_id}")).await
 }
 
-pub async fn project_data(project_id: i32) -> Result<ProjectTo, FetchError> {
+pub async fn project_data(project_id: i64) -> Result<ProjectTo, FetchError> {
     get_request_struct::<ProjectTo>(&format!("{BACKEND_URL}/projects/{}", project_id)).await
 }
 
-pub fn all_submissions_link(project_id: i32) -> String {
+pub fn all_submissions_link(project_id: i64) -> String {
     format!("{BACKEND_URL}/projects/{project_id}/allSubmissions")
 }
 
-pub fn submission_upload_url(project_id: i32) -> String {
+pub fn submission_upload_url(project_id: i64) -> String {
     format!("{BACKEND_URL}/projects/{project_id}")
 }
 
@@ -50,7 +50,7 @@ pub async fn create_project(
 }
 
 pub async fn update_project(
-    project_id: i32,
+    project_id: i64,
     title: String,
     description: String,
     due: NaiveDateTime,
@@ -70,10 +70,10 @@ pub async fn update_project(
 
 #[derive(Deserialize, PartialEq, Eq, Clone, Debug)]
 pub struct ProjectTo {
-    pub id: i32,
+    pub id: i64,
     pub title: String,
     pub description: String,
-    pub creator: i32,
+    pub creator: i64,
     pub created_at: NaiveDateTime,
     pub due: NaiveDateTime,
 }

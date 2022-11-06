@@ -27,7 +27,7 @@ pub struct SubmissionUpdate {
 
 #[derive(Clone, Debug)]
 pub struct SubmissionUpdateData {
-    pub id: i32,
+    pub id: i64,
     pub note: String,
     pub section: Section,
     pub kind: SubmissionKind,

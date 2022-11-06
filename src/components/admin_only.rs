@@ -5,7 +5,7 @@ use super::jwt_context::get_token_data;
 
 #[derive(PartialEq, Properties)]
 pub struct AdminOrOwnerProperties {
-    pub owner_id: i32,
+    pub owner_id: i64,
     #[prop_or_default]
     pub children: Children,
 }

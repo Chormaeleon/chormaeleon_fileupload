@@ -147,7 +147,7 @@ impl Component for ProjectCreateModal {
 }
 
 pub struct ModalResult {
-    id: Option<i32>,
+    id: Option<i64>,
     title: String,
     description: String,
     due: NaiveDateTime,
@@ -162,7 +162,7 @@ struct ProjectEditModalProperties {
 }
 
 struct ProjectEditModal {
-    id: Option<i32>,
+    id: Option<i64>,
     title: String,
     due: NaiveDateTime,
 }

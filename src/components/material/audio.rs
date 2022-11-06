@@ -2,7 +2,7 @@ use yew::{html, Html};
 
 use crate::service::material::{material_url, MaterialTo};
 
-pub fn audio_list(id: i32, audio_elements: Vec<&MaterialTo>) -> Html {
+pub fn audio_list(id: i64, audio_elements: Vec<&MaterialTo>) -> Html {
     html! {
         <>
         <div class="row mt-2">
@@ -29,7 +29,7 @@ pub fn audio_list(id: i32, audio_elements: Vec<&MaterialTo>) -> Html {
     }
 }
 
-fn audio_element(id: i32, audio: MaterialTo) -> Html {
+fn audio_element(id: i64, audio: MaterialTo) -> Html {
     html! {
         <div class="col">
             <h5> { &audio.title } </h5>
