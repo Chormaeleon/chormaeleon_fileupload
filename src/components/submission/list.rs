@@ -2,7 +2,7 @@ use gloo_dialogs::alert;
 use web_sys::MouseEvent;
 use yew::{html, Callback, Component, Properties};
 
-use gloo_console::error;
+use gloo_console::{error, info};
 
 use crate::{
     components::{
@@ -144,17 +144,29 @@ impl Component for SubmissionList {
                                                     </a>
                                                 </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", update_modal_id(&ctx.props().id)) }>{ "Ändern" }</button>
+                                                    <button 
+                                                        class="btn btn-sm btn-outline-danger" 
+                                                        onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target={ format!("#{}", update_modal_id(&ctx.props().id)) }>
+                                                            { "Ändern" }
+                                                    </button>
                                                 </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", delete_modal_id(&ctx.props().id)) }>{ "Löschen" }</button>
+                                                    <button 
+                                                        class="btn btn-sm btn-danger" 
+                                                        onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } 
+                                                        data-bs-toggle="modal" 
+                                                        data-bs-target={ format!("#{}", delete_modal_id(&ctx.props().id)) }>
+                                                            { "Löschen" }
+                                                    </button>
                                                 </td>
                                             </tr>
 
                                             if let Some(selected_index) = self.selected_submission  {
                                                 if index as i64 == selected_index {
                                                     <tr>
-                                                        <td colspan=7>
+                                                        <td colspan="10">
                                                             <SubmissionDetails submission={ submission.clone() } />
                                                         </td>
                                                     </tr>
@@ -250,11 +262,12 @@ impl Component for SubmissionList {
                 }
                 DeleteMessage::Success(id) => {
                     ctx.props().submission_delete.emit(id);
+                    self.selected_delete = None;
                     false
                 }
                 DeleteMessage::Fail(error) => {
-                    error!("Abgabe konnte nicht gelöscht werden.");
-                    error!(format!("Fetch error while deleting: {:?}", error));
+                    error!(format!("Fetch error while deleting submission: {:?}", error));
+                    alert("Fehler beim Löschen der Abgabe.");
                     self.selected_submission = None;
                     true
                 }
@@ -308,5 +321,5 @@ fn delete_modal_id(owner_id: &str) -> String {
 }
 
 fn update_modal_id(owner_id: &str) -> String {
-    format!("modalSubmissionDelete{owner_id}")
+    format!("modalSubmissionUpdate{owner_id}")
 }

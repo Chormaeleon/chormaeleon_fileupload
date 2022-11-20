@@ -292,7 +292,7 @@ impl Component for ProjectComponent {
                 <div class="row mt-2">
                     <div class="col">
                         <SubmissionList
-                            id="list1"
+                            id="mySubmissionsList"
                             submissions={ self.my_submissions.clone() }
                             submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }
                             submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }
@@ -308,7 +308,7 @@ impl Component for ProjectComponent {
                     <div class="row mt-2">
                         <div class="col">
                             <SubmissionList
-                            id="list2"
+                            id="allSubmissionsList"
                             submissions={ all_submissions.clone() }
                             submission_delete={ ctx.link().callback(Msg::SubmissionDeleted) }
                             submission_update={ ctx.link().callback(Msg::SubmissionUpdated) }
