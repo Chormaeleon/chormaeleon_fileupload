@@ -48,7 +48,17 @@ impl Component for Home {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let user = get_token_data().unwrap_throw();
+        let user = get_token_data();
+
+        let user = match user {
+            Ok(user) => user,
+            Err(_error) => {
+                return html! {
+                    { "Fehler! Authentifizierung nicht erfolgreich. Versuche Weiterleitung ins Chorportal." }
+                }
+            }
+        };
+
         html! {
             <>
             <div class="container">
