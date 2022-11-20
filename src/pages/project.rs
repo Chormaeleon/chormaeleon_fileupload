@@ -39,7 +39,7 @@ pub enum Msg {
     SubmissionUploadError(String),
     SubmissionDeleted(i64),
     SubmissionUpdated(Submission),
-    SubmissionFileInput(InputEvent)
+    SubmissionFileInput(InputEvent),
 }
 
 pub struct ProjectComponent {

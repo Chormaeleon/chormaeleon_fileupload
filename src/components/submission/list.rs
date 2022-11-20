@@ -9,7 +9,7 @@ use crate::{
         delete_modal::DeleteModal,
         submission::{
             details::SubmissionDetails,
-            update::{SubmissionUpdate, SubmissionUpdateData, MODAL_UPDATE_SUBMISSION},
+            update::{SubmissionUpdate, SubmissionUpdateData},
         },
     },
     service::submission::{
@@ -109,7 +109,7 @@ impl Component for SubmissionList {
                                 <td>{ "Keine Abgaben gefunden" }</td>
                             }
                         } else {
-                            html! { 
+                            html! {
                                 <>
                                 {
                                     for ctx.props().submissions.iter().enumerate().map(|(index, submission)| {
@@ -144,10 +144,10 @@ impl Component for SubmissionList {
                                                     </a>
                                                 </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{MODAL_UPDATE_SUBMISSION}") }>{ "Ändern" }</button>
+                                                    <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", update_modal_id(&ctx.props().id)) }>{ "Ändern" }</button>
                                                 </td>
                                                 <td>
-                                                    <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", calc_id(&ctx.props().id)) }>{ "Löschen" }</button>
+                                                    <button class="btn btn-sm btn-danger" onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } data-bs-toggle="modal" data-bs-target={ format!("#{}", delete_modal_id(&ctx.props().id)) }>{ "Löschen" }</button>
                                                 </td>
                                             </tr>
 
@@ -172,6 +172,7 @@ impl Component for SubmissionList {
                 </table>
             </div>
             <SubmissionUpdate
+                id={ update_modal_id(&ctx.props().id) }
                 submission={ self.selected_update.clone() }
                 on_abort={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Abort(x))) }
                 on_submit={ ctx.link().callback(|x| Msg::Update(UpdateMessage::Submit(x))) }
@@ -179,7 +180,7 @@ impl Component for SubmissionList {
 
             <DeleteModal
                     title={"Projekt löschen".to_string() }
-                    id={ calc_id(&ctx.props().id) }
+                    id={ delete_modal_id(&ctx.props().id) }
                     on_cancel={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AbortClick(x))) }
                     on_confirm={ ctx.link().callback(|x| Msg::Delete(DeleteMessage::AcceptClick(x))) }
             >
@@ -302,6 +303,10 @@ impl Component for SubmissionList {
     }
 }
 
-fn calc_id(own_id: &str) -> String {
-    format!("modalSubmissionDelete{own_id}")
+fn delete_modal_id(owner_id: &str) -> String {
+    format!("modalSubmissionDelete{owner_id}")
+}
+
+fn update_modal_id(owner_id: &str) -> String {
+    format!("modalSubmissionDelete{owner_id}")
 }

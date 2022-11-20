@@ -12,10 +12,9 @@ use crate::{
     service::submission::{Section, Submission, SubmissionKind},
 };
 
-pub const MODAL_UPDATE_SUBMISSION: &str = "ModalUpdateSubmission";
-
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct SubmissionUpdateProperties {
+    pub id: String,
     pub submission: Option<Submission>,
     pub on_abort: Callback<MouseEvent>,
     pub on_submit: Callback<SubmissionUpdateData>,
@@ -100,7 +99,7 @@ impl Component for SubmissionUpdate {
         html! {
             <Modal
                 title={ "Abgabe anpassen".to_string() }
-                id= { MODAL_UPDATE_SUBMISSION.to_string() }
+                id= { ctx.props().id.clone() }
                 actions = { vec![
                     ("Abbrechen".to_string(), "btn btn-secondary".to_string(), ctx.props().on_abort.clone()),
                     ("Erstellen".to_string(), "btn btn-danger".to_string(), ctx.link().callback(UpdateMsg::Submit))

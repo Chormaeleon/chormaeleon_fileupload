@@ -19,7 +19,7 @@ pub enum Route {
     #[at("/events/:id")]
     Event { id: i64 },
     #[at("/index.html")]
-    Index
+    Index,
 }
 
 pub enum Msg {}
@@ -67,7 +67,6 @@ fn switch(routes: &Route) -> Html {
         Route::Index => {
             html! { <Home/> }
         }
-        
     }
 }
 
