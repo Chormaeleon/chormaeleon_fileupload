@@ -7,7 +7,8 @@ use crate::{
         jwt_context::get_token_data,
         material::Material,
         submission::{
-            list::SubmissionList, InputSubmissionKind, InputSubmissionNote, InputSubmissionSection,
+            list::SubmissionList, InputSubmissionCreatorName, InputSubmissionKind,
+            InputSubmissionNote, InputSubmissionSection,
         },
         upload::Upload,
     },
@@ -205,7 +206,18 @@ impl Component for ProjectComponent {
     }
 
     fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
-        let my_section = get_token_data().unwrap_throw().section;
+        let token_data = get_token_data();
+
+        let token_data = match token_data {
+            Err(_) => {
+                return html! { "Leite um ins Chorportal zur Authorisierung... Bitte gehe ins Chorportal, falls du nicht automatisch weiter geleitet wirst." }
+            }
+            Ok(data) => data,
+        };
+
+        let my_section = token_data.section;
+        let my_name = token_data.name;
+
         match &self.project_data {
             Some(metadata) => html! {
                 <>
@@ -263,10 +275,13 @@ impl Component for ProjectComponent {
                                     <InputSubmissionNote id={ "inputContentTitle".to_string() } />
                                 </div>
                                 <div class="col-auto">
-                                    <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ crate::service::submission::Section::from(my_section) }/>
+                                    <InputSubmissionCreatorName id={ "inputSubmissionCreator".to_string() } value={ my_name } />
                                 </div>
                                 <div class="col-auto">
                                     <InputSubmissionKind id={ "selectSubmissionKind".to_string() } selected={ self.selected_submission_kind }/>
+                                </div>
+                                <div class="col-auto">
+                                    <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ crate::service::submission::Section::from(my_section) }/>
                                 </div>
                             </div>
                             <div class="row mt-2">

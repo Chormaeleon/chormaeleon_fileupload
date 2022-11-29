@@ -2,7 +2,7 @@ use gloo_dialogs::alert;
 use web_sys::MouseEvent;
 use yew::{html, Callback, Component, Properties};
 
-use gloo_console::{error, info};
+use gloo_console::error;
 
 use crate::{
     components::{
@@ -144,19 +144,19 @@ impl Component for SubmissionList {
                                                     </a>
                                                 </td>
                                                 <td>
-                                                    <button 
-                                                        class="btn btn-sm btn-outline-danger" 
-                                                        onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) } 
-                                                        data-bs-toggle="modal" 
+                                                    <button
+                                                        class="btn btn-sm btn-outline-danger"
+                                                        onclick={ ctx.link().callback(move |_| Msg::Update(UpdateMessage::Init(submission_clone.clone()))) }
+                                                        data-bs-toggle="modal"
                                                         data-bs-target={ format!("#{}", update_modal_id(&ctx.props().id)) }>
                                                             { "Ändern" }
                                                     </button>
                                                 </td>
                                                 <td>
-                                                    <button 
-                                                        class="btn btn-sm btn-danger" 
-                                                        onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) } 
-                                                        data-bs-toggle="modal" 
+                                                    <button
+                                                        class="btn btn-sm btn-danger"
+                                                        onclick={ ctx.link().callback(move |_| Msg::Delete(DeleteMessage::ListItemButtonClick(submission_clone_2.clone()))) }
+                                                        data-bs-toggle="modal"
                                                         data-bs-target={ format!("#{}", delete_modal_id(&ctx.props().id)) }>
                                                             { "Löschen" }
                                                     </button>
@@ -266,7 +266,10 @@ impl Component for SubmissionList {
                     false
                 }
                 DeleteMessage::Fail(error) => {
-                    error!(format!("Fetch error while deleting submission: {:?}", error));
+                    error!(format!(
+                        "Fetch error while deleting submission: {:?}",
+                        error
+                    ));
                     alert("Fehler beim Löschen der Abgabe.");
                     self.selected_submission = None;
                     true

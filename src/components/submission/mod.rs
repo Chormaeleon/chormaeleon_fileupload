@@ -86,3 +86,30 @@ pub fn input_submission_kind(props: &InputSubmissionKindProperties) -> Html {
         </>
     }
 }
+
+
+#[derive(Clone, Debug, PartialEq, Properties)]
+pub struct InputSubmissionCreatorNameProperties {
+    #[prop_or_default]
+    pub on_input: Callback<String>,
+    #[prop_or_default]
+    pub value: Option<String>,
+    pub id: String,
+}
+
+#[function_component(InputSubmissionCreatorName)]
+pub fn input_submission_creator_name(props: &InputSubmissionCreatorNameProperties) -> Html {
+    html! {
+        <>
+        <label for={ props.id.clone() }> { "Ersteller*in" } </label>
+        <input id={ props.id.clone() }
+            type="text"
+            class="form-control"
+            name="creator_name"
+            maxlength="100"
+            value={ props.value.clone() }
+            placeholder={ "Name des/der Ersteller*in der Abgabe" }
+            oninput={convert_string_callback(props.on_input.clone())}/>
+        </>
+    }
+}
