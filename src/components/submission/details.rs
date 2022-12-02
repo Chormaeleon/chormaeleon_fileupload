@@ -14,7 +14,7 @@ pub struct SubmissionProperties {
 pub fn submission_details(s: &SubmissionProperties) -> Html {
     let submission = &s.submission;
     html!(<>
-        
+
         <table class="table">
             <tbody>
             <caption>
@@ -22,19 +22,19 @@ pub fn submission_details(s: &SubmissionProperties) -> Html {
             </caption>
             <tr>
                 <td>
-                    <b>{ "Dateiname:" }</b> 
+                    <b>{ "Dateiname:" }</b>
                 </td>
-                <td> 
+                <td>
                     <i>{ &submission.file_name } </i>
                 </td>
                 <td>
-                    <b>{ "Id: " }</b> 
+                    <b>{ "Id: " }</b>
                 </td>
                 <td>
                     { submission.id }
                 </td>
                 <td>
-                    <b>{ "Hochgeladen: " }</b> 
+                    <b>{ "Hochgeladen: " }</b>
                 </td>
                 <td>
                     { format_datetime_human_readable_seconds(&submission.upload_at) }
@@ -42,7 +42,7 @@ pub fn submission_details(s: &SubmissionProperties) -> Html {
             </tr>
             <tr>
                 <td>
-                    <b>{ "Autor (Id): " }</b>   
+                    <b>{ "Autor (Id): " }</b>
                 </td>
                 <td>
                     { submission.creator }
@@ -54,10 +54,10 @@ pub fn submission_details(s: &SubmissionProperties) -> Html {
                     { &submission.creator_name }
                 </td>
                 <td>
-                    <b>{ "Eingereicht von: " }</b>   
+                    <b>{ "Eingereicht von: " }</b>
                 </td>
                 <td>
-                    { submission.submitter }     
+                    { submission.submitter }
                 </td>
             </tr>
         </tbody>

@@ -292,6 +292,7 @@ impl Component for SubmissionList {
                                 note: data.note,
                                 section: data.section,
                                 kind: data.kind,
+                                creator_name: data.creator_name,
                             },
                         )
                         .await

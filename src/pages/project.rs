@@ -281,7 +281,7 @@ impl Component for ProjectComponent {
                                     <InputSubmissionKind id={ "selectSubmissionKind".to_string() } selected={ self.selected_submission_kind }/>
                                 </div>
                                 <div class="col-auto">
-                                    <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ crate::service::submission::Section::from(my_section) }/>
+                                    <InputSubmissionSection id={ "selectSubmissionSection".to_string() } selected={ crate::service::submission::Section::from(my_section) }/>
                                 </div>
                             </div>
                             <div class="row mt-2">

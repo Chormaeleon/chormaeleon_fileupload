@@ -2,6 +2,9 @@ pub mod details;
 pub mod list;
 pub mod update;
 
+use gloo_utils::document;
+use wasm_bindgen::{JsCast, UnwrapThrowExt};
+use web_sys::HtmlInputElement;
 use yew::{function_component, html, Callback, Properties};
 
 use crate::{
@@ -87,7 +90,6 @@ pub fn input_submission_kind(props: &InputSubmissionKindProperties) -> Html {
     }
 }
 
-
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct InputSubmissionCreatorNameProperties {
     #[prop_or_default]
@@ -99,15 +101,29 @@ pub struct InputSubmissionCreatorNameProperties {
 
 #[function_component(InputSubmissionCreatorName)]
 pub fn input_submission_creator_name(props: &InputSubmissionCreatorNameProperties) -> Html {
+    let mut value = props.value.clone();
+
+    let current_input_element = document().get_element_by_id(&props.id);
+
+    if let Some(current_input_element) = current_input_element {
+        let current_input_element: HtmlInputElement =
+            current_input_element.dyn_into().unwrap_throw();
+        let element_value = current_input_element.value();
+        let element_value = element_value.trim();
+        if !element_value.is_empty() {
+            value = Some(element_value.to_string());
+        }
+    }
+
     html! {
         <>
         <label for={ props.id.clone() }> { "Ersteller*in" } </label>
         <input id={ props.id.clone() }
             type="text"
             class="form-control"
-            name="creator_name"
+            name="creatorname"
             maxlength="100"
-            value={ props.value.clone() }
+            value={ value.clone() }
             placeholder={ "Name des/der Ersteller*in der Abgabe" }
             oninput={convert_string_callback(props.on_input.clone())}/>
         </>

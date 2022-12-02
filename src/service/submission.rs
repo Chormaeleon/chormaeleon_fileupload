@@ -120,6 +120,7 @@ pub struct UpdateSubmission {
     pub note: String,
     pub section: Section,
     pub kind: SubmissionKind,
+    pub creator_name: String,
 }
 
 pub async fn submissions_by_project(project_id: i64) -> Result<Vec<Submission>, FetchError> {

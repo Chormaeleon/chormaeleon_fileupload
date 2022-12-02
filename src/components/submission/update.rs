@@ -1,3 +1,5 @@
+use std::f64::consts::PI;
+
 use gloo_dialogs::alert;
 use web_sys::MouseEvent;
 use yew::{html, Callback, Component, Html, Properties};
@@ -7,7 +9,10 @@ use gloo_console::error;
 use crate::{
     components::{
         modal::Modal,
-        submission::{InputSubmissionKind, InputSubmissionNote, InputSubmissionSection},
+        submission::{
+            InputSubmissionCreatorName, InputSubmissionKind, InputSubmissionNote,
+            InputSubmissionSection,
+        },
     },
     service::submission::{Section, Submission, SubmissionKind},
 };
@@ -30,12 +35,14 @@ pub struct SubmissionUpdateData {
     pub note: String,
     pub section: Section,
     pub kind: SubmissionKind,
+    pub creator_name: String,
 }
 
 pub enum UpdateMsg {
     Note(String),
     Section(Result<Section, ()>),
     Kind(SubmissionKind),
+    CreatorName(String),
     Submit(MouseEvent),
 }
 
@@ -80,6 +87,10 @@ impl Component for SubmissionUpdate {
                 data.kind = kind;
                 false
             }
+            UpdateMsg::CreatorName(name) => {
+                data.creator_name = name;
+                false
+            }
             UpdateMsg::Submit(_) => {
                 ctx.props().on_submit.emit(data.clone());
                 self.data = None;
@@ -115,12 +126,18 @@ impl Component for SubmissionUpdate {
                                     <div class="col">
                                         <InputSubmissionNote id={ "inputUpdatedSubmissionNote".to_string() } value={ submission.note.clone() } on_input={ctx.link().callback(UpdateMsg::Note)}/>
                                     </div>
+
+                                    <div class="col-auto">
+                                        <InputSubmissionCreatorName id={ "inputUpdatedSubmissionCreatorName".to_string() } value={ submission.creator_name.clone() } on_input={ctx.link().callback(UpdateMsg::CreatorName)}/>
+                                    </div>
+
                                     <div class="col-auto">
                                         <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ submission.creator_section } on_input={ctx.link().callback(UpdateMsg::Section)}/>
                                     </div>
                                     <div class="col-auto">
                                         <InputSubmissionKind id={ "selectUpdatedSubmissionKind".to_string() } selected={ submission.kind } on_input={ctx.link().callback(UpdateMsg::Kind)}/>
                                     </div>
+
                                 </div>
                         </form>
                         }
@@ -155,6 +172,15 @@ impl SubmissionUpdate {
                 note: submission.note.clone(),
                 section: submission.creator_section,
                 kind: submission.kind,
+                creator_name: submission.creator_name.clone(),
             })
     }
+}
+
+fn kegelhoehe(a_gesamt: f64, v_kugel: f64) -> f64 {
+    let r = f64::cbrt(v_kugel / (4.0 / 3.0) / PI);
+    let a_halbkugel = (1.0 / 2.0) * 4.0 * PI * r.powi(2);
+    let a_kegelspitze = a_gesamt - a_halbkugel;
+
+    a_kegelspitze / PI / r
 }
