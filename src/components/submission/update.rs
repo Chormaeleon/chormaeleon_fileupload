@@ -1,5 +1,3 @@
-use std::f64::consts::PI;
-
 use gloo_dialogs::alert;
 use web_sys::MouseEvent;
 use yew::{html, Callback, Component, Html, Properties};
