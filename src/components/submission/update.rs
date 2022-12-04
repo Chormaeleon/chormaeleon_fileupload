@@ -176,11 +176,3 @@ impl SubmissionUpdate {
             })
     }
 }
-
-fn kegelhoehe(a_gesamt: f64, v_kugel: f64) -> f64 {
-    let r = f64::cbrt(v_kugel / (4.0 / 3.0) / PI);
-    let a_halbkugel = (1.0 / 2.0) * 4.0 * PI * r.powi(2);
-    let a_kegelspitze = a_gesamt - a_halbkugel;
-
-    a_kegelspitze / PI / r
-}
