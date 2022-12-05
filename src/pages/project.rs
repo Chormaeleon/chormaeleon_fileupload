@@ -275,7 +275,7 @@ impl Component for ProjectComponent {
                                     <InputSubmissionNote id={ "inputContentTitle".to_string() } />
                                 </div>
                                 <div class="col-auto">
-                                    <InputSubmissionCreatorName id={ "inputSubmissionCreator".to_string() } value={ my_name } />
+                                    <InputSubmissionCreatorName id={ "inputSubmissionCreator".to_string() } value={ my_name } overwrite_value = false />
                                 </div>
                                 <div class="col-auto">
                                     <InputSubmissionKind id={ "selectSubmissionKind".to_string() } selected={ self.selected_submission_kind }/>

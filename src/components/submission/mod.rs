@@ -96,6 +96,8 @@ pub struct InputSubmissionCreatorNameProperties {
     pub on_input: Callback<String>,
     #[prop_or_default]
     pub value: Option<String>,
+    /// Whether to overwrite the value of the text field with the value provided or to let the (saved) value of the input take precedence
+    pub overwrite_value: bool,
     pub id: String,
 }
 
@@ -103,15 +105,17 @@ pub struct InputSubmissionCreatorNameProperties {
 pub fn input_submission_creator_name(props: &InputSubmissionCreatorNameProperties) -> Html {
     let mut value = props.value.clone();
 
-    let current_input_element = document().get_element_by_id(&props.id);
+    if !props.overwrite_value {
+        let current_input_element = document().get_element_by_id(&props.id);
 
-    if let Some(current_input_element) = current_input_element {
-        let current_input_element: HtmlInputElement =
-            current_input_element.dyn_into().unwrap_throw();
-        let element_value = current_input_element.value();
-        let element_value = element_value.trim();
-        if !element_value.is_empty() {
-            value = Some(element_value.to_string());
+        if let Some(current_input_element) = current_input_element {
+            let current_input_element: HtmlInputElement =
+                current_input_element.dyn_into().unwrap_throw();
+            let element_value = current_input_element.value();
+            let element_value = element_value.trim();
+            if !element_value.is_empty() {
+                value = Some(element_value.to_string());
+            }
         }
     }
 

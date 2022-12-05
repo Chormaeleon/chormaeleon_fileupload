@@ -126,7 +126,7 @@ impl Component for SubmissionUpdate {
                                     </div>
 
                                     <div class="col-auto">
-                                        <InputSubmissionCreatorName id={ "inputUpdatedSubmissionCreatorName".to_string() } value={ submission.creator_name.clone() } on_input={ctx.link().callback(UpdateMsg::CreatorName)}/>
+                                        <InputSubmissionCreatorName id={ "inputUpdatedSubmissionCreatorName".to_string() } value={ submission.creator_name.clone() } overwrite_value=true on_input={ctx.link().callback(UpdateMsg::CreatorName)}/>
                                     </div>
 
                                     <div class="col-auto">
