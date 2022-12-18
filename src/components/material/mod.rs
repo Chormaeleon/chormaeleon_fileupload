@@ -8,7 +8,7 @@ use gloo_console::{error, warn};
 use gloo_dialogs::alert;
 use wasm_bindgen::UnwrapThrowExt;
 use web_sys::MouseEvent;
-use yew::{function_component, html, Callback, Component, Properties};
+use yew::{function_component, html, Callback, Component, Html, Properties};
 
 use crate::{
     components::{

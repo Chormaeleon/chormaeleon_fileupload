@@ -37,7 +37,7 @@ impl Component for ProgressComponent {
         }
     }
 
-    fn changed(&mut self, ctx: &yew::Context<Self>) -> bool {
+    fn changed(&mut self, ctx: &yew::Context<Self>, _old_props: &Self::Properties) -> bool {
         self.progress.set_loaded(ctx.props().loaded);
         self.progress.set_total(ctx.props().total);
         true

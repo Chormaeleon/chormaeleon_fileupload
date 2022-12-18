@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use wasm_bindgen::UnwrapThrowExt;
 use web_sys::{HtmlInputElement, HtmlSelectElement, InputEvent};
 use yew::{Callback, TargetCast};
@@ -104,6 +102,8 @@ where
     Enum: for<'a> From<&'a str> + 'static,
 {
     convert_enum_callback_infallible::<InputEvent, Enum>(callback, input_event_to_string)
+
+    //callback.reform(input_event_to_string)
 }
 
 /// This function converts a [Callback] containing InputEvent into an enum (or struct) that implements [TryFrom] for &str.
@@ -160,15 +160,5 @@ where
     Input: 'static,
     Output: 'static,
 {
-    let passive = if let Callback::Callback { cb: _, passive } = callback {
-        passive
-    } else {
-        None
-    };
-    Callback::Callback {
-        cb: Rc::from(move |input: Input| {
-            callback.emit(function(input));
-        }),
-        passive,
-    }
+    callback.reform(function)
 }

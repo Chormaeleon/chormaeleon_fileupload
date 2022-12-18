@@ -187,7 +187,11 @@ impl Component for ProjectEditModal {
             },
             None => Self {
                 id: None,
-                due: Utc::now().naive_local().date().and_hms(23, 59, 00),
+                due: Utc::now()
+                    .naive_local()
+                    .date()
+                    .and_hms_opt(23, 59, 00)
+                    .unwrap(),
                 title: "".to_string(),
             },
         }
@@ -227,7 +231,7 @@ impl Component for ProjectEditModal {
         }
     }
 
-    fn changed(&mut self, ctx: &yew::Context<Self>) -> bool {
+    fn changed(&mut self, ctx: &yew::Context<Self>, _old_props: &Self::Properties) -> bool {
         if let Some(project) = &ctx.props().project {
             self.id = Some(project.id);
             self.due = project.due;

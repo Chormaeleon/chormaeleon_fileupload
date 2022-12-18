@@ -1,5 +1,5 @@
 use wasm_bindgen::UnwrapThrowExt;
-use yew::{function_component, html, Callback, Component, Properties};
+use yew::{function_component, html, Callback, Component, Html, Properties};
 
 use crate::{
     components::{modal::Modal, upload::Upload},

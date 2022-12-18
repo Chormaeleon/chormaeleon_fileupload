@@ -1,4 +1,4 @@
-use yew::{function_component, html, Properties};
+use yew::{function_component, html, Html, Properties};
 
 use crate::{
     service::submission::{submission_stream_url, Submission},

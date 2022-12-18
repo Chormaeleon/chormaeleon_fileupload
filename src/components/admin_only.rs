@@ -1,5 +1,5 @@
 use gloo_console::error;
-use yew::{function_component, html, Children, Properties};
+use yew::{function_component, html, Children, Html, Properties};
 
 use super::jwt_context::get_token_data;
 

@@ -2,7 +2,7 @@ use gloo_console::{error, warn};
 use gloo_dialogs::alert;
 
 use web_sys::MouseEvent;
-use yew::{classes, function_component, html, Callback, Component, Properties};
+use yew::{classes, function_component, html, Callback, Component, Html, Properties};
 use yew_router::prelude::Link;
 
 use crate::{

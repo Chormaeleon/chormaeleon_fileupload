@@ -43,7 +43,7 @@ impl Component for App {
             <JWTProvider>
             <BrowserRouter>
                 <main>
-                        <Switch<Route> render={Switch::render(switch)} />
+                        <Switch<Route> render={switch} />
                 </main>
             </BrowserRouter>
             </JWTProvider>
@@ -52,8 +52,8 @@ impl Component for App {
 }
 
 #[allow(clippy::let_unit_value)]
-fn switch(routes: &Route) -> Html {
-    match routes.clone() {
+fn switch(route: Route) -> Html {
+    match route {
         Route::Home => {
             html! { <Home/> }
         }
@@ -71,5 +71,5 @@ fn switch(routes: &Route) -> Html {
 }
 
 fn main() {
-    yew::start_app::<App>();
+    yew::Renderer::<App>::new().render();
 }

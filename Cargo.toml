@@ -9,9 +9,9 @@ members = [".", "xmlhttp"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-base64 = "^0.13"
-yew = "0.19"
-yew-router = "0.16"
+base64 = "^0.20"
+yew = {version = "0.20", features = [ "csr" ]}
+yew-router = "0.17"
 gloo-file = "0.2"
 
 gloo-utils = "0.1"

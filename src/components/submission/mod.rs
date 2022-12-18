@@ -5,7 +5,7 @@ pub mod update;
 use gloo_utils::document;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::HtmlInputElement;
-use yew::{function_component, html, Callback, Properties};
+use yew::{function_component, html, Callback, Html, Properties};
 
 use crate::{
     service::submission::{Section, SubmissionKind},

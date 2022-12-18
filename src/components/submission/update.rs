@@ -97,7 +97,7 @@ impl Component for SubmissionUpdate {
         }
     }
 
-    fn changed(&mut self, ctx: &yew::Context<Self>) -> bool {
+    fn changed(&mut self, ctx: &yew::Context<Self>, _old_props: &Self::Properties) -> bool {
         self.data = Self::submission_changed(ctx);
         true
     }
