@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use base64::{
     alphabet,
-    engine::fast_portable::{self, FastPortable},
+    engine::general_purpose::{self, GeneralPurpose}, Engine,
 };
 use chrono::Utc;
 use gloo_console::error;
@@ -12,7 +12,7 @@ use yew::prelude::*;
 
 use web_sys::{HtmlDocument, UrlSearchParams};
 
-const JWT_ENGINE: FastPortable = FastPortable::from(&alphabet::STANDARD, fast_portable::NO_PAD);
+const JWT_ENGINE: GeneralPurpose = GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
 
 #[derive(Properties, Debug, PartialEq)]
 pub struct JWTProviderProps {
@@ -115,7 +115,7 @@ pub fn get_token_data() -> Result<PerformerData, ()> {
         }
     };
 
-    let base64_decoded = match base64::decode_engine(payload.as_bytes(), &JWT_ENGINE) {
+    let base64_decoded = match JWT_ENGINE.decode(payload.as_bytes()) {
         Ok(result) => result,
         Err(error) => {
             error!(format!(
