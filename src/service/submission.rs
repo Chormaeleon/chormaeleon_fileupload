@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
-use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use time::PrimitiveDateTime;
 
 use crate::{
     components::jwt_context::{self},
@@ -23,7 +23,7 @@ pub struct Submission {
     pub creator: i64,
     pub creator_name: String,
     pub creator_section: Section,
-    pub upload_at: NaiveDateTime,
+    pub upload_at: PrimitiveDateTime,
     pub kind: SubmissionKind,
 }
 

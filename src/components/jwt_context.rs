@@ -2,17 +2,19 @@ use std::fmt::Display;
 
 use base64::{
     alphabet,
-    engine::general_purpose::{self, GeneralPurpose}, Engine,
+    engine::general_purpose::{self, GeneralPurpose},
+    Engine,
 };
-use chrono::Utc;
 use gloo_console::error;
 use serde::Deserialize;
+use time::OffsetDateTime;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use yew::prelude::*;
 
 use web_sys::{HtmlDocument, UrlSearchParams};
 
-const JWT_ENGINE: GeneralPurpose = GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
+const JWT_ENGINE: GeneralPurpose =
+    GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
 
 #[derive(Properties, Debug, PartialEq)]
 pub struct JWTProviderProps {
@@ -50,7 +52,6 @@ pub fn get_token() -> String {
         .cookie()
         .unwrap_throw()
         .split("; ")
-        .into_iter()
         .find(|x| x.starts_with("jwt="))
         .map(|x| x.trim_start_matches("jwt="))
     {
@@ -145,7 +146,7 @@ pub fn get_token_data() -> Result<PerformerData, ()> {
         }
     };
 
-    if data.exp < Utc::now().timestamp() {
+    if data.exp < OffsetDateTime::now_local().unwrap().unix_timestamp() {
         error!("JWT expired!");
         return Err(());
     }

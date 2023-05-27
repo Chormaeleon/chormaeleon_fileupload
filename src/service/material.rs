@@ -1,7 +1,7 @@
 use std::fmt::Display;
 
-use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use time::PrimitiveDateTime;
 
 use crate::utilities::requests::fetch::{
     delete_request, get_request_struct, post_request_struct, FetchError,
@@ -41,7 +41,7 @@ pub struct MaterialTo {
     pub file_name: String,
     pub file_technical_name: String,
     pub creator: i64,
-    pub upload_at: NaiveDateTime,
+    pub upload_at: PrimitiveDateTime,
     pub category: MaterialCategory,
 }
 

@@ -12,7 +12,7 @@ use crate::{
         project::modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT},
     },
     service::project::{delete_project, ProjectTo},
-    utilities::requests::fetch::FetchError,
+    utilities::{date::format_datetime_human_readable, requests::fetch::FetchError},
     Route,
 };
 
@@ -273,7 +273,7 @@ fn project_list(props: &ProjectListProperties) -> Html {
                                     </Link<Route>>
                                 </td>
                                 <td>
-                                    { &project.due }
+                                    { format_datetime_human_readable(&project.due) }
                                 </td>
                                 <AdminOrOwner owner_id={ project.creator }>
                                 <td>

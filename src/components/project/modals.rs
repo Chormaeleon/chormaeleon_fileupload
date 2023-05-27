@@ -1,6 +1,5 @@
-use chrono::{NaiveDateTime, Utc};
-use gloo_console::info;
 use gloo_dialogs::alert;
+use time::{macros::format_description, PrimitiveDateTime, Time};
 use web_sys::{Event, InputEvent, MouseEvent};
 use yew::{html, Callback, Component, Properties};
 
@@ -10,7 +9,7 @@ use crate::{
     components::modal::Modal,
     pages::home::{get_value_from_event, get_value_from_input_event},
     service::project::{create_project, update_project, ProjectTo},
-    utilities::requests::fetch::FetchError,
+    utilities::{date::now, requests::fetch::FetchError},
 };
 
 pub const MODAL_NEW_PROJECT: &str = "modalNewProject";
@@ -150,7 +149,7 @@ pub struct ModalResult {
     id: Option<i64>,
     title: String,
     description: String,
-    due: NaiveDateTime,
+    due: PrimitiveDateTime,
 }
 
 #[derive(Clone, PartialEq, Properties)]
@@ -164,7 +163,7 @@ struct ProjectEditModalProperties {
 struct ProjectEditModal {
     id: Option<i64>,
     title: String,
-    due: NaiveDateTime,
+    due: PrimitiveDateTime,
 }
 
 enum Msg {
@@ -187,11 +186,7 @@ impl Component for ProjectEditModal {
             },
             None => Self {
                 id: None,
-                due: Utc::now()
-                    .naive_local()
-                    .date()
-                    .and_hms_opt(23, 59, 00)
-                    .unwrap(),
+                due: now().replace_time(Time::from_hms(23, 59, 59).unwrap()),
                 title: "".to_string(),
             },
         }
@@ -205,16 +200,32 @@ impl Component for ProjectEditModal {
             }
             Msg::DateInput(event) => {
                 let date_string = get_value_from_event(event);
-                info!(date_string.clone());
-                self.due =
-                    match NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S%.3f") {
-                        Ok(date_time) => date_time,
-                        Err(_e) => NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M:%S")
-                            .unwrap_or_else(|_| {
-                                NaiveDateTime::parse_from_str(&date_string, "%Y-%m-%dT%H:%M")
-                                    .expect("problem")
-                            }),
-                    };
+
+                if date_string.is_empty() {
+                    return false;
+                }
+
+                self.due = match PrimitiveDateTime::parse(
+                    &date_string,
+                    format_description!(
+                        "[year]-[month]-[day]T[hour]:[minute]:[second]:[subsecond]"
+                    ),
+                ) {
+                    Ok(date_time) => date_time,
+                    Err(_e) => PrimitiveDateTime::parse(
+                        &date_string,
+                        format_description!("[year]-[month]-[day]T[hour]:[minute]:[second]"),
+                    )
+                    .unwrap_or_else(|_| {
+                        PrimitiveDateTime::parse(
+                            &date_string,
+                            format_description!("[year]-[month]-[day]T[hour]:[minute]"),
+                        )
+                        .unwrap_or_else(|error| {
+                            panic!("Could not parse date {date_string}, error: {error}")
+                        })
+                    }),
+                };
                 false
             }
             Msg::AbortClick(_) => false,
@@ -309,9 +320,10 @@ impl ProjectEditModal {
 }
 
 fn end_of_today() -> String {
-    format_date_to_end_of_day(Utc::now().naive_local())
+    format_date_to_end_of_day(now())
 }
 
-fn format_date_to_end_of_day(date_time: NaiveDateTime) -> String {
-    date_time.format("%Y-%m-%dT23:59").to_string()
+fn format_date_to_end_of_day(date_time: PrimitiveDateTime) -> String {
+    let format = format_description!("[year]-[month]-[day]T23:59");
+    date_time.format(&format).unwrap()
 }

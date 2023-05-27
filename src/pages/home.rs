@@ -7,10 +7,9 @@ use crate::{
         },
     },
     service::project::{get_all_projects, get_my_projects, get_pending_projects, ProjectTo},
-    utilities::requests::fetch::FetchError,
+    utilities::{requests::fetch::FetchError, date::now},
 };
 
-use chrono::Utc;
 use gloo_console::error;
 use gloo_dialogs::alert;
 use gloo_utils::document;
@@ -151,7 +150,7 @@ impl Component for Home {
                 true
             }
             Msg::CreateProjectSuccess(project) => {
-                if project.due > Utc::now().naive_local() {
+                if project.due > now() {
                     add_and_sort(&mut self.pending_projects, &project);
                 }
 

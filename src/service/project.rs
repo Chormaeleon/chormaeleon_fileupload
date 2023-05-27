@@ -1,5 +1,5 @@
-use chrono::NaiveDateTime;
 use serde::{Deserialize, Serialize};
+use time::PrimitiveDateTime;
 
 use crate::utilities::requests::fetch::{
     delete_request, get_request_struct, post_request_struct, FetchError,
@@ -37,7 +37,7 @@ pub async fn get_all_projects() -> Result<Vec<ProjectTo>, FetchError> {
 pub async fn create_project(
     title: String,
     description: String,
-    due_date: NaiveDateTime,
+    due_date: PrimitiveDateTime,
 ) -> Result<ProjectTo, FetchError> {
     let body = CreateProjectBody {
         title,
@@ -53,7 +53,7 @@ pub async fn update_project(
     project_id: i64,
     title: String,
     description: String,
-    due: NaiveDateTime,
+    due: PrimitiveDateTime,
 ) -> Result<ProjectTo, FetchError> {
     let body = UpdateProject {
         title,
@@ -74,20 +74,20 @@ pub struct ProjectTo {
     pub title: String,
     pub description: String,
     pub creator: i64,
-    pub created_at: NaiveDateTime,
-    pub due: NaiveDateTime,
+    pub created_at: PrimitiveDateTime,
+    pub due: PrimitiveDateTime,
 }
 
 #[derive(Clone, Serialize)]
 pub struct CreateProjectBody {
     pub title: String,
     pub description: String,
-    pub due_date: NaiveDateTime,
+    pub due_date: PrimitiveDateTime,
 }
 
 #[derive(Clone, Serialize)]
 pub struct UpdateProject {
     pub title: String,
     pub description: String,
-    pub due: NaiveDateTime,
+    pub due: PrimitiveDateTime,
 }
