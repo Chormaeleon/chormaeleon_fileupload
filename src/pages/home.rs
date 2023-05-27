@@ -7,7 +7,7 @@ use crate::{
         },
     },
     service::project::{get_all_projects, get_my_projects, get_pending_projects, ProjectTo},
-    utilities::{requests::fetch::FetchError, date::now},
+    utilities::{date::now, requests::fetch::FetchError},
 };
 
 use gloo_console::error;
@@ -175,11 +175,26 @@ impl Component for Home {
                 match &mut self.pending_projects {
                     Some(projects) => {
                         projects.retain(|x| x.id != project.id);
-                        projects.push(project);
-                        sort_projects(projects);
+                        if project.due > now() {
+                            projects.push(project.clone());
+                            sort_projects(projects);
+                        }
                     }
                     None => (),
                 }
+                self.all_projects
+                    .as_mut()
+                    .expect("Changed nonexisting project!")
+                    .retain(|x| x.id != project.id);
+                self.all_projects.as_mut().unwrap().push(project.clone());
+                sort_projects(self.all_projects.as_mut().unwrap());
+
+                self.my_projects
+                    .as_mut()
+                    .expect("Changed nonexisting project!")
+                    .retain(|x| x.id != project.id);
+                self.my_projects.as_mut().unwrap().push(project);
+                sort_projects(self.my_projects.as_mut().unwrap());
                 true
             }
         }
