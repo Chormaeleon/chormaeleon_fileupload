@@ -17,27 +17,8 @@ wasm-bindgen-futures = "0.4"
 
 [dependencies.web-sys]
 version = "0.3"
+default-features = false
 features = [
-  "Blob",
-  "Element",
-  "ErrorEvent",
-  "File",
-  "FormData",
-  "Headers",
-  "HtmlAnchorElement",
-  "HtmlFormElement",
-  "HtmlIFrameElement",
-  "HtmlInputElement",
-  "HtmlProgressElement",
-  "Location",
-  "Storage",
-  "Request",
-  "RequestInit",
-  "RequestMode",
-  "Response",
-  "Url",
-  "UrlSearchParams",
-  "Window",
   "XmlHttpRequest",
   "XmlHttpRequestUpload"
   ]

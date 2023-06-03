@@ -23,7 +23,7 @@ time = { version = "0.3", features = [
   "macros",
   "parsing",
   "serde-human-readable",
-  "wasm-bindgen"
+  "wasm-bindgen",
 ] }
 wasm-bindgen = { version = "^0.2", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4"
@@ -31,32 +31,17 @@ xmlhttp = { path = "./xmlhttp" }
 yew = { version = "0.20", features = ["csr"] }
 yew-router = "0.17"
 
+
 [dependencies.web-sys]
 version = "0.3"
 features = [
-  "Blob",
-  "Element",
-  "ErrorEvent",
-  "File",
-  "FormData",
-  "Headers",
   "HtmlAnchorElement",
   "HtmlDocument",
   "HtmlFormElement",
   "HtmlIFrameElement",
-  "HtmlInputElement",
-  "HtmlProgressElement",
   "HtmlSelectElement",
-  "Location",
-  "Storage",
-  "Request",
-  "RequestCredentials",
-  "RequestInit",
-  "RequestMode",
-  "Response",
-  "Url",
-  "UrlSearchParams",
-  "Window",
-  "XmlHttpRequest",
-  "XmlHttpRequestUpload",
 ]
+
+[profile.release]
+lto="fat"
+opt-level = "z"
