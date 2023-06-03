@@ -6,7 +6,10 @@ use crate::{
             modals::{ProjectCreateModal, MODAL_NEW_PROJECT},
         },
     },
-    service::project::{get_all_projects, get_my_projects, get_pending_projects, ProjectTo},
+    service::{
+        project::{get_all_projects, get_my_projects, get_pending_projects, ProjectTo},
+        CONFIG,
+    },
     utilities::{date::now, requests::fetch::FetchError},
 };
 
@@ -58,13 +61,14 @@ impl Component for Home {
             }
         };
 
+        let chorportal_url = CONFIG.get().unwrap().auth_website.clone();
+
         html! {
             <>
             <div class="container">
                 <div class="row mt-2">
                     <div class="col">
                         { "Angemeldet als: " }
-                        { "Name: " }
                         <i>{ &user.name }</i>
                         { "; Stimme: " }
                         <i>{ user.section }</i>
@@ -75,10 +79,12 @@ impl Component for Home {
 
                 <div class="row mt-2">
                     <div class="col">
-                        <h2> { "Projekte" } </h2>
+                        <a href={chorportal_url}>
+                        <button class="btn btn-outline-danger">{ "Zurück zum Chorportal" }</button>
+                        </a>
                     </div>
                     <div class="col text-end">
-                        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_NEW_PROJECT}")}>{ "Neues Projekt" }</button>
+                        <button class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_NEW_PROJECT}")}>{ "Neues Projekt" }</button>
                     </div>
                 </div>
                 <ProjectLists

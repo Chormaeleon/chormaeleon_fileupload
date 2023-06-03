@@ -5,33 +5,40 @@ use crate::utilities::requests::fetch::{
     delete_request, get_request_struct, post_request_struct, FetchError,
 };
 
-use super::BACKEND_URL;
+use super::backend;
 
 pub async fn delete_project(project_id: i64) -> Result<(), FetchError> {
-    delete_request(&format!("{BACKEND_URL}/projects/{project_id}")).await
+    let backend_url = backend();
+    delete_request(&format!("{backend_url}/projects/{project_id}")).await
 }
 
 pub async fn project_data(project_id: i64) -> Result<ProjectTo, FetchError> {
-    get_request_struct::<ProjectTo>(&format!("{BACKEND_URL}/projects/{}", project_id)).await
+    let backend_url = backend();
+    get_request_struct::<ProjectTo>(&format!("{backend_url}/projects/{}", project_id)).await
 }
 
 pub fn all_submissions_link(project_id: i64) -> String {
-    format!("{BACKEND_URL}/projects/{project_id}/allSubmissions")
+    let backend_url = backend();
+    format!("{backend_url}/projects/{project_id}/allSubmissions")
 }
 
 pub fn submission_upload_url(project_id: i64) -> String {
-    format!("{BACKEND_URL}/projects/{project_id}")
+    let backend_url = backend();
+    format!("{backend_url}/projects/{project_id}")
 }
 
 pub async fn get_pending_projects() -> Result<Vec<ProjectTo>, FetchError> {
-    get_request_struct::<Vec<ProjectTo>>(&format!("{BACKEND_URL}/projects/pending")).await
+    let backend_url = backend();
+    get_request_struct::<Vec<ProjectTo>>(&format!("{backend_url}/projects/pending")).await
 }
 
 pub async fn get_my_projects() -> Result<Vec<ProjectTo>, FetchError> {
-    get_request_struct::<Vec<ProjectTo>>(&format!("{BACKEND_URL}/projects/myProjects")).await
+    let backend_url = backend();
+    get_request_struct::<Vec<ProjectTo>>(&format!("{backend_url}/projects/myProjects")).await
 }
 pub async fn get_all_projects() -> Result<Vec<ProjectTo>, FetchError> {
-    get_request_struct::<Vec<ProjectTo>>(&format!("{BACKEND_URL}/projects/all")).await
+    let backend_url = backend();
+    get_request_struct::<Vec<ProjectTo>>(&format!("{backend_url}/projects/all")).await
 }
 
 pub async fn create_project(
@@ -45,7 +52,9 @@ pub async fn create_project(
         due_date,
     };
 
-    post_request_struct::<CreateProjectBody, ProjectTo>(&format!("{BACKEND_URL}/projects"), body)
+    let backend_url = backend();
+
+    post_request_struct::<CreateProjectBody, ProjectTo>(&format!("{backend_url}/projects"), body)
         .await
 }
 
@@ -60,9 +69,9 @@ pub async fn update_project(
         description,
         due,
     };
-
+    let backend_url = backend();
     post_request_struct::<UpdateProject, ProjectTo>(
-        &format!("{BACKEND_URL}/projects/{project_id}"),
+        &format!("{backend_url}/projects/{project_id}"),
         body,
     )
     .await

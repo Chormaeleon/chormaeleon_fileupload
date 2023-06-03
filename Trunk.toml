@@ -1,0 +1,7 @@
+[watch]
+ignore = ["config/config.json"]
+
+[[hooks]]
+stage = "pre_build"
+command = "sh"
+command_arguments = ["copy_config.sh"]
