@@ -48,7 +48,7 @@ pub fn get_token() -> String {
 
     if let Ok(p) = param {
         doc.set_cookie(&format!(
-            "jwt=Bearer {p} Domain={}",
+            "jwt=Bearer {p} Domain={} SameSite=Strict Secure",
             CONFIG.get().expect("Config unset").backend_domain
         ))
         .unwrap_throw();
