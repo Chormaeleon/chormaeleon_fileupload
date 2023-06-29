@@ -19,57 +19,6 @@ use crate::service::CONFIG;
 const JWT_ENGINE: GeneralPurpose =
     GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
 
-#[derive(Properties, Debug, PartialEq)]
-pub struct JWTProviderProps {
-    #[prop_or_default]
-    pub children: Children,
-}
-
-#[function_component(JWTProvider)]
-pub fn jwt_provider(props: &JWTProviderProps) -> Html {
-    html! {
-        <ContextProvider<String> context={ get_token() }>
-            {props.children.clone()}
-        </ContextProvider<String>>
-    }
-}
-
-/// Tries to retrieve the jwt token string out of the local storage or a query parameter that is used to authenticate the user.
-/// If retrieving out of a query parameter, sets it in the local storage.
-/// If it cannot be retrieved, sends the user to the endpoint to retrieve a new one.
-pub fn get_token() -> String {
-    let window = gloo_utils::window();
-
-    let document = gloo_utils::document();
-
-    let doc: HtmlDocument = window.document().unwrap_throw().dyn_into().unwrap();
-
-    let param = get_jwt_from_url_param(document);
-
-    if let Ok(p) = param {
-        doc.set_cookie(&format!(
-            "jwt=Bearer {p} Domain={} SameSite=Strict Secure",
-            CONFIG.get().expect("Config unset").backend_domain
-        ))
-        .unwrap_throw();
-        return p;
-    }
-
-    if let Some(jwt) = doc
-        .cookie()
-        .unwrap_throw()
-        .split("; ")
-        .find(|x| x.starts_with("jwt="))
-        .map(|x| x.trim_start_matches("jwt="))
-    {
-        return jwt.to_string();
-    }
-
-    redirect_to_login();
-
-    "".to_string()
-}
-
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub enum Section {
     Soprano,
@@ -101,6 +50,47 @@ pub struct PerformerData {
     pub name: String,
     pub is_admin: bool,
     pub exp: i64,
+}
+
+#[derive(Properties, Debug, PartialEq)]
+pub struct JWTProviderProps {
+    #[prop_or_default]
+    pub children: Children,
+}
+
+#[function_component(JWTProvider)]
+pub fn jwt_provider(props: &JWTProviderProps) -> Html {
+    html! {
+        <ContextProvider<String> context={ get_token() }>
+            {props.children.clone()}
+        </ContextProvider<String>>
+    }
+}
+
+/// Tries to retrieve the jwt token string out of the local storage or a query parameter that is used to authenticate the user.
+/// If retrieving out of a query parameter, sets it in the local storage.
+/// If it cannot be retrieved, sends the user to the endpoint to retrieve a new one.
+pub fn get_token() -> String {
+    let window = gloo_utils::window();
+
+    let document = gloo_utils::document();
+
+    let doc: HtmlDocument = window.document().unwrap_throw().dyn_into().unwrap();
+
+    let param = get_jwt_from_url_param(document);
+
+    if let Ok(p) = param {
+        set_jwt_cookie(&doc, &p);
+        return p;
+    }
+
+    if let Some(jwt) = get_jwt_from_cookie(doc) {
+        return jwt;
+    }
+
+    redirect_to_login();
+
+    "".to_string()
 }
 
 /// Retrieves the token data from the JWT from local storage or URL parameter that is used to authenticate the user.
@@ -162,6 +152,24 @@ pub fn get_token_data() -> Result<PerformerData, ()> {
     Ok(data)
 }
 
+/// Reads the content of the jwt cookie if it exists
+fn get_jwt_from_cookie(doc: HtmlDocument) -> Option<String> {
+    doc.cookie()
+        .unwrap_throw()
+        .split("; ")
+        .find(|x| x.starts_with("jwt="))
+        .map(|x| x.trim_start_matches("jwt=").to_owned())
+}
+
+/// Sets the jwt cookie to the value provided
+fn set_jwt_cookie(doc: &HtmlDocument, token: &str) {
+    doc.set_cookie(&format!(
+        "jwt=Bearer {token}; Domain={}; SameSite=Strict; Secure;",
+        CONFIG.get().expect("Config unset").backend_domain
+    ))
+    .unwrap_throw();
+}
+
 /// Tries to read a JWT from the "token" url parameter.
 fn get_jwt_from_url_param(document: web_sys::Document) -> Result<String, ()> {
     let params =
@@ -174,6 +182,7 @@ fn get_jwt_from_url_param(document: web_sys::Document) -> Result<String, ()> {
     Ok(param)
 }
 
+/// Navigates to the authentication URL set in the configuration
 fn redirect_to_login() {
     let auth_url = &CONFIG.get().unwrap().auth_url;
     info!(&format!("Redirecting to {auth_url}"));
