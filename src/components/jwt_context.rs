@@ -5,7 +5,8 @@ use base64::{
     engine::general_purpose::{self, GeneralPurpose},
     Engine,
 };
-use gloo_console::error;
+use gloo_console::{error, info};
+use gloo_utils::window;
 use serde::Deserialize;
 use time::OffsetDateTime;
 use wasm_bindgen::{JsCast, UnwrapThrowExt};
@@ -64,10 +65,7 @@ pub fn get_token() -> String {
         return jwt.to_string();
     }
 
-    window
-        .location()
-        .set_href(&CONFIG.get().unwrap().auth_url)
-        .unwrap_throw();
+    redirect_to_login();
 
     "".to_string()
 }
@@ -156,7 +154,8 @@ pub fn get_token_data() -> Result<PerformerData, ()> {
     };
 
     if data.exp < OffsetDateTime::now_local().unwrap().unix_timestamp() {
-        error!("JWT expired!");
+        error!("JWT expired! Redirecting...");
+        redirect_to_login();
         return Err(());
     }
 
@@ -173,4 +172,11 @@ fn get_jwt_from_url_param(document: web_sys::Document) -> Result<String, ()> {
         None => return Err(()),
     };
     Ok(param)
+}
+
+fn redirect_to_login() {
+    let auth_url = &CONFIG.get().unwrap().auth_url;
+    info!(&format!("Redirecting to {auth_url}"));
+
+    window().location().set_href(auth_url).unwrap_throw();
 }

@@ -353,7 +353,7 @@ impl Component for ProjectComponent {
             let project_id = ctx.props().id;
 
             let user = match get_token_data() {
-                Ok(data) => data, 
+                Ok(data) => data,
                 Err(_) => return,
             };
 
