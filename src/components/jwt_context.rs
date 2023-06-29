@@ -13,6 +13,8 @@ use yew::prelude::*;
 
 use web_sys::{HtmlDocument, UrlSearchParams};
 
+use crate::service::CONFIG;
+
 const JWT_ENGINE: GeneralPurpose =
     GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
 
@@ -42,9 +44,13 @@ pub fn get_token() -> String {
     let doc: HtmlDocument = window.document().unwrap_throw().dyn_into().unwrap();
 
     let param = get_jwt_from_url_param(document);
+
     if let Ok(p) = param {
-        doc.set_cookie(&format!("jwt=Bearer {p} Domain=localhost"))
-            .unwrap_throw();
+        doc.set_cookie(&format!(
+            "jwt=Bearer {p} Domain={}",
+            CONFIG.get().expect("Config unset").backend_domain
+        ))
+        .unwrap_throw();
         return p;
     }
 
@@ -60,7 +66,7 @@ pub fn get_token() -> String {
 
     window
         .location()
-        .set_href("http://localhost:8081/turnin")
+        .set_href(&CONFIG.get().unwrap().auth_url)
         .unwrap_throw();
 
     "".to_string()

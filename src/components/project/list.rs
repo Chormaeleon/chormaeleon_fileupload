@@ -239,7 +239,6 @@ struct ProjectListProperties {
 #[function_component(ProjectList)]
 fn project_list(props: &ProjectListProperties) -> Html {
     let props = props.clone();
-    let project_change = props.on_change.clone();
     html! {
         <div class="table-responsive">
             <table class="table table-striped">
@@ -261,7 +260,7 @@ fn project_list(props: &ProjectListProperties) -> Html {
                             <td>{ "Es gibt keine Projekte in dieser Kategorie." }</td>
                         }
                         { for props.projects.iter().map(|project| {
-                            let project_change = project_change.clone();
+                            let project_change = props.on_change.clone();
                             let project_delete = props.on_delete.clone();
                             let project_clone = project.clone();
                             let project_clone_2 = project.clone();

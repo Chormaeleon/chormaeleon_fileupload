@@ -1,0 +1,6 @@
+{
+    "backend_url": "http://localhost:8001",
+    "backend_domain": "localhost",
+    "auth_website": "http://localhost:8081",
+    "auth_url": "http://localhost:8081/turnin"
+}

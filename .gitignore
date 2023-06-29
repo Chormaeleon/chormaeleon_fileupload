@@ -1,2 +1,4 @@
 /target
 /dist
+/config
+config_deploy.json

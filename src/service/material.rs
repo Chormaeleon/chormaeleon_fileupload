@@ -3,33 +3,39 @@ use std::fmt::Display;
 use serde::{Deserialize, Serialize};
 use time::PrimitiveDateTime;
 
-use crate::utilities::requests::fetch::{
-    delete_request, get_request_struct, post_request_struct, FetchError,
+use crate::{
+    service::backend,
+    utilities::requests::fetch::{
+        delete_request, get_request_struct, post_request_struct, FetchError,
+    },
 };
 
-use super::BACKEND_URL;
-
 pub fn material_url(project_id: i64, file_technical_name: &str) -> String {
-    format!("{BACKEND_URL}/materials/{project_id}/{file_technical_name}")
+    let backend_url = backend();
+    format!("{backend_url}/materials/{project_id}/{file_technical_name}")
 }
 
 pub fn material_upload_url(project_id: i64) -> String {
-    format!("{BACKEND_URL}/projects/{project_id}/material")
+    let backend_url = backend();
+    format!("{backend_url}/projects/{project_id}/material")
 }
 
 pub async fn material_by_project(project_id: i64) -> Result<Vec<MaterialTo>, FetchError> {
-    get_request_struct(&format!("{BACKEND_URL}/projects/{project_id}/material")).await
+    let backend_url = backend();
+    get_request_struct(&format!("{backend_url}/projects/{project_id}/material")).await
 }
 
 pub async fn update_material(
     material_id: i64,
     changes: UpdateMaterial,
 ) -> Result<MaterialTo, FetchError> {
-    post_request_struct(&format!("{BACKEND_URL}/materials/{material_id}"), changes).await
+    let backend_url = backend();
+    post_request_struct(&format!("{backend_url}/materials/{material_id}"), changes).await
 }
 
 pub async fn delete_material(material_id: i64) -> Result<(), FetchError> {
-    let url = format!("{BACKEND_URL}/materials/{material_id}");
+    let backend_url = backend();
+    let url = format!("{backend_url}/materials/{material_id}");
     delete_request(&url).await
 }
 
