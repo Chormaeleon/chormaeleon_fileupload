@@ -72,7 +72,10 @@ impl Component for ProjectComponent {
     fn update(&mut self, ctx: &yew::Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::MetadataLoaded(metadata) => {
-                let user = get_token_data().unwrap_throw();
+                let user = match get_token_data() {
+                    Ok(data) => data,
+                    Err(_) => return false,
+                };
 
                 let project_id = metadata.id;
 
@@ -150,7 +153,11 @@ impl Component for ProjectComponent {
                 false
             }
             Msg::SubmissionUpdated(submission) => {
-                let user = get_token_data().unwrap_throw();
+                let user = match get_token_data() {
+                    Ok(data) => data,
+                    Err(_) => return false,
+                };
+
                 if submission.creator == user.user_id {
                     self.my_submissions.retain(|x| x.id != submission.id);
                     self.my_submissions.push(submission.clone());
@@ -345,7 +352,10 @@ impl Component for ProjectComponent {
 
             let project_id = ctx.props().id;
 
-            let user = get_token_data().unwrap_throw();
+            let user = match get_token_data() {
+                Ok(data) => data, 
+                Err(_) => return,
+            };
 
             ctx.link().send_future(async move {
                 let submissions = submissions_by_project_and_user(project_id, user.user_id).await;

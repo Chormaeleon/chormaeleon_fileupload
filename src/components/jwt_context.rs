@@ -33,7 +33,7 @@ pub fn jwt_provider(props: &JWTProviderProps) -> Html {
     }
 }
 
-/// Tries to retrieve the jwt token out of the local storage or a query parameter.
+/// Tries to retrieve the jwt token string out of the local storage or a query parameter that is used to authenticate the user.
 /// If retrieving out of a query parameter, sets it in the local storage.
 /// If it cannot be retrieved, sends the user to the endpoint to retrieve a new one.
 pub fn get_token() -> String {
@@ -105,6 +105,9 @@ pub struct PerformerData {
     pub exp: i64,
 }
 
+/// Retrieves the token data from the JWT from local storage or URL parameter that is used to authenticate the user.
+/// If retrieving out of a query parameter, sets it in the local storage.
+/// Redirects to the endpoint configured to get a new token if none was found or it is expired.
 pub fn get_token_data() -> Result<PerformerData, ()> {
     let token = get_token();
 
@@ -160,6 +163,7 @@ pub fn get_token_data() -> Result<PerformerData, ()> {
     Ok(data)
 }
 
+/// Tries to read a JWT from the "token" url parameter.
 fn get_jwt_from_url_param(document: web_sys::Document) -> Result<String, ()> {
     let params =
         UrlSearchParams::new_with_str(&document.location().unwrap_throw().search().unwrap_throw())

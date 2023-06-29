@@ -120,7 +120,12 @@ impl Component for Home {
                 }
             });
 
-            let user = get_token_data().unwrap_throw();
+            let user = match get_token_data() {
+                Ok(data) => data,
+                Err(_) => {
+                    return;
+                }
+            };
 
             if user.is_admin {
                 ctx.link().send_future(async {
