@@ -193,9 +193,11 @@ impl Component for ProjectComponent {
                         .dyn_into()
                         .unwrap_throw();
                     element.set_selected_index(match kind {
-                        SubmissionKind::Audio => 1,
                         SubmissionKind::Video => 0,
-                        SubmissionKind::Other => 2,
+                        SubmissionKind::Audio => 1,
+                        SubmissionKind::Document => 2,
+                        SubmissionKind::Other => 3,
+
                     });
                     return true;
                 }

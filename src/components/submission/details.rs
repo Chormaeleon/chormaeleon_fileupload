@@ -82,6 +82,15 @@ pub fn submission_details(s: &SubmissionProperties) -> Html {
                             </div>
                             </>
                         },
+                        crate::service::submission::SubmissionKind::Document => html!{
+                            <>
+                            <h5> { "Vorschau: " }</h5>
+                            <div class="ratio ratio-16x9">
+                                <iframe src={ submission_stream_url(submission.project_id, &submission.file_technical_name) }>
+                                </iframe>
+                            </div>
+                            </>
+                        },
                         crate::service::submission::SubmissionKind::Other => html!{
                             <p> { "Für \"Sonstiges\" kann keine Vorschau erstellt werden. Passe gegebenfalls die Art der Abgabe über die Schaltfläche \"Ändern\" an!" } </p>
                         },

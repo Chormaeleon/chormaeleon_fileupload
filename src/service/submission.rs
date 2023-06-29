@@ -87,6 +87,7 @@ impl From<jwt_context::Section> for Section {
 pub enum SubmissionKind {
     Audio,
     Video,
+    Document,
     Other,
 }
 
@@ -95,6 +96,7 @@ impl Display for SubmissionKind {
         let content = match self {
             SubmissionKind::Audio => "Audio",
             SubmissionKind::Video => "Video",
+            SubmissionKind::Document => "Dokument",
             SubmissionKind::Other => "Sonstiges",
         };
 
@@ -109,7 +111,7 @@ impl From<&str> for SubmissionKind {
             "wav" | "mp3" | "flac" | "wma" | "aac" | "ogg" | "audio" => SubmissionKind::Audio,
             "mp4" | "avi" | "mov" | "flv" | "f4v" | "swf" | "wmv" | "avchd" | "mkv" | "webm"
             | "video" => SubmissionKind::Video,
-
+            "pdf" | "document" => SubmissionKind::Document, 
             _ => SubmissionKind::Other,
         }
     }
