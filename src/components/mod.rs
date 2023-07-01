@@ -8,3 +8,4 @@ pub(crate) mod progress;
 pub(crate) mod project;
 pub(crate) mod submission;
 pub(crate) mod upload;
+pub(crate) mod loading_spinner;

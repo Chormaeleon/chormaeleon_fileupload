@@ -9,7 +9,7 @@ use crate::{
     components::{
         admin_only::AdminOrOwner,
         delete_modal::DeleteModal,
-        project::modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT},
+        project::modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT}, loading_spinner::LoadingSpinner,
     },
     service::project::{delete_project, ProjectTo},
     utilities::{date::format_datetime_human_readable, requests::fetch::FetchError},
@@ -139,43 +139,51 @@ impl Component for ProjectLists {
     fn view(&self, ctx: &yew::Context<Self>) -> yew::Html {
         html! {
             <>
-            if let Some(projects) = &ctx.props().projects {
             <div class="row mt-2">
                 <div class="col">
                     <h3> { "Ausstehende Projekte" } </h3>
                 </div>
             </div>
+
+            if let Some(projects) = &ctx.props().projects {
             <ProjectList
                 projects={projects.clone()}
                 on_change={ ctx.link().callback(move |project| Msg::Update(UpdateMessage::Update(project)))}
                 on_delete={ ctx.link().callback(move |project| Msg::Delete(DeleteMessage::ListItemButtonClick(project)))}
             />
+            } else {
+                <LoadingSpinner />
             }
 
-            if let Some(projects) = &ctx.props().all_projects {
+
             <div class="row mt-2">
                 <div class="col">
                     <h3> { "Alle Projekte" } </h3>
                 </div>
             </div>
+            if let Some(projects) = &ctx.props().all_projects {
             <ProjectList
                 projects={projects.clone()}
                 on_change={ ctx.link().callback(move |project| Msg::Update(UpdateMessage::Update(project)))}
                 on_delete={ ctx.link().callback(move |project| Msg::Delete(DeleteMessage::ListItemButtonClick(project)))}
             />
+            } else {
+                <LoadingSpinner />
             }
 
-            if let Some(projects) =  &ctx.props().my_projects {
             <div class="row mt-2">
                 <div class="col">
                     <h3> { "Meine Projekte" } </h3>
                 </div>
             </div>
+            if let Some(projects) =  &ctx.props().my_projects {
             <ProjectList
                 projects={projects.clone()}
                 on_change={ ctx.link().callback(move |project| Msg::Update(UpdateMessage::Update(project)))}
                 on_delete={ ctx.link().callback(move |project| Msg::Delete(DeleteMessage::ListItemButtonClick(project)))}
             />
+            } else {
+                <LoadingSpinner />
             }
 
             <ProjectUpdateModal

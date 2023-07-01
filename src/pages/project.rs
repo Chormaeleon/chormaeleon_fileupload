@@ -10,7 +10,7 @@ use crate::{
             list::SubmissionList, InputSubmissionCreatorName, InputSubmissionKind,
             InputSubmissionNote, InputSubmissionSection,
         },
-        upload::Upload,
+        upload::Upload, loading_spinner::LoadingSpinner,
     },
     service::{
         project::{all_submissions_link, project_data, submission_upload_url, ProjectTo},
@@ -341,7 +341,7 @@ impl Component for ProjectComponent {
                 </>
             },
             None => html! {
-                <h2>{ "Daten werden geladen" }</h2>
+                <LoadingSpinner />
             },
         }
     }
