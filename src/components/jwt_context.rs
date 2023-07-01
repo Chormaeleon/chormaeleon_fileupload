@@ -6,10 +6,11 @@ use base64::{
     Engine,
 };
 use gloo_console::{error, info};
+use gloo_dialogs::alert;
 use gloo_utils::window;
 use serde::Deserialize;
 use time::OffsetDateTime;
-use wasm_bindgen::{JsCast, UnwrapThrowExt};
+use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
 use yew::prelude::*;
 
 use web_sys::{HtmlDocument, UrlSearchParams};
@@ -18,6 +19,8 @@ use crate::service::CONFIG;
 
 const JWT_ENGINE: GeneralPurpose =
     GeneralPurpose::new(&alphabet::STANDARD, general_purpose::NO_PAD);
+
+const EXPIRES_PAST: &str = "expires=Fri, 31 Dec 1999 23:59:59 GMT;";
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub enum Section {
@@ -163,11 +166,32 @@ fn get_jwt_from_cookie(doc: HtmlDocument) -> Option<String> {
 
 /// Sets the jwt cookie to the value provided
 fn set_jwt_cookie(doc: &HtmlDocument, token: &str) {
+    let domain = &CONFIG.get().expect("Config unset").backend_domain;
+
+    unset_jwt_cookie(doc, domain);
+
     doc.set_cookie(&format!(
-        "jwt=Bearer {token}; Domain={}; SameSite=Strict; Secure;",
-        CONFIG.get().expect("Config unset").backend_domain
+        "jwt=Bearer {token}; Domain={domain}; SameSite=Strict; Secure",
     ))
-    .unwrap_throw();
+    .unwrap_or_else(show_cookie_set_error);
+}
+
+/// Unsets all old variants of the jwt cookie
+fn unset_jwt_cookie(doc: &HtmlDocument, domain: &str) {
+    doc.set_cookie(&format!("jwt=; {EXPIRES_PAST}"))
+        .unwrap_or_else(show_cookie_set_error);
+    doc.set_cookie(&format!("jwt=; {EXPIRES_PAST}; Domain={domain}"))
+        .unwrap_or_else(show_cookie_set_error);
+}
+
+/// Alerts the user about a cookie that could not be set
+fn show_cookie_set_error(err: JsValue) {
+    error!("Could not set cookie. Error:");
+    error!(err);
+    alert(
+        "Konnte kein Cookie setzen. Sind Cookies für diese Seite eingeschaltet? 
+    Cookies sind erforderlich, damit diese Seite funktioniert.",
+    )
 }
 
 /// Tries to read a JWT from the "token" url parameter.
@@ -179,6 +203,7 @@ fn get_jwt_from_url_param(document: web_sys::Document) -> Result<String, ()> {
         Some(param) => param,
         None => return Err(()),
     };
+
     Ok(param)
 }
 
