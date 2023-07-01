@@ -5,7 +5,7 @@ use base64::{
     engine::general_purpose::{self, GeneralPurpose},
     Engine,
 };
-use gloo_console::{error, info};
+use gloo_console::{error, info, warn};
 use gloo_dialogs::alert;
 use gloo_utils::window;
 use serde::Deserialize;
@@ -74,20 +74,22 @@ pub fn jwt_provider(props: &JWTProviderProps) -> Html {
 /// If retrieving out of a query parameter, sets it in the local storage.
 /// If it cannot be retrieved, sends the user to the endpoint to retrieve a new one.
 pub fn get_token() -> String {
-    let window = gloo_utils::window();
-
     let document = gloo_utils::document();
 
-    let doc: HtmlDocument = window.document().unwrap_throw().dyn_into().unwrap();
+    let doc: HtmlDocument = document.clone().dyn_into().unwrap();
 
     let param = get_jwt_from_url_param(document);
 
-    if let Ok(p) = param {
+    if let Ok(Some(p)) = param {
         set_jwt_cookie(&doc, &p);
+        if let Err(error) = remove_jwt_from_window_path(&p) {
+            warn!("Could not remove the jwt token from the url");
+            warn!(error);
+        }
         return p;
     }
 
-    if let Some(jwt) = get_jwt_from_cookie(doc) {
+    if let Ok(Some(jwt)) = get_jwt_from_cookie(doc) {
         return jwt;
     }
 
@@ -156,12 +158,12 @@ pub fn get_token_data() -> Result<PerformerData, ()> {
 }
 
 /// Reads the content of the jwt cookie if it exists
-fn get_jwt_from_cookie(doc: HtmlDocument) -> Option<String> {
-    doc.cookie()
-        .unwrap_throw()
+fn get_jwt_from_cookie(doc: HtmlDocument) -> Result<Option<String>, JsValue> {
+    Ok(doc
+        .cookie()?
         .split("; ")
         .find(|x| x.starts_with("jwt="))
-        .map(|x| x.trim_start_matches("jwt=").to_owned())
+        .map(|x| x.trim_start_matches("jwt=").to_owned()))
 }
 
 /// Sets the jwt cookie to the value provided
@@ -195,16 +197,26 @@ fn show_cookie_set_error(err: JsValue) {
 }
 
 /// Tries to read a JWT from the "token" url parameter.
-fn get_jwt_from_url_param(document: web_sys::Document) -> Result<String, ()> {
-    let params =
-        UrlSearchParams::new_with_str(&document.location().unwrap_throw().search().unwrap_throw())
-            .unwrap_throw();
-    let param = match params.get("token") {
-        Some(param) => param,
-        None => return Err(()),
-    };
+/// If it succeeds, removes the parameter
+fn get_jwt_from_url_param(document: web_sys::Document) -> Result<Option<String>, JsValue> {
+    let params = UrlSearchParams::new_with_str(&document.location().unwrap_throw().search()?)?;
 
-    Ok(param)
+    let token = params.get("token");
+
+    Ok(token)
+}
+
+/// Changes the window url so that the jwt token string is removed
+fn remove_jwt_from_window_path(token: &str) -> Result<(), JsValue> {
+    let token_path_param = &format!("token={token}");
+    let mut url_without_path_param = window().location().href()?.replace(token_path_param, "");
+    if url_without_path_param.contains("?&") {
+        url_without_path_param = url_without_path_param.replace("?&", "?");
+    } else {
+        url_without_path_param = url_without_path_param.replace('?', "");
+    }
+    window().location().set_href(&url_without_path_param)?;
+    Ok(())
 }
 
 /// Navigates to the authentication URL set in the configuration
