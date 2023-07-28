@@ -84,6 +84,7 @@ pub fn input_submission_kind(props: &InputSubmissionKindProperties) -> Html {
         <select id={ props.id.clone() } name="kind" class="form-control" required=true oninput={ select_to_enum_callback_infallible(props.on_input.clone()) }>
             <option value="video" selected={ selection == SubmissionKind::Video} >{ "Video" }</option>
             <option value="audio" selected={ selection == SubmissionKind::Audio}>{ "Audio" }</option>
+            <option value="document" selected={ selection == SubmissionKind::Document}>{ "Dokument" }</option>
             <option value="other" selected={ selection == SubmissionKind::Other}>{ "Sonstiges" }</option>
         </select>
         </>
