@@ -9,7 +9,8 @@ use crate::{
     components::{
         admin_only::AdminOrOwner,
         delete_modal::DeleteModal,
-        project::modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT}, loading_spinner::LoadingSpinner,
+        loading_spinner::LoadingSpinner,
+        project::modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT},
     },
     service::project::{delete_project, ProjectTo},
     utilities::{date::format_datetime_human_readable, requests::fetch::FetchError},

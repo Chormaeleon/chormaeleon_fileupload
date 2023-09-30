@@ -46,6 +46,12 @@ impl Display for Section {
     }
 }
 
+impl ToHtml for Section {
+    fn to_html(&self) -> Html {
+        html!(self)
+    }
+}
+
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq)]
 pub struct PerformerData {
     pub section: Section,

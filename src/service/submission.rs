@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 use time::PrimitiveDateTime;
+use yew::{html, ToHtml};
 
 use crate::{
     components::jwt_context::{self},
@@ -49,6 +50,12 @@ impl Display for Section {
         };
 
         write!(f, "{}", content)
+    }
+}
+
+impl ToHtml for Section {
+    fn to_html(&self) -> yew::Html {
+        html!(self)
     }
 }
 
@@ -104,6 +111,14 @@ impl Display for SubmissionKind {
     }
 }
 
+impl ToHtml for SubmissionKind {
+    fn to_html(&self) -> yew::Html {
+        html! {
+            self
+        }
+    }
+}
+
 /// mainly for matching file extensions
 impl From<&str> for SubmissionKind {
     fn from(s: &str) -> Self {
@@ -111,7 +126,7 @@ impl From<&str> for SubmissionKind {
             "wav" | "mp3" | "flac" | "wma" | "aac" | "ogg" | "audio" => SubmissionKind::Audio,
             "mp4" | "avi" | "mov" | "flv" | "f4v" | "swf" | "wmv" | "avchd" | "mkv" | "webm"
             | "video" => SubmissionKind::Video,
-            "pdf" | "document" => SubmissionKind::Document, 
+            "pdf" | "document" => SubmissionKind::Document,
             _ => SubmissionKind::Other,
         }
     }

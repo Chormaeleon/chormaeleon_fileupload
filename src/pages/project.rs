@@ -5,12 +5,13 @@ use crate::{
         admin_only::AdminOrOwner,
         iframe::IFrame,
         jwt_context::get_token_data,
+        loading_spinner::LoadingSpinner,
         material::Material,
         submission::{
             list::SubmissionList, InputSubmissionCreatorName, InputSubmissionKind,
             InputSubmissionNote, InputSubmissionSection,
         },
-        upload::Upload, loading_spinner::LoadingSpinner,
+        upload::Upload,
     },
     service::{
         project::{all_submissions_link, project_data, submission_upload_url, ProjectTo},
@@ -204,7 +205,6 @@ impl Component for ProjectComponent {
                         SubmissionKind::Audio => 1,
                         SubmissionKind::Document => 2,
                         SubmissionKind::Other => 3,
-
                     });
                     return true;
                 }

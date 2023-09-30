@@ -2,7 +2,10 @@
 This is the choir turnin frontend application.
 
 ## Build
-You can build the application using [trunk](https://github.com/thedodd/trunk). Trunk can be installed using `cargo install`, but as of 0.16.0, we need the master branch for JS files work, you can do that via `cargo install trunk --force --git https://github.com/thedodd/trunk.git --branch master`
+You can build the application using [trunk](https://github.com/thedodd/trunk). Trunk can be installed using `cargo install trunk`.
+We also need to install the wasm target `rustup target add wasm32-unknown-unknown`.
+
+Then, you can run `trunk build --release` to build or `trunk serve --release` for testing on port 8080.
 
 ### Configuration
 To locate the right backend and authentication server, the app fetches a config file at runtime.

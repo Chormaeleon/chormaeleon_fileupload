@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 use time::PrimitiveDateTime;
+use yew::{html, ToHtml};
 
 use crate::{
     service::backend,
@@ -85,6 +86,12 @@ impl Display for MaterialCategory {
         };
 
         write!(f, "{}", category)
+    }
+}
+
+impl ToHtml for MaterialCategory {
+    fn to_html(&self) -> yew::Html {
+        html!(self)
     }
 }
 
