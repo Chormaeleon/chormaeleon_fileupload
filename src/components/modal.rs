@@ -9,6 +9,7 @@ pub struct ModalProperties {
     #[prop_or_default]
     pub children: Children,
     /// The footer action buttons. First String is the title, second the css classes, third the callback to fire onclick.
+    #[prop_or_default]
     pub actions: Vec<(String, String, Callback<web_sys::MouseEvent>)>,
 }
 

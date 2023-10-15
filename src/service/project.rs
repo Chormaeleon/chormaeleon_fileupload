@@ -36,9 +36,15 @@ pub async fn get_my_projects() -> Result<Vec<ProjectTo>, FetchError> {
     let backend_url = backend();
     get_request_struct::<Vec<ProjectTo>>(&format!("{backend_url}/projects/myProjects")).await
 }
+
 pub async fn get_all_projects() -> Result<Vec<ProjectTo>, FetchError> {
     let backend_url = backend();
     get_request_struct::<Vec<ProjectTo>>(&format!("{backend_url}/projects/all")).await
+}
+
+pub async fn get_deleted_projects() -> Result<Vec<ProjectTo>, FetchError> {
+    let backend_url = backend();
+    get_request_struct::<Vec<ProjectTo>>(&format!("{backend_url}/projects/deleted")).await
 }
 
 pub async fn create_project(

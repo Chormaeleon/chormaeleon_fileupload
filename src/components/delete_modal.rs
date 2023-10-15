@@ -10,7 +10,6 @@ pub struct DeleteModalProperties {
     pub id: String,
     pub title: String,
     pub children: Children,
-    /// The footer action buttons. First String is the title, second the css classes, third the callback to fire onclick.
     pub on_cancel: Callback<MouseEvent>,
     pub on_confirm: Callback<MouseEvent>,
 }

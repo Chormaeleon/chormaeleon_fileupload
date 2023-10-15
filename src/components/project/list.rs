@@ -7,15 +7,19 @@ use yew_router::prelude::Link;
 
 use crate::{
     components::{
+        admin_only::AdminOnly,
         admin_only::AdminOrOwner,
         delete_modal::DeleteModal,
         loading_spinner::LoadingSpinner,
+        modal::Modal,
         project::modals::{ProjectUpdateModal, MODAL_UPDATE_PROJECT},
     },
     service::project::{delete_project, ProjectTo},
     utilities::{date::format_datetime_human_readable, requests::fetch::FetchError},
     Route,
 };
+
+const MODAL_DELETED_PROJECTS: &str = "ModalDeletedProjects";
 
 pub enum DeleteMessage {
     ListItemButtonClick(ProjectTo),
@@ -41,6 +45,7 @@ pub struct ProjectListsProperties {
     pub(crate) projects: Option<Vec<ProjectTo>>,
     pub(crate) all_projects: Option<Vec<ProjectTo>>,
     pub(crate) my_projects: Option<Vec<ProjectTo>>,
+    pub(crate) deleted_projects: Option<Vec<ProjectTo>>,
     pub(crate) project_delete: Callback<i64>,
     pub(crate) project_change: Callback<ProjectTo>,
 }
@@ -186,6 +191,53 @@ impl Component for ProjectLists {
             } else {
                 <LoadingSpinner />
             }
+
+
+            <AdminOnly>
+                if let Some(projects) = &ctx.props().deleted_projects {
+                    <div class="row mt-2">
+                        <div class="col-auto">
+                            <i> { "Auf Löschung warten: " }
+                                    {  projects.len() }
+                                { " Projekt(e)" }
+                            </i>
+                        </div>
+                        if !projects.is_empty() {
+                            <div class="col">
+                                <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target={format!("#{MODAL_DELETED_PROJECTS}")}> { "Anzeigen" }</button>
+                            </div>
+                        }
+
+                    </div>
+
+
+                    <Modal
+                        id={ MODAL_DELETED_PROJECTS }
+                        title="Zur Löschung vorgemerkte Projekte"
+                    >   <i>
+                        <p> { "Diese Projekte wurden zur Löschung vorgemerkt, es laufen aber noch Downloads oder die Löschung wurde unterbrochen." } </p>
+                        <p> { "Sie werden spätestens beim nächsten Serverneustart gelöscht." } </p>
+                        </i>
+                        <b>{ "Projekte:" }</b>
+                        <ul>
+                        {
+                            for projects.iter().map(|project| {
+                                html!{
+                                    <li>
+                                    { &project.title }
+                                    </li>
+                                }
+                            })
+                        }
+
+                        </ul>
+
+                    </Modal>
+                } else {
+                    <LoadingSpinner />
+                }
+            </AdminOnly>
+
 
             <ProjectUpdateModal
                 project={ self.selected_update.clone() }

@@ -7,7 +7,10 @@ use crate::{
         },
     },
     service::{
-        project::{get_all_projects, get_my_projects, get_pending_projects, ProjectTo},
+        project::{
+            get_all_projects, get_deleted_projects, get_my_projects, get_pending_projects,
+            ProjectTo,
+        },
         CONFIG,
     },
     utilities::{date::now, requests::fetch::FetchError},
@@ -24,11 +27,13 @@ pub struct Home {
     pending_projects: Option<Vec<ProjectTo>>,
     my_projects: Option<Vec<ProjectTo>>,
     all_projects: Option<Vec<ProjectTo>>,
+    deleted_projects: Option<Vec<ProjectTo>>,
 }
 
 pub enum Msg {
     AllProjectsLoaded(Vec<ProjectTo>),
     MyProjectsLoaded(Vec<ProjectTo>),
+    DeletedProjectsLoaded(Vec<ProjectTo>),
     PendingProjectsLoaded(Vec<ProjectTo>),
     ProjectsLoadError(FetchError),
     CreateProjectSuccess(ProjectTo),
@@ -46,6 +51,7 @@ impl Component for Home {
             pending_projects: None,
             my_projects: None,
             all_projects: None,
+            deleted_projects: None,
         }
     }
 
@@ -91,6 +97,7 @@ impl Component for Home {
                     projects={self.pending_projects.clone()}
                     all_projects={self.all_projects.clone()}
                     my_projects={self.my_projects.clone()}
+                    deleted_projects={self.deleted_projects.clone()}
                     project_delete={ ctx.link().callback(Msg::ProjectDeleted) }
                     project_change={ ctx.link().callback(Msg::ProjectChanged)}
                 />
@@ -116,6 +123,13 @@ impl Component for Home {
             ctx.link().send_future(async {
                 match get_my_projects().await {
                     Ok(contributions) => Msg::MyProjectsLoaded(contributions),
+                    Err(error) => Msg::ProjectsLoadError(error),
+                }
+            });
+
+            ctx.link().send_future(async {
+                match get_deleted_projects().await {
+                    Ok(contributions) => Msg::DeletedProjectsLoaded(contributions),
                     Err(error) => Msg::ProjectsLoadError(error),
                 }
             });
@@ -153,6 +167,11 @@ impl Component for Home {
             Msg::MyProjectsLoaded(mut projects) => {
                 sort_projects(&mut projects);
                 self.my_projects = Some(projects);
+                true
+            }
+            Msg::DeletedProjectsLoaded(mut projects) => {
+                sort_projects(&mut projects);
+                self.deleted_projects = Some(projects);
                 true
             }
             Msg::ProjectsLoadError(error) => {

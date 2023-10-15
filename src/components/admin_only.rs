@@ -22,3 +22,22 @@ pub fn admin_or_owner(props: &AdminOrOwnerProperties) -> Html {
 
     html! {}
 }
+
+#[derive(PartialEq, Properties)]
+pub struct AdminProperties {
+    #[prop_or_default]
+    pub children: Children,
+}
+
+#[function_component(AdminOnly)]
+pub fn admin_or_owner(props: &AdminProperties) -> Html {
+    if let Ok(user) = get_token_data() {
+        if user.is_admin {
+            return html! { { for props.children.iter() } };
+        }
+    } else {
+        error!("Could not get performer data from jwt!");
+    }
+
+    html! {}
+}
