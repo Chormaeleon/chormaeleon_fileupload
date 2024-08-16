@@ -30,10 +30,14 @@ pub struct Submission {
 
 #[derive(Copy, Clone, Debug, Deserialize, Serialize, PartialEq, PartialOrd, Eq, Ord)]
 pub enum Section {
-    Soprano,
-    Alto,
-    Tenor,
-    Bass,
+    Soprano1,
+    Soprano2,
+    Alto1,
+    Alto2,
+    Tenor1,
+    Tenor2,
+    Bass1,
+    Bass2,
     Conductor,
     Instrument,
 }
@@ -41,10 +45,14 @@ pub enum Section {
 impl Display for Section {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let content = match self {
-            Section::Soprano => "Sopran",
-            Section::Alto => "Alt",
-            Section::Tenor => "Tenor",
-            Section::Bass => "Bass",
+            Section::Soprano1 => "Sopran 1",
+            Section::Alto1 => "Alt 1",
+            Section::Tenor1 => "Tenor 1",
+            Section::Bass1 => "Bass 1",
+            Section::Soprano2 => "Sopran 2",
+            Section::Alto2 => "Alt 2",
+            Section::Tenor2 => "Tenor 2",
+            Section::Bass2 => "Bass 2",
             Section::Conductor => "Dirigent",
             Section::Instrument => "Instrument",
         };
@@ -64,10 +72,14 @@ impl TryFrom<&str> for Section {
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
         let result = match value {
-            "Soprano" => Self::Soprano,
-            "Alto" => Self::Alto,
-            "Tenor" => Self::Tenor,
-            "Bass" => Self::Bass,
+            "Soprano1" => Self::Soprano1,
+            "Alto1" => Self::Alto1,
+            "Tenor1" => Self::Tenor1,
+            "Bass1" => Self::Bass1,
+            "Soprano2" => Self::Soprano2,
+            "Alto2" => Self::Alto2,
+            "Tenor2" => Self::Tenor2,
+            "Bass2" => Self::Bass2,
             "Conductor" => Self::Conductor,
             "Instrument" => Self::Instrument,
             _ => return Err(()),
@@ -80,10 +92,14 @@ impl TryFrom<&str> for Section {
 impl From<jwt_context::Section> for Section {
     fn from(section: jwt_context::Section) -> Self {
         match section {
-            jwt_context::Section::Soprano => Self::Soprano,
-            jwt_context::Section::Alto => Self::Alto,
-            jwt_context::Section::Tenor => Self::Tenor,
-            jwt_context::Section::Bass => Self::Bass,
+            jwt_context::Section::Soprano1 => Self::Soprano1,
+            jwt_context::Section::Alto1 => Self::Alto1,
+            jwt_context::Section::Tenor1 => Self::Tenor1,
+            jwt_context::Section::Bass1 => Self::Bass1,
+            jwt_context::Section::Soprano2 => Self::Soprano2,
+            jwt_context::Section::Alto2 => Self::Alto2,
+            jwt_context::Section::Tenor2 => Self::Tenor2,
+            jwt_context::Section::Bass2 => Self::Bass2,
             jwt_context::Section::Conductor => Self::Conductor,
             jwt_context::Section::Instrument => Self::Instrument,
         }

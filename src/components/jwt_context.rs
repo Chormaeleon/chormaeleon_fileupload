@@ -24,10 +24,14 @@ const EXPIRES_PAST: &str = "expires=Fri, 31 Dec 1999 23:59:59 GMT;";
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
 pub enum Section {
-    Soprano,
-    Alto,
-    Tenor,
-    Bass,
+    Soprano1,
+    Alto1,
+    Tenor1,
+    Bass1,
+    Soprano2,
+    Alto2,
+    Tenor2,
+    Bass2,
     Conductor,
     Instrument,
 }
@@ -35,10 +39,14 @@ pub enum Section {
 impl Display for Section {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
-            Section::Soprano => "Sopran",
-            Section::Alto => "Alt",
-            Section::Tenor => "Tenor",
-            Section::Bass => "Bass",
+            Section::Soprano1 => "Sopran 1",
+            Section::Alto1 => "Alt 1",
+            Section::Tenor1 => "Tenor 1",
+            Section::Bass1 => "Bass 1",
+            Section::Soprano2 => "Sopran 2",
+            Section::Alto2 => "Alt 2",
+            Section::Tenor2 => "Tenor 2",
+            Section::Bass2 => "Bass 2",
             Section::Conductor => "Dirigent",
             Section::Instrument => "Instrument",
         };

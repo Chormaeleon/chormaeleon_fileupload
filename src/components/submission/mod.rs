@@ -56,10 +56,14 @@ pub fn input_submission_section(props: &InputSubmissionSectionProperties) -> Htm
         <>
         <label for={ props.id.clone() }> { "Stimme" } </label>
         <select id={ props.id.clone() } name="section" class="form-control" required=true oninput={select_to_enum_callback_fallible(props.on_input.clone())}>
-            <option value="Soprano" selected={ section == Section::Soprano }> { "Sopran" }</option>
-            <option value="Alto" selected={ section == Section::Alto }> { "Alt" }</option>
-            <option value="Tenor" selected={ section == Section::Tenor }> { "Tenor" }</option>
-            <option value="Bass" selected={ section == Section::Bass }> { "Bass" }</option>
+            <option value="Soprano1" selected={ section == Section::Soprano1 }> { "Sopran 1" }</option>
+            <option value="Soprano2" selected={ section == Section::Soprano2 }> { "Sopran 2" }</option>
+            <option value="Alto1" selected={ section == Section::Alto1 }> { "Alt 1" }</option>
+            <option value="Alto2" selected={ section == Section::Alto2 }> { "Alt 2" }</option>
+            <option value="Tenor1" selected={ section == Section::Tenor1 }> { "Tenor 1" }</option>
+            <option value="Tenor2" selected={ section == Section::Tenor2 }> { "Tenor 2" }</option>
+            <option value="Bass1" selected={ section == Section::Bass1 }> { "Bass 1" }</option>
+            <option value="Bass2" selected={ section == Section::Bass2 }> { "Bass 2" }</option>
             <option value="Conductor" selected={ section == Section::Conductor }> { "Dirigent" }</option>
             <option value="Instrument" selected={ section == Section::Instrument }> { "Instrument" }</option>
         </select>

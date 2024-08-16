@@ -166,7 +166,6 @@ struct ProjectEditModal {
     due: PrimitiveDateTime,
 }
 
-
 enum Msg {
     #[allow(dead_code)]
     AbortClick(MouseEvent),
