@@ -6,7 +6,7 @@ use yew::{html, Callback, Component, Properties};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::{
-    components::modal::Modal,
+    components::modal::{Modal, ModalSize},
     pages::home::{get_value_from_event, get_value_from_input_event},
     service::project::{create_project, update_project, ProjectTo},
     utilities::{date::now, requests::fetch::FetchError},
@@ -279,6 +279,7 @@ impl Component for ProjectEditModal {
             <Modal
                 title={"Projekt erstellen".to_string() }
                 id={ ctx.props().id.clone() }
+                size={ ModalSize::LG }
                 actions = { vec![
                     ("Abbrechen".to_string(), "btn btn-secondary".to_string(), ctx.link().callback(Msg::AbortClick)),
                     ("Erstellen".to_string(), "btn btn-danger".to_string(),  ctx.link().callback(Msg::CreateClick))

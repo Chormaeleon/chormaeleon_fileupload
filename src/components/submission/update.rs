@@ -121,18 +121,18 @@ impl Component for SubmissionUpdate {
                         html!{
                         <form>
                             <div class="row">
-                                    <div class="col">
+                                    <div class="col-12">
                                         <InputSubmissionNote id={ "inputUpdatedSubmissionNote".to_string() } value={ submission.note.clone() } on_input={ctx.link().callback(UpdateMsg::Note)}/>
                                     </div>
 
-                                    <div class="col-auto">
+                                    <div class="col-12">
                                         <InputSubmissionCreatorName id={ "inputUpdatedSubmissionCreatorName".to_string() } value={ submission.creator_name.clone() } overwrite_value=true on_input={ctx.link().callback(UpdateMsg::CreatorName)}/>
                                     </div>
 
-                                    <div class="col-auto">
+                                    <div class="col-6">
                                         <InputSubmissionSection id={ "selectUpdatedSection".to_string() } selected={ submission.creator_section } on_input={ctx.link().callback(UpdateMsg::Section)}/>
                                     </div>
-                                    <div class="col-auto">
+                                    <div class="col-6">
                                         <InputSubmissionKind id={ "selectUpdatedSubmissionKind".to_string() } selected={ submission.kind } on_input={ctx.link().callback(UpdateMsg::Kind)}/>
                                     </div>
 

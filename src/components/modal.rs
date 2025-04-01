@@ -2,10 +2,35 @@ use yew::{function_component, Callback, Children, Html, Properties};
 
 use yew::html;
 
+#[derive(Copy, Clone, Default, PartialEq, Eq)]
+#[allow(dead_code)] // modal sizes are static and additional ones may be used later
+pub enum ModalSize {
+    SM,
+    #[default]
+    MD,
+    LG,
+    XL,
+    FullScreen,
+}
+
+impl ModalSize {
+    fn bootstrap_class(&self) -> &str {
+        match self {
+            ModalSize::SM => "modal-sm",
+            ModalSize::MD => "modal-md",
+            ModalSize::LG => "modal-lg",
+            ModalSize::XL => "modal-xl",
+            ModalSize::FullScreen => "modal-fullscreen",
+        }
+    }
+}
+
 #[derive(PartialEq, Properties)]
 pub struct ModalProperties {
     pub id: String,
     pub title: String,
+    #[prop_or_default]
+    pub size: ModalSize,
     #[prop_or_default]
     pub children: Children,
     /// The footer action buttons. First String is the title, second the css classes, third the callback to fire onclick.
@@ -15,9 +40,11 @@ pub struct ModalProperties {
 
 #[function_component(Modal)]
 pub fn modal(props: &ModalProperties) -> Html {
+    let modal_dialog_class = format!("modal-dialog {}", props.size.bootstrap_class());
+
     html! {
     <div class="modal fade" id={ props.id.clone() } data-bs-backdrop="static" tabindex="-1" aria-labelledby="createProjectModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class={ modal_dialog_class }>
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="createProjectModalLabel">{ &props.title }</h5>

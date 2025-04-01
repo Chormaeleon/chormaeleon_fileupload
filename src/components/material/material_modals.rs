@@ -33,10 +33,10 @@ pub fn material_upload_modal(props: &MaterialUploadModalProperties) -> Html {
         >
             <form id="formMaterialUpload" class="" name="formUpload" enctype="multipart/form-data">
                 <div class="row">
-                    <div class="col">
+                    <div class="col-12">
                         <InputMaterialTitle id="inputMaterialTitle" name="title" form="formMaterialUpload"/>
                     </div>
-                    <div class="col">
+                    <div class="col-12">
                         <InputMaterialCategory id="selectMaterialCategory" name="material_category" form="formMaterialUpload"/>
                     </div>
                 </div>
