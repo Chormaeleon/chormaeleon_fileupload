@@ -54,11 +54,9 @@ impl PostRequest {
 
     pub fn new_from_blob(blob: Vec<u8>, mime_type: &str) -> Self {
         let uint8arr: Uint8Array = blob.as_slice().into();
-        let blob = Blob::new_with_u8_array_sequence_and_options(
-            &uint8arr,
-            web_sys::BlobPropertyBag::new().type_(mime_type),
-        )
-        .unwrap();
+        let property_bag = web_sys::BlobPropertyBag::new();
+        property_bag.set_type(mime_type);
+        let blob = Blob::new_with_u8_array_sequence_and_options(&uint8arr, &property_bag).unwrap();
         PostRequest {
             content: Some(PostRequestContent::Blob(blob)),
             ..Default::default()

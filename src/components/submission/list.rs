@@ -34,6 +34,7 @@ pub struct SubmissionListProperties {
 
 pub enum UpdateMessage {
     Init(Submission),
+    #[allow(dead_code)] // Field is required to be a valid event target
     Abort(MouseEvent),
     Submit(SubmissionUpdateData),
     Success(Submission),
@@ -42,7 +43,9 @@ pub enum UpdateMessage {
 
 pub enum DeleteMessage {
     ListItemButtonClick(Submission),
+    #[allow(dead_code)] // Field is required to be a valid event target
     AcceptClick(MouseEvent),
+    #[allow(dead_code)] // Field is required to be a valid event target
     AbortClick(MouseEvent),
     Success(i64),
     Fail(FetchError),

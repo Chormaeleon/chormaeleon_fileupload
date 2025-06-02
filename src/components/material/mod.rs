@@ -52,7 +52,9 @@ pub enum UpdateMessage {
 
 pub enum DeleteMessage {
     DeleteButtonClick(MaterialTo),
+    #[allow(dead_code)] // Field is required to be a valid event target
     AcceptClick(MouseEvent),
+    #[allow(dead_code)] // Field is required to be a valid event target
     AbortClick(MouseEvent),
     Success,
     Fail(FetchError),

@@ -41,6 +41,7 @@ pub enum UpdateMsg {
     Section(Result<Section, ()>),
     Kind(SubmissionKind),
     CreatorName(String),
+    #[allow(dead_code)] // Field is required to be a valid event target
     Submit(MouseEvent),
 }
 
