@@ -23,7 +23,9 @@ const MODAL_DELETED_PROJECTS: &str = "ModalDeletedProjects";
 
 pub enum DeleteMessage {
     ListItemButtonClick(ProjectTo),
+    #[allow(dead_code)] // Field is required to be a valid event target
     AcceptClick(MouseEvent),
+    #[allow(dead_code)] // Field is required to be a valid event target
     AbortClick(MouseEvent),
     Success(i64),
     Fail(FetchError),

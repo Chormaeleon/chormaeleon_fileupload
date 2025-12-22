@@ -38,10 +38,10 @@ impl From<serde_json::error::Error> for FetchError {
 
 #[allow(dead_code)]
 pub async fn get_request_string(url: String) -> Result<String, FetchError> {
-    let mut opts = RequestInit::new();
-    opts.method("GET");
-    opts.mode(RequestMode::Cors);
-    opts.credentials(RequestCredentials::Include);
+    let opts = RequestInit::new();
+    opts.set_method("GET");
+    opts.set_mode(RequestMode::Cors);
+    opts.set_credentials(RequestCredentials::Include);
 
     let request = Request::new_with_str_and_init(&url, &opts)?;
 
@@ -60,10 +60,10 @@ pub async fn get_request_string(url: String) -> Result<String, FetchError> {
 pub async fn get_request_struct<T: for<'a> serde::de::Deserialize<'a>>(
     url: &str,
 ) -> Result<T, FetchError> {
-    let mut opts = RequestInit::new();
-    opts.method("GET");
-    opts.mode(RequestMode::Cors);
-    opts.credentials(RequestCredentials::Include);
+    let opts = RequestInit::new();
+    opts.set_method("GET");
+    opts.set_mode(RequestMode::Cors);
+    opts.set_credentials(RequestCredentials::Include);
 
     let request = Request::new_with_str_and_init(url, &opts)?;
 
@@ -85,13 +85,13 @@ pub async fn post_request_struct<
     url: &str,
     payload: PAYLOAD,
 ) -> Result<RESPONSE, FetchError> {
-    let mut opts = RequestInit::new();
-    opts.method("POST");
-    opts.mode(RequestMode::Cors);
-    opts.credentials(RequestCredentials::Include);
+    let opts = RequestInit::new();
+    opts.set_method("POST");
+    opts.set_mode(RequestMode::Cors);
+    opts.set_credentials(RequestCredentials::Include);
 
     let serialized = serde_json::to_string(&payload).map_err(FetchError::from)?;
-    opts.body(Some(&serialized.into()));
+    opts.set_body(&serialized.into());
 
     let request = Request::new_with_str_and_init(url, &opts)?;
 
@@ -105,10 +105,10 @@ pub async fn post_request_struct<
 }
 
 pub async fn delete_request(url: &str) -> Result<(), FetchError> {
-    let mut opts = RequestInit::new();
-    opts.method("DELETE");
-    opts.mode(RequestMode::Cors);
-    opts.credentials(RequestCredentials::Include);
+    let opts = RequestInit::new();
+    opts.set_method("DELETE");
+    opts.set_mode(RequestMode::Cors);
+    opts.set_credentials(RequestCredentials::Include);
 
     let request = Request::new_with_str_and_init(url, &opts)?;
 

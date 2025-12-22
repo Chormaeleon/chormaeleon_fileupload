@@ -202,15 +202,12 @@ impl Component for Home {
                 true
             }
             Msg::ProjectChanged(project) => {
-                match &mut self.pending_projects {
-                    Some(projects) => {
-                        projects.retain(|x| x.id != project.id);
-                        if project.due > now() {
-                            projects.push(project.clone());
-                            sort_projects(projects);
-                        }
+                if let Some(projects) = &mut self.pending_projects {
+                    projects.retain(|x| x.id != project.id);
+                    if project.due > now() {
+                        projects.push(project.clone());
+                        sort_projects(projects);
                     }
-                    None => (),
                 }
                 self.all_projects
                     .as_mut()
