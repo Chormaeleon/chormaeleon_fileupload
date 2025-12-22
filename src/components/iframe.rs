@@ -2,7 +2,7 @@ use wasm_bindgen::{JsCast, UnwrapThrowExt};
 use web_sys::{Event, HtmlIFrameElement};
 use yew::{html, Component, Context, Properties};
 
-const BOOTSTRAP_CSS_LINK: &str = "<link href=\"/bootstrap-min/bootstrap.min.css\" rel=\"stylesheet\" integrity=\"sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC\">";
+const BOOTSTRAP_CSS_LINK: &str = "<link href=\"/bootstrap-min/bootstrap-5.3.3.min.css\" rel=\"stylesheet\">";
 
 pub struct IFrame {}
 
@@ -55,9 +55,7 @@ impl Component for IFrame {
         };
 
         html! {
-            <div class="embed-responsive">
-                <iframe {srcdoc} class="embed-responsive-item" onload={ctx.link().callback(Msg::Resize)} width="100%"></iframe>
-            </div>
+            <iframe {srcdoc} onload={ctx.link().callback(Msg::Resize)} class="w-100"></iframe>
         }
     }
 }
