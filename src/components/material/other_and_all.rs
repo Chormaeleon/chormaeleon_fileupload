@@ -81,7 +81,7 @@ fn other_element(ctx: &Context<Material>, other: MaterialTo) -> Html {
                 </a>
             </td>
             <td class={ category_color }>
-                { &other.category }
+                { other.category }
             </td>
             <AdminOrOwner owner_id={ ctx.props().project_owner }>
                 <td>

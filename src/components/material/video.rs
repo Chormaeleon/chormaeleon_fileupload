@@ -16,9 +16,9 @@ pub fn video_list(ctx: &Context<Material>, video_elements: Vec<&MaterialTo>) -> 
                         }
                     } else {
                         html! {
-                            for video_elements.iter().map(|video| {
-                                video_element(ctx, (*video).clone())
-                            })
+                            for video in video_elements {
+                                { video_element(ctx, (*video).clone()) }
+                            }
                         }
                     }
                 }

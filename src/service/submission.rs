@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 use time::PrimitiveDateTime;
-use yew::{html, ToHtml};
+use yew::{html::IntoPropValue, prelude::*};
 
 use crate::{
     components::jwt_context::{self},
@@ -61,8 +61,8 @@ impl Display for Section {
     }
 }
 
-impl ToHtml for Section {
-    fn to_html(&self) -> yew::Html {
+impl IntoPropValue<Html> for Section {
+    fn into_prop_value(self) -> yew::Html {
         html!(self)
     }
 }
@@ -127,8 +127,8 @@ impl Display for SubmissionKind {
     }
 }
 
-impl ToHtml for SubmissionKind {
-    fn to_html(&self) -> yew::Html {
+impl IntoPropValue<Html> for SubmissionKind {
+    fn into_prop_value(self) -> yew::Html {
         html! {
             self
         }

@@ -11,7 +11,7 @@ use gloo_utils::window;
 use serde::Deserialize;
 use time::OffsetDateTime;
 use wasm_bindgen::{JsCast, JsValue, UnwrapThrowExt};
-use yew::prelude::*;
+use yew::{html::IntoPropValue, prelude::*};
 
 use web_sys::{HtmlDocument, UrlSearchParams};
 
@@ -54,8 +54,8 @@ impl Display for Section {
     }
 }
 
-impl ToHtml for Section {
-    fn to_html(&self) -> Html {
+impl IntoPropValue<Html> for Section {
+    fn into_prop_value(self) -> Html {
         html!(self)
     }
 }

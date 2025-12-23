@@ -28,8 +28,8 @@ time = { version = "0.3", features = [
 wasm-bindgen = { version = "^0.2", features = ["serde-serialize"] }
 wasm-bindgen-futures = "0.4"
 xmlhttp = { path = "./xmlhttp" }
-yew = { version = "0.21", features = ["csr"] }
-yew-router = "0.18"
+yew = { version = "0.22", features = ["csr"] }
+yew-router = "0.19"
 
 
 [dependencies.web-sys]

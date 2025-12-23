@@ -18,9 +18,9 @@ pub fn audio_list(id: i64, audio_elements: Vec<&MaterialTo>) -> Html {
                 }
             } else {
                 html! {
-                    for audio_elements.iter().map(move |audio|  {
-                        audio_element(id, (*audio).clone())
-                    })
+                    for audio in audio_elements {
+                        { audio_element(id, (*audio).clone()) }
+                    }
                 }
             }
         }

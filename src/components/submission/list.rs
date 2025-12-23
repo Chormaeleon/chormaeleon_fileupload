@@ -125,7 +125,7 @@ impl Component for SubmissionList {
                                                     { &submission.file_name }
                                                 </td>
                                                 <td>
-                                                    { &submission.kind }
+                                                    { submission.kind }
                                                 </td>
                                                 <td>
                                                     { &submission.note }

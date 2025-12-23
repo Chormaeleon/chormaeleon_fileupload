@@ -305,7 +305,7 @@ impl Component for ProjectEditModal {
                     <div class="row mt-2">
                         <div class="col">
                             <label for={ text_area_name.clone() }>{ "Beschreibung" }</label>
-                            <textarea id={ text_area_name }></textarea>
+                            <textarea id={ text_area_name }/>
                         </div>
                     </div>
 
