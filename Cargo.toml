@@ -10,7 +10,6 @@ members = [".", "xmlhttp"]
 
 [dependencies]
 base64 = "^0.23"
-gloo-file = "0.4"
 gloo-utils = "0.3"
 gloo-console = "0.4"
 gloo-dialogs = "0.3"
