@@ -236,7 +236,7 @@ impl Component for ProjectComponent {
                     </div>
                     <AdminOrOwner owner_id={ metadata.creator }>
                         <div class="col">
-                            <a href={ all_submissions_link(metadata.id) }>
+                            <a href={ all_submissions_link(metadata.id) } download = { format!("Abgabeportal Downloads {}.zip", metadata.title) }>
                             <button class="btn btn-danger">{ "Abgaben downloaden" } </button>
                             </a>
                         </div>

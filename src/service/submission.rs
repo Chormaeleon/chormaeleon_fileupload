@@ -176,9 +176,9 @@ pub async fn submissions_by_project_and_user(
     .await
 }
 
-pub fn submission_download_url(submission_id: i64) -> String {
+pub fn submission_download_url(project_id: i64, file_technical_name: &str) -> String {
     let backend_url = backend();
-    format!("{backend_url}/submissions/{submission_id}")
+    format!("{backend_url}/submissions/download/{project_id}/{file_technical_name}")
 }
 
 pub fn submission_stream_url(project_id: i64, file_technical_name: &str) -> String {

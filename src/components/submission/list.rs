@@ -140,7 +140,7 @@ impl Component for SubmissionList {
                                                     <button class="btn btn-sm btn-outline-danger" onclick={ ctx.link().callback(move |_| Msg::SelectOrUnselect(index as i64)) }>{"Details"}</button>
                                                 </td>
                                                 <td>
-                                                    <a href={ submission_download_url(submission.id) } download="true" target="_blank">
+                                                    <a href={ submission_download_url(submission.project_id, &submission.file_technical_name) } download={ submission.file_technical_name.clone() } target="_blank">
                                                         <button class="btn btn-sm btn-outline-danger">
                                                             {"Herunterladen"}
                                                         </button>
